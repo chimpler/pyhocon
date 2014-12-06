@@ -1,6 +1,8 @@
 pyhocon
 =======
 
+[![Build Status](https://travis-ci.org/chimpler/pyhocon.svg)](https://travis-ci.org/chimpler/pyhocon)
+
 HOCON parser for Python (under construction)
 
 ``` UNDER CONSTRUCTION - DO NOT USE```
