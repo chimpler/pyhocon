@@ -37,7 +37,7 @@ String value concatenation             | `x`
 Array and object concatenation         | `x`
 Arrays without commas                  | `x`
 Path expressions                       | `x`
-Paths as keys                          | `x`
+Paths as keys                          | `COMPLETED`
 Substitutions                          | `x`
 Self-referential substitutions         | `x`
 The `+=` separator                     | `x`

@@ -7,7 +7,7 @@ class TestConfigParser(object):
         config = ConfigFactory.parse_string(
             """t = {
                 c = 5
-                d = true
+                "d" = true
                 e.y = {
                     f: 7
                     g: "hey dude!"

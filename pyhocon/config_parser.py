@@ -24,7 +24,7 @@ class ConfigParser(object):
         true_expr = Keyword("true").setParseAction(replaceWith(True))
         false_expr = Keyword("false").setParseAction(replaceWith(False))
         null_expr = Keyword("null").setParseAction(replaceWith(None))
-        key = Word(alphanums + '._')
+        key = QuotedString('"', escChar='\\') | Word(alphanums + '._')
 
         comment = Regex('#.*') | Regex('//.*').suppress()
 
