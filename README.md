@@ -13,9 +13,12 @@ https://github.com/typesafehub/config/blob/master/HOCON.md
 
     from pyhocon import ConfigFactory
     
-    conf = ConfigFactory.load('samples/config1.conf')
-    conf.get_string('application.hostname')
-    
+    conf = ConfigFactory.parse_file('samples/database.conf')
+    host = conf.get_string('databases.mysql.host')
+    port = conf['databases.mysql.port']
+    username = conf['databases']['mysql']['username']
+    password = conf.get_config('databases')['mysql.password']
+  
 ## TODO
 
 TODO list taken from: https://github.com/primexx/hocon-config

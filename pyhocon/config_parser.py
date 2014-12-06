@@ -44,6 +44,12 @@ class ConfigParser(object):
         assign_value_or_list_expr = key + Suppress(oneOf(['=', ':'])) + (list_expr | value_expr)
         assign_expr << Group(assign_dict_expr | assign_value_or_list_expr)
 
-        # the file can be { ... } where {} can be omitted or [] (TODO)
-        config_expr = ConfigTreeParser(Optional(Suppress('{')) + ZeroOrMore(assign_expr) + Optional(Suppress('}')))
-        return config_expr.parseString(content, parseAll=True)[0]
+        # the file can be { ... } where {} can be omitted or []
+        config_expr = list_expr | dict_expr | ConfigTreeParser(ZeroOrMore(assign_expr))
+        config = config_expr.parseString(content, parseAll=True)[0]
+
+        # if config consists in a list
+        if isinstance(config, ConfigTree):
+            return config
+        else:
+            return list(config)

@@ -6,7 +6,7 @@ from pyhocon.config_parser import ConfigParser
 
 class ConfigFactory(object):
     @staticmethod
-    def parseFile(filename):
+    def parse_file(filename):
         """
         Parse file
         :param filename: filename
@@ -16,10 +16,10 @@ class ConfigFactory(object):
         """
         with open(filename, 'r') as fd:
             content = fd.read()
-            return ConfigFactory.parseString(content)
+            return ConfigFactory.parse_string(content)
 
     @staticmethod
-    def parseURL(url, timeout=None):
+    def parse_URL(url, timeout=None):
         """
         Parse URL
         :param url: url to parse
@@ -30,10 +30,10 @@ class ConfigFactory(object):
         socket_timeout = socket._GLOBAL_DEFAULT_TIMEOUT if timeout is None else timeout
         fd = urllib2.urlopen(url, timeout=socket_timeout)
         content = fd.read()
-        return ConfigFactory.parseString(content)
+        return ConfigFactory.parse_string(content)
 
     @staticmethod
-    def parseString(content):
+    def parse_string(content):
         """
         Parse URL
         :param url: url to parse

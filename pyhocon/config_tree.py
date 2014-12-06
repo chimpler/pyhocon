@@ -82,6 +82,13 @@ class ConfigTree(object):
         else:
             raise ConfigException("{key} has type '{type}' rather than 'list'".format(key=key, type=type(value).__name__))
 
+    def get_config(self, key):
+        value = self.get(key)
+        if isinstance(value, ConfigTree):
+            return value
+        else:
+            raise ConfigException("{key} has type '{type}' rather than 'config'".format(key=key, type=type(value).__name__))
+
     def __getitem__(self, item):
         return self.get(item)
 

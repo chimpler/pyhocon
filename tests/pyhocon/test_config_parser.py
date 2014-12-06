@@ -4,7 +4,7 @@ from pyhocon import ConfigFactory
 class TestConfigParser(object):
 
     def test_parse_simple_value(self):
-        config = ConfigFactory.parseString(
+        config = ConfigFactory.parse_string(
             """t = {
                 c = 5
                 d = true
@@ -30,3 +30,20 @@ class TestConfigParser(object):
         assert config.get_bool('t.d') is True
         assert config.get_int('t.e.y.f') == 7
         assert config.get('t.j') == [1, 2, 3]
+
+    def test_parse_with_enclosing_brace(self):
+        config = ConfigFactory.parse_string(
+            """
+            {
+                a: {
+                    b: 5
+                }
+            }
+            """
+        )
+
+        assert config.get_string('a.b') == '5'
+
+    def test_parse_with_enclosing_square_bracket(self):
+        config = ConfigFactory.parse_string("[1, 2, 3]")
+        assert config == [1, 2, 3]
