@@ -13,7 +13,7 @@ https://github.com/typesafehub/config/blob/master/HOCON.md
 
     from pyhocon import ConfigFactory
     
-    conf = ConfigFactory.load('tests/config1.conf')
+    conf = ConfigFactory.load('samples/config1.conf')
     conf.get_string('application.hostname')
     
 ## TODO

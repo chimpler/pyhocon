@@ -1,4 +1,4 @@
-from pyparsing import TokenConverter
+from pyparsing import TokenConverter, ParseResults
 from pyhocon.exceptions import ConfigException
 
 
@@ -14,7 +14,8 @@ class ConfigTreeParser(TokenConverter):
             # key, value
             if len(token) == 2:
                 key, value = token
-                config_tree.put(key, value)
+                conv_value = list(value) if isinstance(value, ParseResults) else value
+                config_tree.put(key, conv_value)
 
         return config_tree
 
@@ -43,6 +44,7 @@ class ConfigTree(object):
 
         if len(key_path) == 1:
             return elt
+
         if isinstance(elt, ConfigTree):
             try:
                 return elt._get(key_path[1:])
@@ -72,6 +74,13 @@ class ConfigTree(object):
 
     def get_bool(self, key):
         return bool(self.get(key))
+
+    def get_list(self, key):
+        value = self.get(key)
+        if isinstance(value, list):
+            return value
+        else:
+            raise ConfigException("{key} has type '{type}' rather than 'list'".format(key=key, type=type(value).__name__))
 
     def __getitem__(self, item):
         return self.get(item)
