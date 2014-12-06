@@ -5,8 +5,6 @@ pyhocon
 
 HOCON parser for Python (under construction)
 
-``` UNDER CONSTRUCTION - DO NOT USE```
-
 ## Specs
 
 https://github.com/typesafehub/config/blob/master/HOCON.md
@@ -29,10 +27,10 @@ TODO list taken from: https://github.com/primexx/hocon-config
 
 Items                                  | Status
 -------------------------------------- | :-----:
-Comments                               | `x`
+Comments                               | `COMPLETE`
 Omit root braces                       | `COMPLETE`
 Key-value separator                    | `COMPLETE`
-Duplicate keys and object merging      | `x`
+Duplicate keys and object merging      | `COMPLETE`
 Unquoted strings                       | `COMPLETE`
 Multi-line strings                     | `COMPLETE`
 String value concatenation             | `x`

@@ -47,3 +47,21 @@ class TestConfigParser(object):
     def test_parse_with_enclosing_square_bracket(self):
         config = ConfigFactory.parse_string("[1, 2, 3]")
         assert config == [1, 2, 3]
+
+    def test_parse_with_comments(self):
+        config = ConfigFactory.parse_string(
+            """
+            // comment 1
+            # comment 2
+            {
+                # comment 3
+                a: { # comment 4
+                    b: test                # comment 5
+                } # comment 6
+            } # comment 7
+            // comment 8
+            // comment 9
+            """
+        )
+
+        assert config.get_string('a.b') == 'test'
