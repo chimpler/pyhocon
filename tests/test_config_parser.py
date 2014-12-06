@@ -65,3 +65,23 @@ class TestConfigParser(object):
         )
 
         assert config.get_string('a.b') == 'test'
+
+    def test_parse_override(self):
+        config = ConfigFactory.parse_string(
+            """
+            {
+                a: {
+                    b: {
+                        c = 5
+                    }
+                }
+                a.b {
+                    c = 7
+                    d = 8
+                }
+            }
+            """
+        )
+
+        assert config.get('a.b.c') == 7
+        assert config.get('a.b.d') == 8

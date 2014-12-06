@@ -3,11 +3,16 @@ pyhocon
 
 [![Build Status](https://travis-ci.org/chimpler/pyhocon.svg)](https://travis-ci.org/chimpler/pyhocon)
 
-HOCON parser for Python (under construction)
+HOCON parser for Python
 
 ## Specs
 
 https://github.com/typesafehub/config/blob/master/HOCON.md
+
+## Features
+The parsed config can be accessed as a nested dictionary (with types automatically inferred) or accessed via
+the methods get (default), get_int (throws an exception if it is not an int), get_string, get_list, get_double, get_bool,
+get_config.
 
 ## Usage
 
