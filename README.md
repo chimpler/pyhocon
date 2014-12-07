@@ -11,8 +11,8 @@ https://github.com/typesafehub/config/blob/master/HOCON.md
 
 ## Features
 The parsed config can be seen as a nested dictionary (with types automatically inferred) where values can be accessed using normal
-dictionary getter (e.g., `conf['a']['b']` or using paths like `conf['a.b']`) or via the methods get (default), get_int (throws an exception
-if it is not an int), get_string, get_list, get_double, get_bool, get_config.
+dictionary getter (e.g., `conf['a']['b']` or using paths like `conf['a.b']`) or via the methods `get`, `get_int` (throws an exception
+if it is not an int), `get_string`, `get_list`, `get_double`, `get_bool`, `get_config`.
 
 ## Usage
 
@@ -35,6 +35,8 @@ Items                                  | Status
 Comments                               | `COMPLETE`
 Omit root braces                       | `COMPLETE`
 Key-value separator                    | `COMPLETE`
+Commas                                 | `COMPLETE`
+Whitespace                             | `COMPLETE`
 Duplicate keys and object merging      | `COMPLETE`
 Unquoted strings                       | `COMPLETE`
 Multi-line strings                     | `COMPLETE`
@@ -52,8 +54,14 @@ Include semantics: substitution                    | `x`
 Include semantics: missing files                   | `x`
 Include semantics: file formats and extensions     | `x`
 Include semantics: locating resources              | `x`
+Conversion of numerically-index objects to arrays  | `x`
 
 API Recommendations                                        | Status
 ---------------------------------------------------------- | :----:
 Conversion of numerically-index objects to arrays          | `x`
-Conversion of numerically-index objects to arrays          | `x`
+Automatic type conversions                                 | `x`
+Units format                                               | `x`
+Duration format                                            | `x`
+Size in bytes format                                       | `x`
+Config object merging and file merging                     | `x`
+Java properties mapping                                    | `x`
