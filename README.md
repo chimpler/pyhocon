@@ -26,42 +26,38 @@ if it is not an int), `get_string`, `get_list`, `get_double`, `get_bool`, `get_c
   
 ## TODO
 
-TODO list taken from: https://github.com/primexx/hocon-config
-
-**Completed Items** marked as `COMPLETE`
-
 Items                                  | Status
 -------------------------------------- | :-----:
-Comments                               | `COMPLETE`
-Omit root braces                       | `COMPLETE`
-Key-value separator                    | `COMPLETE`
-Commas                                 | `COMPLETE`
-Whitespace                             | `COMPLETE`
-Duplicate keys and object merging      | `COMPLETE`
-Unquoted strings                       | `COMPLETE`
-Multi-line strings                     | `COMPLETE`
-String value concatenation             | `x`
-Array and object concatenation         | `x`
-Arrays without commas                  | `x`
-Path expressions                       | `x`
-Paths as keys                          | `COMPLETED`
-Substitutions                          | `x`
-Self-referential substitutions         | `x`
-The `+=` separator                     | `x`
-Includes                               | `x`
-Include semantics: merging                         | `x`
-Include semantics: substitution                    | `x`
-Include semantics: missing files                   | `x`
-Include semantics: file formats and extensions     | `x`
-Include semantics: locating resources              | `x`
-Conversion of numerically-index objects to arrays  | `x`
+Comments                               | :white_check_mark:
+Omit root braces                       | :white_check_mark:
+Key-value separator                    | :white_check_mark:
+Commas                                 | :white_check_mark:
+Whitespace                             | :white_check_mark:
+Duplicate keys and object merging      | :white_check_mark:
+Unquoted strings                       | :white_check_mark:
+Multi-line strings                     | :white_check_mark:
+String value concatenation             | :x:
+Array and object concatenation         | :x:
+Arrays without commas                  | :x:
+Path expressions                       | :x:
+Paths as keys                          | :white_check_mark:
+Substitutions                          | :x:
+Self-referential substitutions         | :x:
+The `+=` separator                     | :x:
+Includes                               | :x:
+Include semantics: merging             | :x:
+Include semantics: substitution        | :x:
+Include semantics: missing files       | :x:
+Include semantics: file formats and extensions     | :x:
+Include semantics: locating resources              | :x:
+Conversion of numerically-index objects to arrays  | :x:
 
 API Recommendations                                        | Status
 ---------------------------------------------------------- | :----:
-Conversion of numerically-index objects to arrays          | `x`
-Automatic type conversions                                 | `x`
-Units format                                               | `x`
-Duration format                                            | `x`
-Size in bytes format                                       | `x`
-Config object merging and file merging                     | `x`
-Java properties mapping                                    | `x`
+Conversion of numerically-index objects to arrays          | :x:
+Automatic type conversions                                 | :x:
+Units format                                               | :x:
+Duration format                                            | :x:
+Size in bytes format                                       | :x:
+Config object merging and file merging                     | :x:
+Java properties mapping                                    | :x:
