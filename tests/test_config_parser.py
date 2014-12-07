@@ -62,6 +62,16 @@ class TestConfigParser(object):
         assert config.get('c') == 'the man!'
         assert config.get('d') == 'woof'
 
+    def test_dict_concatenation(self):
+        config = ConfigFactory.parse_string(
+            """
+            a: {b: 1}
+            a: {c: 2}
+            """
+        )
+        assert config.get('a.b') == 1
+        assert config.get('a.c') == 2
+
     def test_parse_with_comments(self):
         config = ConfigFactory.parse_string(
             """

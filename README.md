@@ -36,8 +36,9 @@ Whitespace                             | :white_check_mark:
 Duplicate keys and object merging      | :white_check_mark:
 Unquoted strings                       | :white_check_mark:
 Multi-line strings                     | :white_check_mark:
-String value concatenation             | :x:
-Array and object concatenation         | :x:
+String value concatenation             | :white_check_mark:
+Array concatenation                    | :x:
+Object concatenation                   | :x:
 Arrays without commas                  | :x:
 Path expressions                       | :x:
 Paths as keys                          | :white_check_mark:

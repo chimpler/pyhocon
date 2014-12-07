@@ -26,10 +26,34 @@ class ConfigTree(object):
     def __init__(self):
         self._dictionary = {}
 
+    def _merge_config_tree(self, a, b):
+        """
+        Merge config b into a
+        :param a: target config
+        :type a: ConfigTree
+        :param b: source config
+        :type b: ConfigTree
+        :return: merged config a
+        """
+        for key, value in b._dictionary.items():
+            # if key is in both a and b and both values are dictionary then merge it otherwise override it
+            if key in a._dictionary.items() and isinstance(a._dictionary[key], ConfigTree) and isinstance(a._dictionary[key], ConfigTree):
+                self._merge_dict(a._dictionary[key], b._dictionary[key])
+            else:
+                a._dictionary[key] = value
+
+        return a
+
     def _put(self, key_path, value):
         key_elt = key_path[0]
         if len(key_path) == 1:
-            self._dictionary[key_elt] = value
+            # if value to set does not exist, override
+            # if they are both configs then merge
+            # if not then override
+            if key_elt in self._dictionary and isinstance(self._dictionary[key_elt], ConfigTree) and isinstance(value, ConfigTree):
+                self._merge_config_tree(self._dictionary[key_elt], value)
+            else:
+                self._dictionary[key_elt] = value
         else:
             next_config_tree = self._dictionary.get(key_elt)
             if not isinstance(next_config_tree, ConfigTree):
