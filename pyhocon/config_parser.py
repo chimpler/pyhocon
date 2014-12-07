@@ -25,7 +25,7 @@ class ConfigParser(object):
         null_expr = Keyword("null").setParseAction(replaceWith(None))
         key = QuotedString('"', escChar='\\') | Word(alphanums + '._')
 
-        comment = Regex('#.*') | Regex('//.*').suppress()
+        comment = (Regex('#.*') | Regex('//.*')).suppress()
 
         number_expr = Combine(Optional('-') + ('0' | Word('123456789', nums)) +
                               Optional('.' + Word(nums)) +
@@ -36,12 +36,14 @@ class ConfigParser(object):
         # single quoted line string
         singleline_string = QuotedString('"', escChar='\\')
         # default string that takes the rest of the line until an optional comment
-        defaultline_string = Combine(Regex('.*?(?=\s*(#|//))|.*').leaveWhitespace(), Optional(comment))
+        defaultline_string = Combine(Regex('.*?(?=\s*(#|//|,))|.*').leaveWhitespace() + Optional(',').suppress() + Optional(comment))
         string_expr = multiline_string | singleline_string | defaultline_string
 
         value_expr = (number_expr | true_expr | false_expr | null_expr | string_expr)
         any_expr = comment | list_expr | value_expr | dict_expr
-        list_expr << Group(Suppress('[') + any_expr + ZeroOrMore(Suppress(',') + any_expr) + Suppress(']'))
+
+        # TODO: find a way to make comma optional and yet works with multilines
+        list_expr << Group(Suppress('[') + any_expr + ZeroOrMore(Suppress(',') + Optional(comment) + any_expr) + Optional(comment) + Suppress(']'))
 
         # for a dictionary : or = is optional
         dict_expr << ConfigTreeParser(Suppress('{') + ZeroOrMore(comment | assign_expr) + Suppress('}'))
@@ -49,7 +51,7 @@ class ConfigParser(object):
 
         # special case when we have a value assignment where the string can potentially be the remainder of the line
         assign_value_or_list_expr = key + Suppress(oneOf(['=', ':'])) + (list_expr | value_expr)
-        assign_expr << Group(assign_dict_expr | assign_value_or_list_expr)
+        assign_expr << Group(assign_dict_expr | assign_value_or_list_expr) + Optional(',').suppress()
 
         # the file can be { ... } where {} can be omitted or []
         config_expr = Suppress(ZeroOrMore(comment)) \

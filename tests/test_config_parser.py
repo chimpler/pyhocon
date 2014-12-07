@@ -48,6 +48,20 @@ class TestConfigParser(object):
         config = ConfigFactory.parse_string("[1, 2, 3]")
         assert config == [1, 2, 3]
 
+    def test_comma_to_separate_expr(self):
+        config = ConfigFactory.parse_string(
+            """
+            a=1,
+            b="abc",
+            c=the man!
+            d=woof
+            """
+        )
+        assert config.get('a') == 1
+        assert config.get('b') == 'abc'
+        assert config.get('c') == 'the man!'
+        assert config.get('d') == 'woof'
+
     def test_parse_with_comments(self):
         config = ConfigFactory.parse_string(
             """
@@ -56,12 +70,11 @@ class TestConfigParser(object):
             {
                 # comment 3
                 a: { # comment 4
-                    b: test                # comment 5
+                    b: test,                # comment 5
                 } # comment 6
-                t = [
-                    1, # comment 7
-                    2, # comment 8
-                    3, # comment 9
+                t = [1, # comment 7
+                     2, # comment 8
+                     3 # comment 9
                 ]
             } # comment 10
             // comment 11
