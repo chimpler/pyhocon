@@ -40,8 +40,9 @@ class ConfigParser(object):
         defaultline_string = Combine(Regex('.*?(?=\s*(#|//))|.*').leaveWhitespace(), Optional(comment))
         string_expr = multiline_string | singleline_string | defaultline_string
 
-        value_expr = number_expr | true_expr | false_expr | null_expr | string_expr
-        list_expr << Group(Suppress('[') + delimitedList(comment | list_expr | value_expr | dict_expr) + Suppress(']'))
+        value_expr = (number_expr | true_expr | false_expr | null_expr | string_expr)
+        any_expr = comment | list_expr | value_expr | dict_expr
+        list_expr << Group(Suppress('[') + any_expr + ZeroOrMore(Suppress(',') + any_expr) + Suppress(']'))
 
         # for a dictionary : or = is optional
         dict_expr << ConfigTreeParser(Suppress('{') + ZeroOrMore(comment | assign_expr) + Suppress('}'))

@@ -10,9 +10,9 @@ HOCON parser for Python
 https://github.com/typesafehub/config/blob/master/HOCON.md
 
 ## Features
-The parsed config can be accessed as a nested dictionary (with types automatically inferred) or accessed via
-the methods get (default), get_int (throws an exception if it is not an int), get_string, get_list, get_double, get_bool,
-get_config.
+The parsed config can be seen as a nested dictionary (with types automatically inferred) where values can be accessed using normal
+dictionary getter (e.g., `conf['a']['b']` or using paths like `conf['a.b']`) or via the methods get (default), get_int (throws an exception
+if it is not an int), get_string, get_list, get_double, get_bool, get_config.
 
 ## Usage
 

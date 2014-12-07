@@ -58,13 +58,19 @@ class TestConfigParser(object):
                 a: { # comment 4
                     b: test                # comment 5
                 } # comment 6
-            } # comment 7
-            // comment 8
-            // comment 9
+                t = [
+                    1, # comment 7
+                    2, # comment 8
+                    3, # comment 9
+                ]
+            } # comment 10
+            // comment 11
+            // comment 12
             """
         )
 
         assert config.get_string('a.b') == 'test'
+        assert config.get('t') == [1, 2, 3]
 
     def test_parse_override(self):
         config = ConfigFactory.parse_string(
