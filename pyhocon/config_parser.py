@@ -1,5 +1,4 @@
-from pyparsing import Word, alphas, ZeroOrMore, alphanums, Optional, Or, Regex, Literal, oneOf, OneOrMore, Forward, \
-    QuotedString, Suppress, delimitedList, Group, Dict, Keyword, replaceWith, Combine, nums, quotedString, restOfLine
+from pyparsing import *
 from pyhocon.config_tree import ConfigTree, ConfigTreeParser
 
 
