@@ -1,5 +1,5 @@
 from pyparsing import TokenConverter, ParseResults
-from pyhocon.exceptions import ConfigException
+from pyhocon.exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
 
 
 class ConfigTreeParser(TokenConverter):
@@ -62,30 +62,25 @@ class ConfigTree(object):
                 self._dictionary[key_elt] = next_config_tree
             next_config_tree._put(key_path[1:], value)
 
-    def _get(self, key_path):
-        key_elt = key_path[0]
+    def _get(self, key_path, key_index=0):
+        key_elt = key_path[key_index]
         elt = self._dictionary.get(key_elt)
 
-        if len(key_path) == 1:
+        if key_index == len(key_path) - 1:
             return elt
 
-        if isinstance(elt, ConfigTree):
-            try:
-                return elt._get(key_path[1:])
-            except ConfigException as e:
-                raise ConfigException(e.message, key_path=[key_elt] + e._key_path)
+        if elt is None:
+            raise ConfigMissingException("No configuration setting found for key {key}".format(key='.'.join(key_path[:key_index + 1])))
+        elif isinstance(elt, ConfigTree):
+            return elt._get(key_path, key_index + 1)
         else:
-            # TODO: show prefix path
-            raise ConfigException("Cannot access field {key}".format(key=key_elt), key_path=[key_elt])
+            raise ConfigWrongTypeException("{key} has type {type} rather than dict".format(key='.'.join(key_path[:key_index + 1]), type=type(elt).__name__))
 
     def put(self, key, value):
         self._put(key.split(ConfigTree.KEY_SEP), value)
 
     def get(self, key):
-        try:
-            return self._get(key.split(ConfigTree.KEY_SEP))
-        except ConfigException as e:
-            raise ConfigException('{message}. Path = {path}'.format(message=e.message, path=ConfigTree.KEY_SEP.join(e._key_path)), e._key_path)
+        return self._get(key.split(ConfigTree.KEY_SEP))
 
     def get_string(self, key):
         return str(self.get(key))
@@ -113,8 +108,24 @@ class ConfigTree(object):
         else:
             raise ConfigException("{key} has type '{type}' rather than 'config'".format(key=key, type=type(value).__name__))
 
+    def items(self):
+        return self._dictionary.items()
+
+    def iteritems(self):
+        return self._dictionary.iteritems()
+
+    def iterkeys(self):
+        return self._dictionary.iterkeys()
+
+    def itervalues(self):
+        return self._dictionary.itervalues()
+
     def __getitem__(self, item):
-        return self.get(item)
+        val = self.get(item)
+        if val is None:
+            raise KeyError(item)
+
+        return val
 
     def __contains__(self, item):
         return item in self._dictionary
@@ -124,3 +135,6 @@ class ConfigTree(object):
 
     def __repr__(self):
         return repr(self._dictionary)
+
+    def __len__(self):
+        return len(self._dictionary)

@@ -1,6 +1,6 @@
 import pytest
 from pyhocon.config_tree import ConfigTree
-from pyhocon.exceptions import ConfigException
+from pyhocon.exceptions import ConfigMissingException, ConfigWrongTypeException
 
 
 class TestConfigParser(object):
@@ -10,8 +10,11 @@ class TestConfigParser(object):
         config_tree.put("a.b.c", "value")
         assert config_tree.get("a.b.c") == "value"
         assert config_tree.get("a.b.d") is None
-        with pytest.raises(ConfigException):
+        with pytest.raises(ConfigMissingException):
             config_tree.get("a.d.e")
+
+        with pytest.raises(ConfigWrongTypeException):
+            config_tree.get("a.b.c.e")
 
     def test_config_tree_number(self):
         config_tree = ConfigTree()

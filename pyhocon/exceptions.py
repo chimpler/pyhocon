@@ -1,5 +1,13 @@
 class ConfigException(Exception):
 
-    def __init__(self, message, key_path=[]):
+    def __init__(self, message, ex=None):
         super(ConfigException, self).__init__(message)
-        self._key_path = key_path
+        self._exception = ex
+
+
+class ConfigMissingException(ConfigException):
+    pass
+
+
+class ConfigWrongTypeException(ConfigException):
+    pass
