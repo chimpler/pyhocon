@@ -87,7 +87,7 @@ class TestConfigParser(object):
                 } # comment 6
                 t = [1, # comment 7
                      2, # comment 8
-                     3 # comment 9
+                     3, # comment 9
                 ]
             } # comment 10
             // comment 11

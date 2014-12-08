@@ -23,6 +23,35 @@ if it is not an int), `get_string`, `get_list`, `get_double`, `get_bool`, `get_c
     port = conf['databases.mysql.port']
     username = conf['databases']['mysql']['username']
     password = conf.get_config('databases')['mysql.password']
+
+## Examples of file supported
+
+    //
+    // You can use # or // for comments
+    //
+    {
+      databases {
+        # MySQL
+        mysql {
+          host = "abc.com" # change it
+          port = 3306 # default
+          username: scott // can use : or =
+          password = tiger, // can optionally use a comma
+          // number of retries
+          retries = 3
+        }
+      }
+      // multi line support
+      motd = """
+            Hello "man"!
+            How is it going?
+             """
+      ips = [
+        192.168.0.1,
+        "192.168.0.2", // optional quotes
+        192.168.0.3, # can have a trailing , which is ok
+      ]
+    }
   
 ## TODO
 

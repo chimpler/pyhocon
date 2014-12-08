@@ -1,5 +1,6 @@
 from pyparsing import *
-from pyhocon.config_tree import ConfigTree, ConfigTreeParser
+from pyhocon.config_tree import ConfigTree
+from pyhocon.exceptions import ConfigException
 
 
 class ConfigParser(object):
@@ -20,30 +21,28 @@ class ConfigParser(object):
         list_expr = Forward()
         assign_expr = Forward()
 
-        true_expr = Keyword("true").setParseAction(replaceWith(True))
-        false_expr = Keyword("false").setParseAction(replaceWith(False))
-        null_expr = Keyword("null").setParseAction(replaceWith(None))
+        true_expr = Keyword("true", caseless=True).setParseAction(replaceWith(True))
+        false_expr = Keyword("false", caseless=True).setParseAction(replaceWith(False))
+        null_expr = Keyword("null", caseless=True).setParseAction(replaceWith(None))
         key = QuotedString('"', escChar='\\') | Word(alphanums + '._')
 
         comment = (Regex('#.*') | Regex('//.*')).suppress()
-
-        number_expr = Combine(Optional('-') + ('0' | Word('123456789', nums)) +
-                              Optional('.' + Word(nums)) +
-                              Optional(Word('eE', exact=1) + Word(nums + '+-', nums))).setParseAction(convert_number)
+        comments = ZeroOrMore(comment)
+        number_expr = Regex('[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE]\d+)?(?=[/#,\s\]\}])').setParseAction(convert_number)
 
         # multi line string using """
         multiline_string = QuotedString('"""', escChar='\\', multiline=True, unquoteResults=True)
         # single quoted line string
         singleline_string = QuotedString('"', escChar='\\')
         # default string that takes the rest of the line until an optional comment
-        defaultline_string = Combine(Regex('.*?(?=\s*(#|//|,))|.*').leaveWhitespace() + Optional(',').suppress() + Optional(comment))
+        defaultline_string = Regex('.*?(?=\s*(?://|[#,\]\}]))|.*')
         string_expr = multiline_string | singleline_string | defaultline_string
 
-        value_expr = (number_expr | true_expr | false_expr | null_expr | string_expr)
+        value_expr = number_expr | true_expr | false_expr | null_expr | string_expr
         any_expr = comment | list_expr | value_expr | dict_expr
 
         # TODO: find a way to make comma optional and yet works with multilines
-        list_expr << Group(Suppress('[') + any_expr + ZeroOrMore(Suppress(',') + Optional(comment) + any_expr) + Optional(comment) + Suppress(']'))
+        list_expr << ListParser(Suppress('[') + any_expr + ZeroOrMore(Suppress(',') + comments + any_expr) + comments + Suppress(']'))
 
         # for a dictionary : or = is optional
         dict_expr << ConfigTreeParser(Suppress(Regex('[ \t]*{')) + ZeroOrMore(comment | assign_expr) + Suppress('}')) + ZeroOrMore(dict_expr)
@@ -54,9 +53,9 @@ class ConfigParser(object):
         assign_expr << Group(assign_dict_expr | assign_value_or_list_expr) + Optional(',').suppress()
 
         # the file can be { ... } where {} can be omitted or []
-        config_expr = Suppress(ZeroOrMore(comment)) \
+        config_expr = comments \
             + (list_expr | dict_expr | ConfigTreeParser(ZeroOrMore(comment | assign_expr))) \
-            + Suppress(ZeroOrMore(comment))
+            + comments
         config = config_expr.parseString(content, parseAll=True)[0]
 
         # if config consists in a list
@@ -64,3 +63,39 @@ class ConfigParser(object):
             return config
         else:
             return list(config)
+
+
+class ListParser(TokenConverter):
+    def __init__(self, expr=None):
+        super(ListParser, self).__init__(expr)
+        self.saveAsList = True
+
+    def postParse(self, instring, loc, token_list):
+        res = []
+        for index, token in enumerate(token_list):
+            if token == '':
+                if index < len(token_list) - 1:
+                    raise ConfigException("Does not accept list with empty values {list}".format(list=repr(token_list)))
+            else:
+                res.append(token)
+
+        return [res]
+
+
+class ConfigTreeParser(TokenConverter):
+
+    def __init__(self, expr=None):
+        super(ConfigTreeParser, self).__init__(expr)
+        self.saveAsList = True
+
+    def postParse(self, instring, loc, token_list):
+        config_tree = ConfigTree()
+        for tokens in token_list:
+            # key, value1, value2, ...
+            key = tokens[0]
+            values = tokens[1:]
+            for value in values:
+                conv_value = list(value) if isinstance(value, ParseResults) else value
+                config_tree.put(key, conv_value)
+
+        return config_tree

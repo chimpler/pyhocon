@@ -1,24 +1,4 @@
-from pyparsing import TokenConverter, ParseResults
 from pyhocon.exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
-
-
-class ConfigTreeParser(TokenConverter):
-
-    def __init__(self, expr=None):
-        super(ConfigTreeParser, self).__init__(expr)
-        self.saveAsList = True
-
-    def postParse(self, instring, loc, token_list):
-        config_tree = ConfigTree()
-        for tokens in token_list:
-            # key, value1, value2, ...
-            key = tokens[0]
-            values = tokens[1:]
-            for value in values:
-                conv_value = list(value) if isinstance(value, ParseResults) else value
-                config_tree.put(key, conv_value)
-
-        return config_tree
 
 
 class ConfigTree(object):
