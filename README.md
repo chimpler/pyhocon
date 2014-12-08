@@ -24,7 +24,7 @@ if it is not an int), `get_string`, `get_list`, `get_double`, `get_bool`, `get_c
     username = conf['databases']['mysql']['username']
     password = conf.get_config('databases')['mysql.password']
 
-## Examples of file supported
+## Example of HOCON file
 
     //
     // You can use # or // for comments
@@ -46,7 +46,7 @@ if it is not an int), `get_string`, `get_list`, `get_double`, `get_bool`, `get_c
             Hello "man"!
             How is it going?
              """
-      ips = [
+      databases.ips = [
         192.168.0.1,
         "192.168.0.2", // optional quotes
         192.168.0.3, # can have a trailing , which is ok
