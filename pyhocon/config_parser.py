@@ -46,7 +46,7 @@ class ConfigParser(object):
         list_expr << Group(Suppress('[') + any_expr + ZeroOrMore(Suppress(',') + Optional(comment) + any_expr) + Optional(comment) + Suppress(']'))
 
         # for a dictionary : or = is optional
-        dict_expr << ConfigTreeParser(Suppress('{') + ZeroOrMore(comment | assign_expr) + Suppress('}'))
+        dict_expr << ConfigTreeParser(Suppress(Regex('[ \t]*{')) + ZeroOrMore(comment | assign_expr) + Suppress('}')) + ZeroOrMore(dict_expr)
         assign_dict_expr = key + Suppress(Optional(oneOf(['=', ':']))) + dict_expr
 
         # special case when we have a value assignment where the string can potentially be the remainder of the line

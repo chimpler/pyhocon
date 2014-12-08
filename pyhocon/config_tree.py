@@ -10,10 +10,11 @@ class ConfigTreeParser(TokenConverter):
 
     def postParse(self, instring, loc, token_list):
         config_tree = ConfigTree()
-        for token in token_list:
-            # key, value
-            if len(token) == 2:
-                key, value = token
+        for tokens in token_list:
+            # key, value1, value2, ...
+            key = tokens[0]
+            values = tokens[1:]
+            for value in values:
                 conv_value = list(value) if isinstance(value, ParseResults) else value
                 config_tree.put(key, conv_value)
 

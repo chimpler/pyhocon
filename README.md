@@ -38,7 +38,7 @@ Unquoted strings                       | :white_check_mark:
 Multi-line strings                     | :white_check_mark:
 String value concatenation             | :white_check_mark:
 Array concatenation                    | :x:
-Object concatenation                   | :x:
+Object concatenation                   | :white_check_mark:
 Arrays without commas                  | :x:
 Path expressions                       | :x:
 Paths as keys                          | :white_check_mark:
