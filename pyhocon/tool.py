@@ -67,7 +67,7 @@ class HOCONConverter(object):
         elif format.lower() == 'properties':
             print HOCONConverter.to_properties(config)
         else:
-            raise Exception("Format must be 'json' or properties")
+            raise Exception("Format must be 'json' or 'properties'")
 
 def main():
     parser = argparse.ArgumentParser(description='pyhocon tool')

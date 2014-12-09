@@ -59,8 +59,44 @@ if it is not an int), `get_string`, `get_list`, `get_double`, `get_bool`, `get_c
 
 We provide a conversion tool to convert from HOCON to the JSON and .properties format:
 
-    cat samples/databases.conf | pyhocon -f json
-    cat samples/databases.conf | pyhocon -f properties
+####  JSON
+
+    $ cat samples/databases.conf | pyhocon -f json
+    
+    {
+      "motd": "\n        Hello \"man\"!\n        How is it going?\n         ",
+      "databases": {
+        "ips": [
+          "192.168.0.1",
+          "192.168.0.2",
+          "192.168.0.3"
+        ],
+        "mysql": {
+          "username": "scott",
+          "retries": 3,
+          "host": "abc.com",
+          "password": "tiger",
+          "port": 3306
+        }
+      }
+    }    
+
+####  .properties
+
+    $ cat samples/databases.conf | pyhocon -f properties
+
+    motd = \
+            Hello "man"\!\
+            How is it going?\
+    
+    databases.ips.0 = 192.168.0.1
+    databases.ips.1 = 192.168.0.2
+    databases.ips.2 = 192.168.0.3
+    databases.mysql.username = scott
+    databases.mysql.retries = 3
+    databases.mysql.host = abc.com
+    databases.mysql.password = tiger
+    databases.mysql.port = 3306
 
 ## Issues
 
