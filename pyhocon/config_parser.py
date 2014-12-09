@@ -1,3 +1,4 @@
+import re
 from pyparsing import *
 from pyhocon.config_tree import ConfigTree
 from pyhocon.exceptions import ConfigException
@@ -9,6 +10,9 @@ class ConfigParser(object):
     """
 
     def parse(self, content):
+
+        def unescape_string(tokens):
+            return tokens[0].strip('"').replace('\\n', '\n').replace('\\t', '\t').replace('\\"', '"')
 
         def convert_number(tokens):
             n = tokens[0]
@@ -31,9 +35,10 @@ class ConfigParser(object):
         number_expr = Regex('[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE]\d+)?(?=[/#,\s\]\}])').setParseAction(convert_number)
 
         # multi line string using """
-        multiline_string = QuotedString('"""', escChar='\\', multiline=True, unquoteResults=True)
+        # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
+        multiline_string = Regex('""".*?"""', re.DOTALL).setParseAction(unescape_string)
         # single quoted line string
-        singleline_string = QuotedString('"', escChar='\\')
+        singleline_string = Regex(r'\"(?:\\\"|\\\\|[^"])*\"').setParseAction(unescape_string)
         # default string that takes the rest of the line until an optional comment
         defaultline_string = Regex('.*?(?=\s*(?://|[#,\]\}]))|.*')
         string_expr = multiline_string | singleline_string | defaultline_string
