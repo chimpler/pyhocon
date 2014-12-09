@@ -69,6 +69,7 @@ class HOCONConverter(object):
         else:
             raise Exception("Format must be 'json' or 'properties'")
 
+
 def main():
     parser = argparse.ArgumentParser(description='pyhocon tool')
     parser.add_argument('-f', '--format', help='output format: json or properties', default='json')
@@ -76,6 +77,7 @@ def main():
     if args.format.lower() not in ['json', 'properties']:
         raise Exception("Format must be 'json' or properties")
     HOCONConverter.convert(args.format)
+
 
 if __name__ == '__main__':
     main()
