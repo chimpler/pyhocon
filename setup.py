@@ -21,4 +21,9 @@ setup(
     install_requires=[
         'pyparsing==2.0.3'
     ],
+    entry_points={
+        'console_scripts': [
+            'pyhocon=pyhocon.tool:main'
+        ]
+    }
 )

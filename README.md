@@ -30,7 +30,7 @@ if it is not an int), `get_string`, `get_list`, `get_double`, `get_bool`, `get_c
     // You can use # or // for comments
     //
     {
-      databases {
+      "databases" { # you can optionally use quoted strings for keys
         # MySQL
         mysql {
           host = "abc.com" # change it
@@ -46,12 +46,26 @@ if it is not an int), `get_string`, `get_list`, `get_double`, `get_bool`, `get_c
             Hello "man"!
             How is it going?
              """
+             
+      // this will be appended to the databases dictionary above
       databases.ips = [
         192.168.0.1,
         "192.168.0.2", // optional quotes
         192.168.0.3, # can have a trailing , which is ok
       ]
     }
+
+## Tool
+
+We provide a conversion tool to convert from HOCON to the JSON and .properties format:
+
+    cat samples/databases.conf | pyhocon -f json
+    cat samples/databases.conf | pyhocon -f properties
+
+## Issues
+
+Known issue: Lists cannot use white spaces as separator
+If you find an issue, please open a ticket.
   
 ## TODO
 
