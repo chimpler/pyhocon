@@ -56,6 +56,10 @@ class ConfigParser(object):
         # single quoted line string
         singleline_string = Regex(r'\"(?:\\\"|\\\\|[^"])*\"', re.DOTALL).setParseAction(unescape_string)
         # default string that takes the rest of the line until an optional comment
+        # we support .properties multiline support which is like this:
+        # line1  \
+        # line2 \
+        # so a backslash precedes the \n
         defaultline_string = Regex(r'(\\\n|[^\n])*?(?=\s*(?:\n|//|[#,\]\}]))', re.DOTALL).setParseAction(unescape_string)
         string_expr = multiline_string | singleline_string | defaultline_string
 
