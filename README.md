@@ -57,7 +57,7 @@ if it is not an int), `get_string`, `get_list`, `get_double`, `get_bool`, `get_c
 
 ## Tool
 
-We provide a conversion tool to convert from HOCON to the JSON and .properties format:
+We provide a conversion tool to convert from HOCON to the JSON, .properties and YAML formats:
 
 ####  JSON
 
