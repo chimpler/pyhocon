@@ -60,14 +60,14 @@ class ConfigParser(object):
         # line1  \
         # line2 \
         # so a backslash precedes the \n
-        defaultline_string = Regex(r'(\\\n|[^\n])*?(?=\s*(?:\n|//|[#,\]\}]))', re.DOTALL).setParseAction(unescape_string)
+        defaultline_string = Regex(r'(\\\n|[^\[\{\n\]\}#,])+?(?=\s*(?://|[\n#,\]\}]))', re.DOTALL).setParseAction(unescape_string)
         string_expr = multiline_string | singleline_string | defaultline_string
 
         value_expr = number_expr | true_expr | false_expr | null_expr | string_expr
         any_expr = comment | list_expr | value_expr | dict_expr
 
         # TODO: find a way to make comma optional and yet works with multilines
-        list_expr << ListParser(Suppress('[') + any_expr + ZeroOrMore(Suppress(',') + comments + any_expr) + comments + Suppress(']'))
+        list_expr << ListParser(Suppress('[') + any_expr + ZeroOrMore(Optional(',').suppress() + any_expr) + comments + Suppress(']'))
 
         # for a dictionary : or = is optional
         dict_expr << ConfigTreeParser(Suppress(Regex('[ \t]*{')) + ZeroOrMore(comment | assign_expr) + Suppress('}')) + ZeroOrMore(dict_expr)
