@@ -119,9 +119,6 @@ We provide a conversion tool to convert from HOCON to the JSON, .properties and 
           host: abc.com
           password: tiger
           port: 3306
-        }
-      }
-    }
 
 ## Issues
 
