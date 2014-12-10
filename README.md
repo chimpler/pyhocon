@@ -98,9 +98,34 @@ We provide a conversion tool to convert from HOCON to the JSON and .properties f
     databases.mysql.password = tiger
     databases.mysql.port = 3306
 
+#### YAML
+
+    $ cat samples/databases.conf | pyhocon -f yaml
+
+    motd: |
+    
+                Hello "man"!
+                How is it going?
+    
+      databases:
+        ips:
+          - 192.168.0.1
+          - 192.168.0.2
+          - 192.168.0.3
+    
+        mysql:
+          username: scott
+          retries: 3
+          host: abc.com
+          password: tiger
+          port: 3306
+        }
+      }
+    }
+
 ## Issues
 
-Known issue: Lists cannot use white spaces as separator
+Known issue: Lists cannot use white spaces as separator.
 If you find an issue, please open a ticket.
   
 ## TODO

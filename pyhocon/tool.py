@@ -37,6 +37,42 @@ class HOCONConverter(object):
         return lines
 
     @staticmethod
+    def to_yaml(config, level=0):
+        """
+        Convert HOCON input into a JSON output
+        :return:
+        """
+        lines = ""
+        if isinstance(config, ConfigTree):
+            lines += '\n'
+            bet_lines = []
+            for key, item in config.items():
+                bet_lines.append('{indent}{key}: {value}'.format(
+                    indent=''.rjust((level + 1) * 2, ' '),
+                    key=key,
+                    value=HOCONConverter.to_yaml(item, level + 1))
+                )
+            lines += '\n'.join(bet_lines)
+            lines += '\n{indent}}}'.format(indent=''.rjust(level * 2, ' '))
+        elif isinstance(config, list):
+            lines += '\n'
+            bet_lines = []
+            for item in config:
+                bet_lines.append('{indent}- {value}'.format(indent=''.rjust((level + 1) * 2, ' '), value=HOCONConverter.to_yaml(item, level + 1)))
+            lines += '\n'.join(bet_lines)
+            lines += '\n'
+        elif isinstance(config, str):
+            # if it contains a \n then it's multiline
+            lines = config.split('\n')
+            if len(lines) == 1:
+                lines = config
+            else:
+                lines = '|\n' + '\n'.join([line.rjust((level + 1) * 2, ' ') for line in lines])
+        else:
+            lines = str(config)
+        return lines
+
+    @staticmethod
     def to_properties(config, key_stack=[]):
         """
         Convert HOCON input into a .properties output
@@ -66,16 +102,18 @@ class HOCONConverter(object):
             print HOCONConverter.to_json(config)
         elif format.lower() == 'properties':
             print HOCONConverter.to_properties(config)
+        elif format.lower() == 'yaml':
+            print HOCONConverter.to_yaml(config)
         else:
-            raise Exception("Format must be 'json' or 'properties'")
+            raise Exception("Format must be 'json', 'properties' or 'yaml'")
 
 
 def main():
     parser = argparse.ArgumentParser(description='pyhocon tool')
     parser.add_argument('-f', '--format', help='output format: json or properties', default='json')
     args = parser.parse_args()
-    if args.format.lower() not in ['json', 'properties']:
-        raise Exception("Format must be 'json' or properties")
+    if args.format.lower() not in ['json', 'properties', 'yaml']:
+        raise Exception("Format must be 'json', 'properties' or 'yaml'")
     HOCONConverter.convert(args.format)
 
 

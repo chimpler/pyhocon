@@ -9,10 +9,26 @@ class ConfigParser(object):
     Parse HOCON files: https://github.com/typesafehub/config/blob/master/HOCON.md
     """
 
-    def parse(self, content):
+    REPLACEMENTS = {
+        '\\\n': '\n',
+        '\\n': '\n',
+        '\\r': '\r',
+        '\\t': '\t',
+        '\\=': '=',
+        '\\#': '#',
+        '\\!': '!',
+        '\\"': '"'
+    }
+
+    @staticmethod
+    def parse(content):
 
         def unescape_string(tokens):
-            return tokens[0].strip('"').replace('\\n', '\n').replace('\\t', '\t').replace('\\"', '"')
+            str = tokens[0].strip('"')
+            for k, v in ConfigParser.REPLACEMENTS.items():
+                str = str.replace(k, v)
+
+            return str
 
         def convert_number(tokens):
             n = tokens[0]
@@ -38,9 +54,9 @@ class ConfigParser(object):
         # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
         multiline_string = Regex('""".*?"""', re.DOTALL).setParseAction(unescape_string)
         # single quoted line string
-        singleline_string = Regex(r'\"(?:\\\"|\\\\|[^"])*\"').setParseAction(unescape_string)
+        singleline_string = Regex(r'\"(?:\\\"|\\\\|[^"])*\"', re.DOTALL).setParseAction(unescape_string)
         # default string that takes the rest of the line until an optional comment
-        defaultline_string = Regex('.*?(?=\s*(?://|[#,\]\}]))|.*')
+        defaultline_string = Regex(r'(\\\n|[^\n])*?(?=\s*(?:\n|//|[#,\]\}]))', re.DOTALL).setParseAction(unescape_string)
         string_expr = multiline_string | singleline_string | defaultline_string
 
         value_expr = number_expr | true_expr | false_expr | null_expr | string_expr
