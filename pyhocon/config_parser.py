@@ -79,12 +79,14 @@ class ConfigParser(object):
         any_expr = comment | list_expr | value_expr | dict_expr
 
         # TODO: find a way to make comma optional and yet works with multilines
-        list_elements = any_expr + Optional(eol_comma) + ZeroOrMore(any_expr + Optional(eol_comma))
-        list_expr << ListParser(Suppress('[]') | (Suppress('[') + Optional(eol) + Optional(list_elements) + Suppress(']'))) + Optional(comment | eol_comma)
+        list_elements = any_expr - Optional(eol_comma) - ZeroOrMore(any_expr - Optional(eol_comma))
+        list_expr << ListParser(
+            Suppress('[]') | (Suppress('[') - Optional(eol) - Optional(list_elements) - Suppress(']'))) + Optional(
+            comment | eol_comma)
 
         # for a dictionary : or = is optional
         # last zeroOrMore is because we can have t = {a:4} {b: 6} {c: 7} which is dictionary concatenation
-        dict_expr << ConfigTreeParser(Suppress('{') + ZeroOrMore(comment | assign_expr | eol) + Suppress('}')) + ZeroOrMore(dict_expr)
+        dict_expr << ConfigTreeParser(Suppress('{') - ZeroOrMore(comment | assign_expr | eol) + Suppress('}')) - ZeroOrMore(dict_expr)
         assign_dict_expr = Suppress(Optional(oneOf(['=', ':']))) + dict_expr
 
         # special case when we have a value assignment where the string can potentially be the remainder of the line
@@ -92,7 +94,9 @@ class ConfigParser(object):
         assign_expr << Group(key + (assign_dict_expr | assign_value_or_list_expr)) + Optional(eol_comma)
 
         # the file can be { ... } where {} can be omitted or []
-        config_expr = ZeroOrMore(comment | eol) + (list_expr | dict_expr | ConfigTreeParser(ZeroOrMore(comment | assign_expr))) + ZeroOrMore(comment | eol)
+        config_expr = ZeroOrMore(comment | eol) \
+            + (list_expr | dict_expr | ConfigTreeParser(ZeroOrMore(comment | assign_expr))) \
+            + ZeroOrMore(comment | eol_comma)
         config = config_expr.parseString(content, parseAll=True)[0]
 
         # if config consists in a list
@@ -118,7 +122,6 @@ class ListParser(TokenConverter):
 
 
 class ConfigTreeParser(TokenConverter):
-
     def __init__(self, expr=None):
         super(ConfigTreeParser, self).__init__(expr)
         self.saveAsList = True
