@@ -24,12 +24,15 @@ class HOCONConverter(object):
             lines += ',\n'.join(bet_lines)
             lines += '\n{indent}}}'.format(indent=''.rjust(level * 2, ' '))
         elif isinstance(config, list):
-            lines += '[\n'
-            bet_lines = []
-            for item in config:
-                bet_lines.append('{indent}{value}'.format(indent=''.rjust((level + 1) * 2, ' '), value=HOCONConverter.to_json(item, level + 1)))
-            lines += ',\n'.join(bet_lines)
-            lines += '\n{indent}]'.format(indent=''.rjust(level * 2, ' '))
+            if len(config) == 0:
+                lines += '[]'
+            else:
+                lines += '[\n'
+                bet_lines = []
+                for item in config:
+                    bet_lines.append('{indent}{value}'.format(indent=''.rjust((level + 1) * 2, ' '), value=HOCONConverter.to_json(item, level + 1)))
+                lines += ',\n'.join(bet_lines)
+                lines += '\n{indent}]'.format(indent=''.rjust(level * 2, ' '))
         elif isinstance(config, str):
             lines = '"{value}"'.format(value=config.replace('\n', '\\n').replace('"', '\\"'))
         else:
@@ -55,12 +58,14 @@ class HOCONConverter(object):
                 )
             lines += '\n'.join(bet_lines)
         elif isinstance(config, list):
-            lines += '\n'
-            bet_lines = []
-            for item in config:
-                bet_lines.append('{indent}- {value}'.format(indent=''.rjust((level + 1) * 2, ' '), value=HOCONConverter.to_yaml(item, level + 1)))
-            lines += '\n'.join(bet_lines)
-            lines += '\n'
+            if len(config) == 0:
+                lines += '[]'
+            else:
+                lines += '\n'
+                bet_lines = []
+                for item in config:
+                    bet_lines.append('{indent}- {value}'.format(indent=''.rjust((level + 1) * 2, ' '), value=HOCONConverter.to_yaml(item, level + 1)))
+                lines += '\n'.join(bet_lines)
         elif isinstance(config, str):
             # if it contains a \n then it's multiline
             lines = config.split('\n')
