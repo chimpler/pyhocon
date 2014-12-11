@@ -140,7 +140,7 @@ Multi-line strings                     | :white_check_mark:
 String value concatenation             | :white_check_mark:
 Array concatenation                    | :x:
 Object concatenation                   | :white_check_mark:
-Arrays without commas                  | :x:
+Arrays without commas                  | :white_check_mark:
 Path expressions                       | :x:
 Paths as keys                          | :white_check_mark:
 Substitutions                          | :x:

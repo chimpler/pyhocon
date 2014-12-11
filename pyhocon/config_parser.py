@@ -23,12 +23,21 @@ class ConfigParser(object):
     @staticmethod
     def parse(content):
 
-        def unescape_string(tokens):
-            str = tokens[0].strip('"')
+        def norm_string(value):
             for k, v in ConfigParser.REPLACEMENTS.items():
-                str = str.replace(k, v)
+                value = value.replace(k, v)
+            return value
 
-            return str
+        def unescape_string(tokens):
+            return norm_string(tokens[0])
+
+        def unescape_quoted_string(tokens):
+            # remove first and last "
+            return norm_string(tokens[0][1:-1])
+
+        def unescape_multi_string(tokens):
+            # remove the first and last 3 "
+            return norm_string(tokens[0][3: -3])
 
         def convert_number(tokens):
             n = tokens[0]
@@ -52,15 +61,15 @@ class ConfigParser(object):
 
         # multi line string using """
         # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
-        multiline_string = Regex('""".*?"""', re.DOTALL).setParseAction(unescape_string)
+        multiline_string = Regex('""".*?"""', re.DOTALL).setParseAction(unescape_multi_string)
         # single quoted line string
-        singleline_string = Regex(r'\"(?:\\\"|\\\\|[^"])*\"', re.DOTALL).setParseAction(unescape_string)
+        singleline_string = Regex(r'\"(?:\\\"|\\\\|[^"])*\"', re.DOTALL).setParseAction(unescape_quoted_string)
         # default string that takes the rest of the line until an optional comment
         # we support .properties multiline support which is like this:
         # line1  \
         # line2 \
         # so a backslash precedes the \n
-        defaultline_string = Regex(r'(\\\n|[^\[\{\n\]\}#,])+?(?=\s*(?://|[\n#,\]\}]))', re.DOTALL).setParseAction(unescape_string)
+        defaultline_string = Regex(r'(\\\n|[^\[\{\n\]\}#,=])+?(?=\s*(?://|[\n#,\]\}]))', re.DOTALL).setParseAction(unescape_string)
         string_expr = multiline_string | singleline_string | defaultline_string
 
         value_expr = number_expr | true_expr | false_expr | null_expr | string_expr
@@ -79,15 +88,12 @@ class ConfigParser(object):
 
         # the file can be { ... } where {} can be omitted or []
         config_expr = comments \
-            + (list_expr | dict_expr | ConfigTreeParser(ZeroOrMore(comment | assign_expr))) \
+            + (list_expr | dict_expr | ConfigTreeParser(ZeroOrMore(comment | assign_expr)) | comment) \
             + comments
         config = config_expr.parseString(content, parseAll=True)[0]
 
         # if config consists in a list
-        if isinstance(config, ConfigTree):
-            return config
-        else:
-            return list(config)
+        return config if isinstance(config, ConfigTree) else list(config)
 
 
 class ListParser(TokenConverter):
