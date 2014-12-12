@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='pyhocon',
-    version='0.1.0',
+    version='0.1.2',
     description='HOCON parser',
     keywords='hocon parser',
     license='Apache License 2.0',

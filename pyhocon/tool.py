@@ -38,6 +38,12 @@ class HOCONConverter(object):
                 lines += '\n{indent}]'.format(indent=''.rjust(level * 2, ' '))
         elif isinstance(config, str):
             lines = '"{value}"'.format(value=config.replace('\n', '\\n').replace('"', '\\"'))
+        elif config is None:
+            lines = 'null'
+        elif config is True:
+            lines = 'true'
+        elif config is False:
+            lines = 'false'
         else:
             lines = str(config)
         return lines
@@ -62,12 +68,13 @@ class HOCONConverter(object):
                     )
                 lines += '\n'.join(bet_lines)
         elif isinstance(config, list):
-            if len(config) == 0:
+            config_list = [line for line in config if line is not None]
+            if len(config_list) == 0:
                 lines += '[]'
             else:
                 lines += '\n'
                 bet_lines = []
-                for item in config:
+                for item in config_list:
                     bet_lines.append('{indent}- {value}'.format(indent=''.rjust((level + 1) * 2, ' '), value=HOCONConverter.to_yaml(item, level + 1)))
                 lines += '\n'.join(bet_lines)
         elif isinstance(config, str):
@@ -77,6 +84,10 @@ class HOCONConverter(object):
                 lines = config
             else:
                 lines = '|\n' + '\n'.join([line.rjust((level + 1) * 2, ' ') for line in lines])
+        elif config is True:
+            lines = 'true'
+        elif config is False:
+            lines = 'false'
         else:
             lines = str(config)
         return lines
@@ -93,12 +104,18 @@ class HOCONConverter(object):
         lines = []
         if isinstance(config, ConfigTree):
             for key, item in config.items():
-                lines.append(HOCONConverter.to_properties(item, key_stack + [key]))
+                if item is not None:
+                    lines.append(HOCONConverter.to_properties(item, key_stack + [key]))
         elif isinstance(config, list):
             for index, item in enumerate(config):
-                lines.append(HOCONConverter.to_properties(item, key_stack + [str(index)]))
+                if item is not None:
+                    lines.append(HOCONConverter.to_properties(item, key_stack + [str(index)]))
         elif isinstance(config, str):
             lines.append('.'.join(key_stack) + ' = ' + escape_value(config))
+        elif config is True:
+            lines.append('.'.join(key_stack) + ' = true')
+        elif config is False:
+            lines.append('.'.join(key_stack) + ' = false')
         else:
             lines.append('.'.join(key_stack) + ' = ' + str(config))
         return '\n'.join([line for line in lines if len(line) > 0])
