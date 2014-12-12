@@ -81,7 +81,7 @@ class ConfigParser(object):
         # TODO: find a way to make comma optional and yet works with multilines
         list_elements = any_expr - Optional(eol_comma) - ZeroOrMore(any_expr - Optional(eol_comma))
         list_expr << ListParser(
-            Suppress('[]') | (Suppress('[') - Optional(eol) - Optional(list_elements) - Suppress(']'))) + Optional(
+            (Suppress('[') - Optional(eol) - Optional(list_elements) - Suppress(']'))) + Optional(
             comment | eol_comma)
 
         # for a dictionary : or = is optional

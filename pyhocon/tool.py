@@ -13,16 +13,19 @@ class HOCONConverter(object):
         """
         lines = ""
         if isinstance(config, ConfigTree):
-            lines += '{\n'
-            bet_lines = []
-            for key, item in config.items():
-                bet_lines.append('{indent}"{key}": {value}'.format(
-                    indent=''.rjust((level + 1) * 2, ' '),
-                    key=key,
-                    value=HOCONConverter.to_json(item, level + 1))
-                )
-            lines += ',\n'.join(bet_lines)
-            lines += '\n{indent}}}'.format(indent=''.rjust(level * 2, ' '))
+            if len(config) == 0:
+                lines += '{}'
+            else:
+                lines += '{\n'
+                bet_lines = []
+                for key, item in config.items():
+                    bet_lines.append('{indent}"{key}": {value}'.format(
+                        indent=''.rjust((level + 1) * 2, ' '),
+                        key=key,
+                        value=HOCONConverter.to_json(item, level + 1))
+                    )
+                lines += ',\n'.join(bet_lines)
+                lines += '\n{indent}}}'.format(indent=''.rjust(level * 2, ' '))
         elif isinstance(config, list):
             if len(config) == 0:
                 lines += '[]'
@@ -47,16 +50,17 @@ class HOCONConverter(object):
         """
         lines = ""
         if isinstance(config, ConfigTree):
-            if level > 0:
-                lines += '\n'
-            bet_lines = []
-            for key, item in config.items():
-                bet_lines.append('{indent}{key}: {value}'.format(
-                    indent=''.rjust((level + 1) * 2, ' '),
-                    key=key,
-                    value=HOCONConverter.to_yaml(item, level + 1))
-                )
-            lines += '\n'.join(bet_lines)
+            if len(config) > 0:
+                if level > 0:
+                    lines += '\n'
+                bet_lines = []
+                for key, item in config.items():
+                    bet_lines.append('{indent}{key}: {value}'.format(
+                        indent=''.rjust((level + 1) * 2, ' '),
+                        key=key,
+                        value=HOCONConverter.to_yaml(item, level + 1))
+                    )
+                lines += '\n'.join(bet_lines)
         elif isinstance(config, list):
             if len(config) == 0:
                 lines += '[]'
@@ -97,7 +101,7 @@ class HOCONConverter(object):
             lines.append('.'.join(key_stack) + ' = ' + escape_value(config))
         else:
             lines.append('.'.join(key_stack) + ' = ' + str(config))
-        return '\n'.join(lines)
+        return '\n'.join([line for line in lines if len(line) > 0])
 
     @staticmethod
     def convert(format):
