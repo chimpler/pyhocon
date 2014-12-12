@@ -55,7 +55,7 @@ if it is not an int), `get_string`, `get_list`, `get_double`, `get_bool`, `get_c
       ]
     }
 
-## Tool
+## Conversion tool
 
 We provide a conversion tool to convert from HOCON to the JSON, .properties and YAML formats:
 
@@ -120,11 +120,6 @@ We provide a conversion tool to convert from HOCON to the JSON, .properties and 
           password: tiger
           port: 3306
 
-## Issues
-
-Known issue: Lists cannot use white spaces as separator.
-If you find an issue, please open a ticket.
-  
 ## TODO
 
 Items                                  | Status
