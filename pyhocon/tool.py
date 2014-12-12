@@ -7,9 +7,10 @@ from pyhocon.config_tree import ConfigTree
 class HOCONConverter(object):
     @staticmethod
     def to_json(config, level=0):
-        """
-        Convert HOCON input into a JSON output
-        :return:
+        """Convert HOCON input into a JSON output
+
+        :return: JSON string representation
+        :type return: basestring
         """
         lines = ""
         if isinstance(config, ConfigTree):
@@ -50,9 +51,10 @@ class HOCONConverter(object):
 
     @staticmethod
     def to_yaml(config, level=0):
-        """
-        Convert HOCON input into a JSON output
-        :return:
+        """Convert HOCON input into a YAML output
+
+        :return: YAML string representation
+        :type return: basestring
         """
         lines = ""
         if isinstance(config, ConfigTree):
@@ -94,8 +96,10 @@ class HOCONConverter(object):
 
     @staticmethod
     def to_properties(config, key_stack=[]):
-        """
-        Convert HOCON input into a .properties output
+        """Convert HOCON input into a .properties output
+
+        :return: .properties string representation
+        :type return: basestring
         :return:
         """
         def escape_value(value):
@@ -122,6 +126,12 @@ class HOCONConverter(object):
 
     @staticmethod
     def convert(format):
+        """Convert to json, properties or yaml
+
+        :param format: json, properties or yaml
+        :type format: basestring
+        :return: json, properties or yaml string representation
+        """
         content = sys.stdin.read()
         config = ConfigFactory.parse_string(content)
         if format.lower() == 'json':

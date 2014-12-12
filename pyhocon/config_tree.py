@@ -8,8 +8,8 @@ class ConfigTree(object):
         self._dictionary = {}
 
     def _merge_config_tree(self, a, b):
-        """
-        Merge config b into a
+        """Merge config b into a
+
         :param a: target config
         :type a: ConfigTree
         :param b: source config
@@ -58,24 +58,71 @@ class ConfigTree(object):
             raise ConfigWrongTypeException("{key} has type {type} rather than dict".format(key='.'.join(key_path[:key_index + 1]), type=type(elt).__name__))
 
     def put(self, key, value):
+        """Put a value in the tree (dot separated)
+
+        :param key: key to use (dot separated). E.g., a.b.c
+        :type key: basestring
+        :param value: value to put
+        """
         self._put(key.split(ConfigTree.KEY_SEP), value)
 
     def get(self, key):
+        """Get a value from the tree
+
+        :param key: key to use (dot separated). E.g., a.b.c
+        :type key: basestring
+        :return: value in the tree located at key
+        """
         return self._get(key.split(ConfigTree.KEY_SEP))
 
     def get_string(self, key):
+        """Return string representation of value found at key
+
+        :param key: key to use (dot separated). E.g., a.b.c
+        :type key: basestring
+        :return: string value
+        :type return: basestring
+        """
         return str(self.get(key))
 
     def get_int(self, key):
+        """Return int representation of value found at key
+
+        :param key: key to use (dot separated). E.g., a.b.c
+        :type key: basestring
+        :return: int value
+        :type return: int
+        """
         return int(self.get(key))
 
     def get_float(self, key):
+        """Return float representation of value found at key
+
+        :param key: key to use (dot separated). E.g., a.b.c
+        :type key: basestring
+        :return: float value
+        :type return: float
+        """
         return float(self.get(key))
 
     def get_bool(self, key):
+        """Return boolean representation of value found at key
+
+        :param key: key to use (dot separated). E.g., a.b.c
+        :type key: basestring
+        :return: boolean value
+        :type return: bool
+        """
         return bool(self.get(key))
 
     def get_list(self, key):
+        """Return list representation of value found at key
+
+        :param key: key to use (dot separated). E.g., a.b.c
+        :type key: basestring
+        :return: list value
+        :type return: list
+        """
         value = self.get(key)
         if isinstance(value, list):
             return value
@@ -83,6 +130,13 @@ class ConfigTree(object):
             raise ConfigException("{key} has type '{type}' rather than 'list'".format(key=key, type=type(value).__name__))
 
     def get_config(self, key):
+        """Return tree config representation of value found at key
+
+        :param key: key to use (dot separated). E.g., a.b.c
+        :type key: basestring
+        :return: config value
+        :type return: ConfigTree
+        """
         value = self.get(key)
         if isinstance(value, ConfigTree):
             return value
@@ -90,15 +144,35 @@ class ConfigTree(object):
             raise ConfigException("{key} has type '{type}' rather than 'config'".format(key=key, type=type(value).__name__))
 
     def items(self):
+        """Return items found in the config
+
+        :return: list of items
+        :type return: list
+        """
         return self._dictionary.items()
 
     def iteritems(self):
+        """Return items iterator found in the config
+
+        :return: items iterator
+        :type return: iterator
+        """
         return self._dictionary.iteritems()
 
     def iterkeys(self):
+        """Return keys iterator found in the config
+
+        :return: keys iterator
+        :type return: iterator
+        """
         return self._dictionary.iterkeys()
 
     def itervalues(self):
+        """Return values iterator found in the config
+
+        :return: values iterator
+        :type return: iterator
+        """
         return self._dictionary.itervalues()
 
     def __getitem__(self, item):

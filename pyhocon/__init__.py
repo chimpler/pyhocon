@@ -7,8 +7,8 @@ from pyhocon.config_parser import ConfigParser
 class ConfigFactory(object):
     @staticmethod
     def parse_file(filename):
-        """
-        Parse file
+        """Parse file
+
         :param filename: filename
         :type filename: basestring
         :return: Config object
@@ -20,8 +20,8 @@ class ConfigFactory(object):
 
     @staticmethod
     def parse_URL(url, timeout=None):
-        """
-        Parse URL
+        """Parse URL
+
         :param url: url to parse
         :type url: basestring
         :return: Config object
@@ -34,8 +34,8 @@ class ConfigFactory(object):
 
     @staticmethod
     def parse_string(content):
-        """
-        Parse URL
+        """Parse URL
+
         :param url: url to parse
         :type url: basestring
         :return: Config object

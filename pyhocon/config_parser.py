@@ -22,7 +22,12 @@ class ConfigParser(object):
 
     @staticmethod
     def parse(content):
+        """parse a HOCON content
 
+        :param content: HOCON content to parse
+        :type content: basestring
+        :return: a ConfigTree or a list
+        """
         def norm_string(value):
             for k, v in ConfigParser.REPLACEMENTS.items():
                 value = value.replace(k, v)
@@ -104,11 +109,21 @@ class ConfigParser(object):
 
 
 class ListParser(TokenConverter):
+    """
+    Parse a list [elt1, etl2, ...]
+    """
     def __init__(self, expr=None):
         super(ListParser, self).__init__(expr)
         self.saveAsList = True
 
     def postParse(self, instring, loc, token_list):
+        """Create a list from the tokens
+
+        :param instring:
+        :param loc:
+        :param token_list:
+        :return:
+        """
         res = []
         for index, token in enumerate(token_list):
             if token == '':
@@ -122,11 +137,21 @@ class ListParser(TokenConverter):
 
 
 class ConfigTreeParser(TokenConverter):
+    """
+    Parse a config tree from tokens
+    """
     def __init__(self, expr=None):
         super(ConfigTreeParser, self).__init__(expr)
         self.saveAsList = True
 
     def postParse(self, instring, loc, token_list):
+        """Create ConfigTree from tokens
+
+        :param instring:
+        :param loc:
+        :param token_list:
+        :return:
+        """
         config_tree = ConfigTree()
         for tokens in token_list:
             # key, value1, value2, ...
