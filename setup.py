@@ -5,7 +5,8 @@ from setuptools import setup
 setup(
     name='pyhocon',
     version='0.1.2',
-    description='HOCON parser',
+    description='HOCON parser for Python',
+    long_description='pyhocon is a HOCON parser for Python. Additionally we provide a tool (pyhocon) to convert any HOCON content into json, yaml and properties format.',
     keywords='hocon parser',
     license='Apache License 2.0',
     author="Francois Dang Ngoc",
