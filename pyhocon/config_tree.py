@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from pyhocon.exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
 
 
@@ -5,7 +6,7 @@ class ConfigTree(object):
     KEY_SEP = '.'
 
     def __init__(self):
-        self._dictionary = {}
+        self._dictionary = OrderedDict()
 
     def _merge_config_tree(self, a, b):
         """Merge config b into a
@@ -25,7 +26,7 @@ class ConfigTree(object):
 
         return a
 
-    def _put(self, key_path, value):
+    def _put(self, key_path, value, append=False):
         key_elt = key_path[0]
         if len(key_path) == 1:
             # if value to set does not exist, override
@@ -33,6 +34,19 @@ class ConfigTree(object):
             # if not then override
             if key_elt in self._dictionary and isinstance(self._dictionary[key_elt], ConfigTree) and isinstance(value, ConfigTree):
                 self._merge_config_tree(self._dictionary[key_elt], value)
+            elif append:
+                l = self._dictionary.get(key_elt)
+                if isinstance(l, list):
+                    l += value
+                elif l is None:
+                    self._dictionary[key_elt] = value
+                else:
+                    raise ConfigWrongTypeException("Cannot concatenate the list {key}: {value} to {prev_value} of {type}".format(
+                        key='.'.join(key_path),
+                        value=value,
+                        prev_value=l,
+                        type=l.__class__.__name__)
+                    )
             else:
                 self._dictionary[key_elt] = value
         else:
@@ -41,7 +55,7 @@ class ConfigTree(object):
                 # create a new dictionary or overwrite a previous value
                 next_config_tree = ConfigTree()
                 self._dictionary[key_elt] = next_config_tree
-            next_config_tree._put(key_path[1:], value)
+            next_config_tree._put(key_path[1:], value, append)
 
     def _get(self, key_path, key_index=0):
         key_elt = key_path[key_index]
@@ -57,14 +71,14 @@ class ConfigTree(object):
         else:
             raise ConfigWrongTypeException("{key} has type {type} rather than dict".format(key='.'.join(key_path[:key_index + 1]), type=type(elt).__name__))
 
-    def put(self, key, value):
+    def put(self, key, value, append=False):
         """Put a value in the tree (dot separated)
 
         :param key: key to use (dot separated). E.g., a.b.c
         :type key: basestring
         :param value: value to put
         """
-        self._put(key.split(ConfigTree.KEY_SEP), value)
+        self._put(key.split(ConfigTree.KEY_SEP), value, append)
 
     def get(self, key):
         """Get a value from the tree
@@ -193,3 +207,19 @@ class ConfigTree(object):
 
     def __len__(self):
         return len(self._dictionary)
+
+
+class ConfigList(list):
+    def __init__(self, iterable):
+        super(ConfigList, self).__init__(iterable)
+
+class ConfigValues():
+    def __init__(self, iterable):
+        self.tokens = iterable
+        self.value = None
+
+class ConfigSubstitution(object):
+    def __init__(self, variable, loc, tokens):
+        self.variable = variable
+        self.loc = loc
+        self.tokens = tokens
