@@ -213,10 +213,12 @@ class ConfigList(list):
     def __init__(self, iterable):
         super(ConfigList, self).__init__(iterable)
 
+
 class ConfigValues():
     def __init__(self, iterable):
         self.tokens = iterable
         self.value = None
+
 
 class ConfigSubstitution(object):
     def __init__(self, variable, loc, tokens):

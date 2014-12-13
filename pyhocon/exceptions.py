@@ -8,8 +8,10 @@ class ConfigException(Exception):
 class ConfigMissingException(ConfigException):
     pass
 
+
 class ConfigSubstitutionException(ConfigException):
     pass
+
 
 class ConfigWrongTypeException(ConfigException):
     pass

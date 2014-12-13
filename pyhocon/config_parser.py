@@ -49,6 +49,7 @@ class ConfigParser(object):
                 return float(n)
 
         substitutions = []
+
         def create_substitution(token, loc, tokens):
             substitution = ConfigSubstitution(token, loc, tokens)
             substitutions.append(substitution)
@@ -176,6 +177,7 @@ class ConcatenatedValueParser(TokenConverter):
             return token_list[0]
         else:
             return ' '.join(str(token) for token in token_list)
+
 
 class ConfigTreeParser(TokenConverter):
     """
