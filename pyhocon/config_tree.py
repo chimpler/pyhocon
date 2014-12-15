@@ -232,7 +232,7 @@ class ConfigValues(object):
                 token.parent = self
                 token.index = index
 
-        # if the last token is an unquoted string then stripright it
+        # if the last token is an unquoted string then right strip it
         if isinstance(self.tokens[-1], ConfigUnquotedString):
             self.tokens[-1] = self.tokens[-1].rstrip()
 
@@ -260,6 +260,12 @@ class ConfigSubstitution(object):
 
 
 class ConfigUnquotedString(str):
+
+    def __init__(self, value):
+        super(ConfigUnquotedString, self).__init__(value)
+
+
+class ConfigSlashString(str):
 
     def __init__(self, value):
         super(ConfigUnquotedString, self).__init__(value)

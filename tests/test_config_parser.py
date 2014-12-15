@@ -18,6 +18,7 @@ class TestConfigParser(object):
                         \"\"\"
                 }
                 j = [1, 2, 3]
+                u = 192.168.1.3/32
             }
             """
         )
@@ -30,6 +31,7 @@ class TestConfigParser(object):
         assert config.get_bool('t.d') is True
         assert config.get_int('t.e.y.f') == 7
         assert config.get('t.j') == [1, 2, 3]
+        assert config.get('t.u') == '192.168.1.3/32'
 
     def test_parse_with_enclosing_brace(self):
         config = ConfigFactory.parse_string(

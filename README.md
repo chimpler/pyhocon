@@ -42,7 +42,7 @@ It is available on pypi so you can install it as follows:
         enable_logging = false
         resolver = null
         # you can use substitution with unquoted strings. If it it not found in the document, it defaults to environment variables
-        home_dir = ${HOME}
+        home_dir = ${HOME} # you can substitute with environment variables
         "mysql" = {
           host = "abc.com" # change it
           port = 3306 # default
@@ -82,70 +82,70 @@ We provide a conversion tool to convert from HOCON to the JSON, .properties and 
         "active": true,
         "enable_logging": false,
         "resolver": null,
-        "home_dir": "/Users/fdang",
+        "home_dir": "/Users/darthbear",
         "mysql": {
           "host": "abc.com",
           "port": 3306,
-          "username": "scott ",
+          "username": "scott",
           "password": "tiger",
           "retries": 3
         },
         "ips": [
-          "192.168 0.0 0.1 ",
+          "192.168.0.1",
           "192.168.0.2",
-          "192.168 0.0 0.3 "
+          "192.168.0.3"
         ]
       },
       "motd": "\n            Hello \"man\"!\n            How is it going?\n         ",
       "retries_msg": "You have 3 retries"
     }
-
+    
 ####  .properties
 
     $ cat samples/databases.conf | pyhocon -f properties
 
     databases.active = true
     databases.enable_logging = false
-    databases.home_dir = /Users/fdang
+    databases.home_dir = /Users/darthbear
     databases.mysql.host = abc.com
     databases.mysql.port = 3306
     databases.mysql.username = scott
     databases.mysql.password = tiger
     databases.mysql.retries = 3
-    databases.ips.0 = 192.168 0.0 0.1
+    databases.ips.0 = 192.168.0.1
     databases.ips.1 = 192.168.0.2
-    databases.ips.2 = 192.168 0.0 0.3
+    databases.ips.2 = 192.168.0.3
     motd = \
                 Hello "man"\!\
                 How is it going?\
     
     retries_msg = You have 3 retries
-    
+        
 #### YAML
 
     $ cat samples/databases.conf | pyhocon -f yaml
 
-      databases:
-        active: true
-        enable_logging: false
-        resolver: None
-        home_dir: /Users/fdang
-        mysql:
-          host: abc.com
-          port: 3306
-          username: scott
-          password: tiger
-          retries: 3
-        ips:
-          - 192.168 0.0 0.1
-          - 192.168.0.2
-          - 192.168 0.0 0.3
-      motd: |
+    databases:
+      active: true
+      enable_logging: false
+      resolver: None
+      home_dir: /Users/darthbear
+      mysql:
+        host: abc.com
+        port: 3306
+        username: scott
+        password: tiger
+        retries: 3
+      ips:
+        - 192.168.0.1
+        - 192.168.0.2
+        - 192.168.0.3
+    motd: |
     
                 Hello "man"!
                 How is it going?
     
-      retries_msg: You have 3 retries
+    retries_msg: You have 3 retries
 
 ## TODO
 

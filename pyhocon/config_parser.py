@@ -1,7 +1,8 @@
 import os
 import re
 from pyparsing import *
-from pyhocon.config_tree import ConfigTree, ConfigSubstitution, ConfigList, ConfigValues, ConfigUnquotedString
+from pyhocon.config_tree import ConfigTree, ConfigSubstitution, ConfigList, ConfigValues, ConfigUnquotedString, \
+    ConfigSlashString
 from pyhocon.exceptions import ConfigSubstitutionException
 
 
@@ -70,21 +71,21 @@ class ConfigParser(object):
         eol = Word('\n\r').suppress()
         eol_comma = Word('\n\r,').suppress()
         comment = ((Literal('#') | Literal('//')) - SkipTo(eol)).suppress()
-        number_expr = Regex('[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE]\d+)?').setParseAction(convert_number)
+        number_expr = Regex('[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE]\d+)?(?=\s*[\n\r\]\},/#])').setParseAction(convert_number)
 
         # multi line string using """
         # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
         multiline_string = Regex('""".*?"""', re.DOTALL | re.UNICODE).setParseAction(unescape_multi_string)
         # single quoted line string
         singleline_string = QuotedString(quoteChar='"', escChar='\\', multiline=True)
-        # default string that takes the rest of the line until an optional comment
+        # unquoted string that takes the rest of the line until an optional comment
         # we support .properties multiline support which is like this:
         # line1  \
         # line2 \
         # so a backslash precedes the \n
-        defaultline_string = Regex(r'(\\\n|[^\[\{\n\]\}#,=\$/])+', re.DOTALL).setParseAction(unescape_string)
+        unquoted_string = Regex(r'(\\\n|[^\[\{\n\]\}#,=\$/])+', re.DOTALL).setParseAction(unescape_string)
         substitution_expr = Regex('\$\{[^\}]+\}').setParseAction(create_substitution)
-        string_expr = multiline_string | singleline_string | defaultline_string | comment | Literal('/')
+        string_expr = multiline_string | singleline_string | unquoted_string | comment | Literal('/')
 
         value_expr = number_expr | true_expr | false_expr | null_expr | string_expr | substitution_expr
         values_expr = ConcatenatedValueParser(value_expr - ZeroOrMore(value_expr + Optional(Literal('\\') + eol).suppress()))

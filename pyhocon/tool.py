@@ -64,7 +64,7 @@ class HOCONConverter(object):
                 bet_lines = []
                 for key, item in config.items():
                     bet_lines.append('{indent}{key}: {value}'.format(
-                        indent=''.rjust((level + 1) * 2, ' '),
+                        indent=''.rjust(level * 2, ' '),
                         key=key,
                         value=HOCONConverter.to_yaml(item, level + 1))
                     )
@@ -77,7 +77,7 @@ class HOCONConverter(object):
                 lines += '\n'
                 bet_lines = []
                 for item in config_list:
-                    bet_lines.append('{indent}- {value}'.format(indent=''.rjust((level + 1) * 2, ' '), value=HOCONConverter.to_yaml(item, level + 1)))
+                    bet_lines.append('{indent}- {value}'.format(indent=''.rjust(level * 2, ' '), value=HOCONConverter.to_yaml(item, level + 1)))
                 lines += '\n'.join(bet_lines)
         elif isinstance(config, str):
             # if it contains a \n then it's multiline
@@ -85,7 +85,7 @@ class HOCONConverter(object):
             if len(lines) == 1:
                 lines = config
             else:
-                lines = '|\n' + '\n'.join([line.rjust((level + 1) * 2, ' ') for line in lines])
+                lines = '|\n' + '\n'.join([line.rjust(level * 2, ' ') for line in lines])
         elif config is True:
             lines = 'true'
         elif config is False:
