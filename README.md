@@ -26,27 +26,41 @@ if it is not an int), `get_string`, `get_list`, `get_double`, `get_bool`, `get_c
 
 ## Example of HOCON file
 
+    //
+    // You can use # or // for comments
+    //
     {
-      "databases": {
-        "active": true,
-        "enable_logging": false,
-        "resolver": null,
-        "home_dir": "/Users/fdang",
-        "mysql": {
-          "host": "abc.com",
-          "port": 3306,
-          "username": "scott ",
-          "password": "tiger",
-          "retries": 3
-        },
-        "ips": [
-          "192.168 0.0 0.1 ",
-          "192.168.0.2",
-          "192.168 0.0 0.3 "
-        ]
-      },
-      "motd": "\n            Hello \"man\"!\n            How is it going?\n         ",
-      "retries_msg": "You have 3 retries"
+      databases {
+        # MySQL
+        active = true
+        enable_logging = false
+        resolver = null
+        # you can use substitution with unquoted strings. If it it not found in the document, it defaults to environment variables
+        home_dir = ${HOME}
+        "mysql" = {
+          host = "abc.com" # change it
+          port = 3306 # default
+          username: scott // can use : or =
+          password = tiger, // can optionally use a comma
+          // number of retries
+          retries = 3
+        }
+      }
+    
+      // multi line support
+      motd = """
+                Hello "man"!
+                How is it going?
+             """
+      // this will be appended to the databases dictionary above
+      databases.ips = [
+        192.168.0.1 // use white space or comma as separator
+        "192.168.0.2" // optional quotes
+        192.168.0.3, # can have a trailing , which is ok
+      ]
+    
+      # you can use substitution with unquoted strings
+      retries_msg = You have ${databases.mysql.retries} retries
     }
     
 ## Conversion tool
