@@ -2,7 +2,7 @@ import os
 import re
 from pyparsing import *
 from pyhocon.config_tree import ConfigTree, ConfigSubstitution, ConfigList, ConfigValues
-from pyhocon.exceptions import ConfigException, ConfigSubstitutionException
+from pyhocon.exceptions import ConfigSubstitutionException
 
 
 class ConfigParser(object):
@@ -50,8 +50,9 @@ class ConfigParser(object):
 
         substitutions = []
 
-        def create_substitution(token, loc, tokens):
-            substitution = ConfigSubstitution(token, loc, tokens)
+        def create_substitution(token):
+            # remove the ${ and }
+            substitution = ConfigSubstitution(token[0][2:-1])
             substitutions.append(substitution)
             return substitution
 
@@ -81,20 +82,19 @@ class ConfigParser(object):
         # line1  \
         # line2 \
         # so a backslash precedes the \n
-        defaultline_string = Regex('[^\s,\$\{\}\[\]#]+(?=//)?').setParseAction(unescape_string)
+        defaultline_string = Regex(r'(\\\n|[^\[\{\n\]\}#,=\$/])+', re.DOTALL).setParseAction(unescape_string)
         substitution_expr = Regex('\$\{[^\}]+\}').setParseAction(create_substitution)
-        string_expr = multiline_string | singleline_string | substitution_expr | defaultline_string
+        string_expr = multiline_string | singleline_string | defaultline_string | comment | Literal('/')
 
         value_expr = number_expr | true_expr | false_expr | null_expr | string_expr | substitution_expr
-        values_expr = Forward()
+        values_expr = ConcatenatedValueParser(value_expr - ZeroOrMore(value_expr + Optional(Literal('\\') + eol).suppress()))
         # multiline if \ at the end of the line
-        values_expr << ConcatenatedValueParser(value_expr - ZeroOrMore(value_expr | (Literal('\\').suppress() - Optional(comment) - eol)))
 
-        list_expr << ListParser(Suppress('[') - ZeroOrMore(values_expr | eol_comma | comment) - Suppress(']')) - ZeroOrMore(list_expr)
+        list_expr << ListParser(Suppress('[') - ZeroOrMore(comment | values_expr | eol_comma) - Suppress(']')) - ZeroOrMore(list_expr)
 
         # for a dictionary : or = is optional
         # last zeroOrMore is because we can have t = {a:4} {b: 6} {c: 7} which is dictionary concatenation
-        inside_dict_expr = ConfigTreeParser(ZeroOrMore(assign_expr | eol_comma | comment))
+        inside_dict_expr = ConfigTreeParser(ZeroOrMore(comment | assign_expr | eol_comma))
         dict_expr << Suppress('{') - inside_dict_expr + Suppress('}') - ZeroOrMore(dict_expr)
         assign_dict_expr = Suppress(Optional(oneOf(['=', ':']))) + dict_expr
 
@@ -107,12 +107,11 @@ class ConfigParser(object):
             + (list_expr | dict_expr | inside_dict_expr) \
             + ZeroOrMore(comment | eol_comma)
         config = config_expr.parseString(content, parseAll=True)[0]
-
-        # if config consists in a list
-        return config if isinstance(config, ConfigTree) else list(config)
+        ConfigParser._resolve_substitutions(config, substitutions)
+        return config
 
     @staticmethod
-    def _resolve_variable(config, variable, substitution):
+    def _resolve_variable(config, substitution):
         variable = substitution.variable
         try:
             return config.get(variable)
@@ -120,28 +119,39 @@ class ConfigParser(object):
             # default to environment variable
             value = os.environ.get(variable)
             if value is None:
-                raise ConfigSubstitutionException("Cannot resolve variable ${{{variable}}} on {loc}".format(variable=variable, loc=substitution.loc))
+                raise ConfigSubstitutionException("Cannot resolve variable ${{{variable}}}".format(variable=variable))
+            elif isinstance(value, ConfigList) or isinstance(value, ConfigTree):
+                raise ConfigSubstitutionException(
+                    "Cannot substitute variable ${{{variable}}} because it does not point to a string, int, float, boolean or null (type)".format(
+                        variable=variable,
+                        type=value.__class__.__name__)
+                )
             return value
 
     @staticmethod
     def _resolve_substitutions(config, substitutions):
-        resolution = {}
-        for i in range(len(substitutions)):
-            unresolved = False
-            for substitution in substitutions:
-                value = ConfigParser._resolve_variable(config)
-                if isinstance(value, ConfigValues):
-                    if value.value is None:
-                        # if it still unresolved then ignore and wait for the next pass
+        if len(substitutions) > 0:
+            _substitutions = set(substitutions)
+            for i in range(len(substitutions)):
+                unresolved = False
+                for substitution in list(_substitutions):
+                    resolved_value = ConfigParser._resolve_variable(config, substitution)
+                    if isinstance(resolved_value, ConfigValues):
                         unresolved = True
                     else:
-                        value.value = ' '.join(value._tokens)
-                        resolution[substitution] = value.value
-                else:
-                    resolution[substitution] = value
+                        # replace token by substitution
+                        config_values = substitution.parent
+                        config_values.put(substitution.index, resolved_value)
+                        config_values.parent[config_values.key] = config_values.transform()
+                        _substitutions.remove(substitution)
+                if not unresolved:
+                    break
+            else:
+                raise ConfigSubstitutionException("Cannot resolve {variables}. Check for cycles.".format(
+                    variables=', '.join('${' + substitution.variable + '}' for substitution in _substitutions)
+                ))
 
-            if not unresolved:
-                break
+        return config
 
 
 class ListParser(TokenConverter):
@@ -160,23 +170,20 @@ class ListParser(TokenConverter):
         :param token_list:
         :return:
         """
-        return [ConfigList(token_list)]
+        config_list = ConfigList(token_list)
+        return [config_list]
 
 
 class ConcatenatedValueParser(TokenConverter):
 
     def __init__(self, expr=None):
         super(ConcatenatedValueParser, self).__init__(expr)
+        self.parent = None
+        self.key = None
 
     def postParse(self, instring, loc, token_list):
-        # If all are strings with no substitution then concatenate the strings (no further variable resolution)
-        found_substitution = next((True for token in token_list if isinstance(token, ConfigSubstitution)), False)
-        if found_substitution:
-            return ConfigValues(token_list)
-        elif len(token_list) == 1:
-            return token_list[0]
-        else:
-            return ' '.join(str(token) for token in token_list)
+        config_values = ConfigValues(token_list)
+        return config_values.transform()
 
 
 class ConfigTreeParser(TokenConverter):
@@ -213,7 +220,14 @@ class ConfigTreeParser(TokenConverter):
                 else:
                     # Merge dict
                     for value in values:
-                        conf_value = list(value) if isinstance(value, list) else value
+                        if isinstance(value, ConfigList):
+                            conf_value = list(value)
+                        elif isinstance(value, ConfigValues):
+                            conf_value = value
+                            value.parent = config_tree
+                            value.key = key
+                        else:
+                            conf_value = value
                         config_tree.put(key, conf_value)
 
         return config_tree

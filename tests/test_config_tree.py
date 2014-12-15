@@ -9,7 +9,10 @@ class TestConfigParser(object):
         config_tree = ConfigTree()
         config_tree.put("a.b.c", "value")
         assert config_tree.get("a.b.c") == "value"
-        assert config_tree.get("a.b.d") is None
+
+        with pytest.raises(ConfigMissingException):
+            assert config_tree.get("a.b.d")
+
         with pytest.raises(ConfigMissingException):
             config_tree.get("a.d.e")
 

@@ -61,11 +61,11 @@ class ConfigTree(object):
         key_elt = key_path[key_index]
         elt = self._dictionary.get(key_elt)
 
-        if key_index == len(key_path) - 1:
-            return elt
-
         if elt is None:
             raise ConfigMissingException("No configuration setting found for key {key}".format(key='.'.join(key_path[:key_index + 1])))
+
+        if key_index == len(key_path) - 1:
+            return elt
         elif isinstance(elt, ConfigTree):
             return elt._get(key_path, key_index + 1)
         else:
@@ -208,20 +208,48 @@ class ConfigTree(object):
     def __len__(self):
         return len(self._dictionary)
 
+    def __setitem__(self, key, value):
+        self._dictionary.__setitem__(key, value)
+
 
 class ConfigList(list):
     def __init__(self, iterable):
-        super(ConfigList, self).__init__(iterable)
+        l = list(iterable)
+        super(ConfigList, self).__init__(l)
+        for index, value in enumerate(l):
+            if isinstance(value, ConfigValues):
+                value.parent = self
+                value.index = index
 
 
-class ConfigValues():
+class ConfigValues(object):
     def __init__(self, iterable):
         self.tokens = iterable
-        self.value = None
+        self.parent = None
+        self.key = None
+        for index, token in enumerate(self.tokens):
+            if isinstance(token, ConfigSubstitution):
+                token.parent = self
+                token.index = index
+
+    def has_substitution(self):
+        return next((True for token in self.tokens if isinstance(token, ConfigSubstitution)), False)
+
+    def transform(self):
+        if self.has_substitution():
+            return self
+
+        if len(self.tokens) == 1:
+            return self.tokens[0]
+
+        return ''.join(token if isinstance(token, str) else str(token) + ' ' for token in self.tokens)
+
+    def put(self, index, value):
+        self.tokens[index] = value
 
 
 class ConfigSubstitution(object):
-    def __init__(self, variable, loc, tokens):
+    def __init__(self, variable):
         self.variable = variable
-        self.loc = loc
-        self.tokens = tokens
+        self.index = None
+        self.parent = None

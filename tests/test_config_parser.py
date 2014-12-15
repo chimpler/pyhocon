@@ -62,19 +62,6 @@ class TestConfigParser(object):
         assert config.get('c') == 'the man!'
         assert config.get('d') == 'woof'
 
-    def test_dict_concatenation(self):
-        config = ConfigFactory.parse_string(
-            """
-            a: {b: 1}
-            a: {c: 2}
-            b: {c: 3} {d: 4} {c: 5}
-            """
-        )
-        assert config.get('a.b') == 1
-        assert config.get('a.c') == 2
-        assert config.get('b.c') == 5
-        assert config.get('b.d') == 4
-
     def test_parse_with_comments(self):
         config = ConfigFactory.parse_string(
             """
@@ -95,6 +82,7 @@ class TestConfigParser(object):
             """
         )
 
+        assert config.get('a.b') == 'test'
         assert config.get_string('a.b') == 'test'
         assert config.get('t') == [1, 2, 3]
 
@@ -117,3 +105,79 @@ class TestConfigParser(object):
 
         assert config.get('a.b.c') == 7
         assert config.get('a.b.d') == 8
+
+    def test_concat_dict(self):
+        config = ConfigFactory.parse_string(
+            """
+            a: {b: 1}
+            a: {c: 2}
+            b: {c: 3} {d: 4} {
+                c: 5
+            }
+            """
+        )
+        assert config.get('a.b') == 1
+        assert config.get('a.c') == 2
+        assert config.get('b.c') == 5
+        assert config.get('b.d') == 4
+
+    def test_concat_string(self):
+        config = ConfigFactory.parse_string(
+            """
+            a = a b c
+            b = 5 b
+            c = b 7
+            """
+        )
+
+        assert config.get('a') == 'a b c'
+        assert config.get('b') == '5 b'
+        assert config.get('c') == 'b 7'
+
+    def test_concat_list(self):
+        config = ConfigFactory.parse_string(
+            """
+            a = [1, 2] [3, 4] [
+              5,
+              6
+            ]
+            """
+        )
+
+        assert config.get('a') == [1, 2, 3, 4, 5, 6]
+        assert config.get_list('a') == [1, 2, 3, 4, 5, 6]
+
+    def test_substitutions(self):
+        config = ConfigFactory.parse_string(
+            """
+            {
+                a: {
+                    b: {
+                        c = 5
+                    }
+                }
+                d = test ${a.b.c} me
+            }
+            """
+        )
+
+        assert config.get('a.b.c') == 5
+        assert config.get('d') == 'test 5 me'
+
+    def test_cascade_substitutions(self):
+        config = ConfigFactory.parse_string(
+            """
+            {
+                a: {
+                    b: {
+                        c = ${e}
+                    }
+                }
+                d = test ${a.b.c} me
+                e = 7
+            }
+            """
+        )
+
+        assert config.get('a.b.c') == 7
+        assert config.get('d') == 'test 7 me'

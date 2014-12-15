@@ -26,35 +26,29 @@ if it is not an int), `get_string`, `get_list`, `get_double`, `get_bool`, `get_c
 
 ## Example of HOCON file
 
-    //
-    // You can use # or // for comments
-    //
     {
-      "databases" { # you can optionally use quoted strings for keys
-        # MySQL
-        mysql {
-          host = "abc.com" # change it
-          port = 3306 # default
-          username: scott // can use : or =
-          password = tiger, // can optionally use a comma
-          // number of retries
-          retries = 3
-        }
-      }
-      // multi line support
-      motd = """
-            Hello "man"!
-            How is it going?
-             """
-             
-      // this will be appended to the databases dictionary above
-      databases.ips = [
-        192.168.0.1,
-        "192.168.0.2", // optional quotes
-        192.168.0.3, # can have a trailing , which is ok
-      ]
+      "databases": {
+        "active": true,
+        "enable_logging": false,
+        "resolver": null,
+        "home_dir": "/Users/fdang",
+        "mysql": {
+          "host": "abc.com",
+          "port": 3306,
+          "username": "scott ",
+          "password": "tiger",
+          "retries": 3
+        },
+        "ips": [
+          "192.168 0.0 0.1 ",
+          "192.168.0.2",
+          "192.168 0.0 0.3 "
+        ]
+      },
+      "motd": "\n            Hello \"man\"!\n            How is it going?\n         ",
+      "retries_msg": "You have 3 retries"
     }
-
+    
 ## Conversion tool
 
 We provide a conversion tool to convert from HOCON to the JSON, .properties and YAML formats:
@@ -64,61 +58,74 @@ We provide a conversion tool to convert from HOCON to the JSON, .properties and 
     $ cat samples/databases.conf | pyhocon -f json
     
     {
-      "motd": "\n        Hello \"man\"!\n        How is it going?\n         ",
       "databases": {
-        "ips": [
-          "192.168.0.1",
-          "192.168.0.2",
-          "192.168.0.3"
-        ],
+        "active": true,
+        "enable_logging": false,
+        "resolver": null,
+        "home_dir": "/Users/fdang",
         "mysql": {
-          "username": "scott",
-          "retries": 3,
           "host": "abc.com",
+          "port": 3306,
+          "username": "scott ",
           "password": "tiger",
-          "port": 3306
-        }
-      }
-    }    
+          "retries": 3
+        },
+        "ips": [
+          "192.168 0.0 0.1 ",
+          "192.168.0.2",
+          "192.168 0.0 0.3 "
+        ]
+      },
+      "motd": "\n            Hello \"man\"!\n            How is it going?\n         ",
+      "retries_msg": "You have 3 retries"
+    }
 
 ####  .properties
 
     $ cat samples/databases.conf | pyhocon -f properties
 
-    motd = \
-            Hello "man"\!\
-            How is it going?\
-    
-    databases.ips.0 = 192.168.0.1
-    databases.ips.1 = 192.168.0.2
-    databases.ips.2 = 192.168.0.3
-    databases.mysql.username = scott
-    databases.mysql.retries = 3
+    databases.active = true
+    databases.enable_logging = false
+    databases.home_dir = /Users/fdang
     databases.mysql.host = abc.com
-    databases.mysql.password = tiger
     databases.mysql.port = 3306
-
+    databases.mysql.username = scott
+    databases.mysql.password = tiger
+    databases.mysql.retries = 3
+    databases.ips.0 = 192.168 0.0 0.1
+    databases.ips.1 = 192.168.0.2
+    databases.ips.2 = 192.168 0.0 0.3
+    motd = \
+                Hello "man"\!\
+                How is it going?\
+    
+    retries_msg = You have 3 retries
+    
 #### YAML
 
     $ cat samples/databases.conf | pyhocon -f yaml
 
-    motd: |
+      databases:
+        active: true
+        enable_logging: false
+        resolver: None
+        home_dir: /Users/fdang
+        mysql:
+          host: abc.com
+          port: 3306
+          username: scott
+          password: tiger
+          retries: 3
+        ips:
+          - 192.168 0.0 0.1
+          - 192.168.0.2
+          - 192.168 0.0 0.3
+      motd: |
     
                 Hello "man"!
                 How is it going?
     
-      databases:
-        ips:
-          - 192.168.0.1
-          - 192.168.0.2
-          - 192.168.0.3
-    
-        mysql:
-          username: scott
-          retries: 3
-          host: abc.com
-          password: tiger
-          port: 3306
+      retries_msg: You have 3 retries
 
 ## TODO
 
@@ -133,12 +140,12 @@ Duplicate keys and object merging      | :white_check_mark:
 Unquoted strings                       | :white_check_mark:
 Multi-line strings                     | :white_check_mark:
 String value concatenation             | :white_check_mark:
-Array concatenation                    | :x:
+Array concatenation                    | :white_check_mark:
 Object concatenation                   | :white_check_mark:
 Arrays without commas                  | :white_check_mark:
 Path expressions                       | :x:
 Paths as keys                          | :white_check_mark:
-Substitutions                          | :x:
+Substitutions                          | :white_check_mark:
 Self-referential substitutions         | :x:
 The `+=` separator                     | :x:
 Includes                               | :x:
