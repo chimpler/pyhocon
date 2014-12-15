@@ -14,6 +14,12 @@ The parsed config can be seen as a nested dictionary (with types automatically i
 dictionary getter (e.g., `conf['a']['b']` or using paths like `conf['a.b']`) or via the methods `get`, `get_int` (throws an exception
 if it is not an int), `get_string`, `get_list`, `get_double`, `get_bool`, `get_config`.
 
+# Installation
+
+It is available on pypi so you can install it as follows:
+
+    $ pip install pyhocon
+
 ## Usage
 
     from pyhocon import ConfigFactory

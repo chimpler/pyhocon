@@ -35,7 +35,7 @@ class ConfigParser(object):
             return value
 
         def unescape_string(tokens):
-            return norm_string(tokens[0])
+            return norm_string(tokens[0]).strip()
 
         def unescape_multi_string(tokens):
             # remove the first and last 3 "
