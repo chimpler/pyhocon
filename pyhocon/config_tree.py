@@ -232,6 +232,10 @@ class ConfigValues(object):
                 token.parent = self
                 token.index = index
 
+        # if the last token is an unquoted string then stripright it
+        if isinstance(self.tokens[-1], ConfigUnquotedString):
+            self.tokens[-1] = self.tokens[-1].rstrip()
+
     def has_substitution(self):
         return next((True for token in self.tokens if isinstance(token, ConfigSubstitution)), False)
 
@@ -253,3 +257,9 @@ class ConfigSubstitution(object):
         self.variable = variable
         self.index = None
         self.parent = None
+
+
+class ConfigUnquotedString(str):
+
+    def __init__(self, value):
+        super(ConfigUnquotedString, self).__init__(value)

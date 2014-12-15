@@ -1,7 +1,7 @@
 import os
 import re
 from pyparsing import *
-from pyhocon.config_tree import ConfigTree, ConfigSubstitution, ConfigList, ConfigValues
+from pyhocon.config_tree import ConfigTree, ConfigSubstitution, ConfigList, ConfigValues, ConfigUnquotedString
 from pyhocon.exceptions import ConfigSubstitutionException
 
 
@@ -35,7 +35,7 @@ class ConfigParser(object):
             return value
 
         def unescape_string(tokens):
-            return norm_string(tokens[0]).strip()
+            return ConfigUnquotedString(norm_string(tokens[0]))
 
         def unescape_multi_string(tokens):
             # remove the first and last 3 "

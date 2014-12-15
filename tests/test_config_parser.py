@@ -68,6 +68,8 @@ class TestConfigParser(object):
             // comment 1
             # comment 2
             {
+                c = test   // comment 0
+                g = 6 test   # comment 0
                 # comment 3
                 a: { # comment 4
                     b: test,                # comment 5
@@ -82,6 +84,8 @@ class TestConfigParser(object):
             """
         )
 
+        assert config.get('c') == 'test'
+        assert config.get('g') == '6 test'
         assert config.get('a.b') == 'test'
         assert config.get_string('a.b') == 'test'
         assert config.get('t') == [1, 2, 3]
