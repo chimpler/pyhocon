@@ -242,7 +242,7 @@ class ConfigValues(object):
         if len(self.tokens) == 1:
             return self.tokens[0]
 
-        return ''.join(token if isinstance(token, str) else str(token) + ' ' for token in self.tokens)
+        return ''.join(token if isinstance(token, str) else str(token) + ' ' for token in self.tokens[:-1]) + str(self.tokens[-1])
 
     def put(self, index, value):
         self.tokens[index] = value
