@@ -92,6 +92,21 @@ class TestConfigParser(object):
         assert config.get_string('a.b') == 'test'
         assert config.get('t') == [1, 2, 3]
 
+    def test_parse_empty(self):
+        config = ConfigFactory.parse_string(
+            """
+            a =
+            b =   // test
+            c =   # test
+            d =   ,
+            e =  ,  // test
+            f =    , # test
+            """
+        )
+        assert config.get('a') == ''
+        assert config.get('b') == ''
+        assert config.get('c') == ''
+
     def test_parse_override(self):
         config = ConfigFactory.parse_string(
             """

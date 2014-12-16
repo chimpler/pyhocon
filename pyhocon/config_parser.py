@@ -1,8 +1,7 @@
 import os
 import re
 from pyparsing import *
-from pyhocon.config_tree import ConfigTree, ConfigSubstitution, ConfigList, ConfigValues, ConfigUnquotedString, \
-    ConfigSlashString
+from pyhocon.config_tree import ConfigTree, ConfigSubstitution, ConfigList, ConfigValues, ConfigUnquotedString
 from pyhocon.exceptions import ConfigSubstitutionException
 
 
@@ -50,10 +49,14 @@ class ConfigParser(object):
                 return float(n)
 
         substitutions = []
+        SUBSTITUTION = "\$\{(?P<variable>[^}]+)\}(?P<ws>\s*)"
 
         def create_substitution(token):
             # remove the ${ and }
-            substitution = ConfigSubstitution(token[0][2:-1])
+            match = re.match(SUBSTITUTION, token[0])
+            variable = match.group('variable')
+            ws = match.group('ws')
+            substitution = ConfigSubstitution(variable, ws)
             substitutions.append(substitution)
             return substitution
 
@@ -70,8 +73,8 @@ class ConfigParser(object):
 
         eol = Word('\n\r').suppress()
         eol_comma = Word('\n\r,').suppress()
-        comment = ((Literal('#') | Literal('//')) - SkipTo(eol)).suppress()
-        number_expr = Regex('[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE]\d+)?(?=\s*[\n\r\]\},/#])').setParseAction(convert_number)
+        comment = (Optional(eol_comma) + (Literal('#') | Literal('//')) - SkipTo(eol)).suppress()
+        number_expr = Regex('[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE]\d+)?(?=[ \t]*([\$\}\],#\n\r]|//))', re.DOTALL).setParseAction(convert_number)
 
         # multi line string using """
         # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
@@ -83,12 +86,12 @@ class ConfigParser(object):
         # line1  \
         # line2 \
         # so a backslash precedes the \n
-        unquoted_string = Regex(r'(\\\n|[^\[\{\n\]\}#,=\$/])+', re.DOTALL).setParseAction(unescape_string)
-        substitution_expr = Regex('\$\{[^\}]+\}').setParseAction(create_substitution)
-        string_expr = multiline_string | singleline_string | unquoted_string | comment | Literal('/')
+        unquoted_string = Regex(r'(\\[ \t]*[\r\n]|[^\[\{\n\]\}#,=\$])+?(?=(\$|[ \t]*(//|[\}\],#\n\r])))', re.DOTALL).setParseAction(unescape_string)
+        substitution_expr = Regex('\$\{[^\}]+\}\s*').setParseAction(create_substitution)
+        string_expr = multiline_string | singleline_string | unquoted_string
 
         value_expr = number_expr | true_expr | false_expr | null_expr | string_expr | substitution_expr
-        values_expr = ConcatenatedValueParser(value_expr - ZeroOrMore(value_expr + Optional(Literal('\\') + eol).suppress()))
+        values_expr = ConcatenatedValueParser(value_expr - ZeroOrMore(comment | (value_expr - Optional(Literal('\\') - eol).suppress()) | value_expr))
         # multiline if \ at the end of the line
 
         list_expr << ListParser(Suppress('[') - ZeroOrMore(comment | values_expr | eol_comma) - Suppress(']')) - ZeroOrMore(list_expr)
@@ -100,7 +103,7 @@ class ConfigParser(object):
         assign_dict_expr = Suppress(Optional(oneOf(['=', ':']))) + dict_expr
 
         # special case when we have a value assignment where the string can potentially be the remainder of the line
-        assign_value_or_list_expr = Suppress(oneOf(['=', ':'])) + (list_expr | values_expr | eol_comma)
+        assign_value_or_list_expr = Suppress(oneOf(['=', ':'])) + (comment | list_expr | values_expr | eol_comma)
         assign_expr << Group(key + (assign_dict_expr | assign_value_or_list_expr))
 
         # the file can be { ... } where {} can be omitted or []
@@ -142,6 +145,10 @@ class ConfigParser(object):
                     else:
                         # replace token by substitution
                         config_values = substitution.parent
+                        # if there is more than one element in the config values then it's a string
+
+                        tokens = substitution.parent.tokens
+                        formatted_resolved_value = str(resolved_value) if len(tokens) > 1 and substitution.index < len(tokens) - 1 else resolved_value
                         config_values.put(substitution.index, resolved_value)
                         config_values.parent[config_values.key] = config_values.transform()
                         _substitutions.remove(substitution)

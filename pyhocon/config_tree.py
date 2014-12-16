@@ -253,8 +253,9 @@ class ConfigValues(object):
 
 
 class ConfigSubstitution(object):
-    def __init__(self, variable):
+    def __init__(self, variable, ws):
         self.variable = variable
+        self.ws = ws
         self.index = None
         self.parent = None
 
