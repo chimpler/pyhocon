@@ -164,9 +164,10 @@ If -i is omitted, the tool will read from the standard input. If -o is omitted, 
     
     retries_msg: You have 3 retries
 
-# Includes
+## Includes
 
 We support the include semantics using one of the followings:
+
     include "test.conf"
     include "http://abc.com/test.conf"
     include "https://abc.com/test.conf"
