@@ -4,14 +4,6 @@ pyhocon package
 Submodules
 ----------
 
-pyhocon.config_parser module
-----------------------------
-
-.. automodule:: pyhocon.config_parser
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 pyhocon.config_tree module
 --------------------------
 
