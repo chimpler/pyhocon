@@ -11,11 +11,6 @@ HOCON parser for Python
 
 https://github.com/typesafehub/config/blob/master/HOCON.md
 
-## Features
-The parsed config can be seen as a nested dictionary (with types automatically inferred) where values can be accessed using normal
-dictionary getter (e.g., `conf['a']['b']` or using paths like `conf['a.b']`) or via the methods `get`, `get_int` (throws an exception
-if it is not an int), `get_string`, `get_list`, `get_double`, `get_bool`, `get_config`.
-
 # Installation
 
 It is available on pypi so you can install it as follows:
@@ -24,10 +19,17 @@ It is available on pypi so you can install it as follows:
 
 ## Usage
 
+The parsed config can be seen as a nested dictionary (with types automatically inferred) where values can be accessed using normal
+dictionary getter (e.g., `conf['a']['b']` or using paths like `conf['a.b']`) or via the methods `get`, `get_int` (throws an exception
+if it is not an int), `get_string`, `get_list`, `get_double`, `get_bool`, `get_config`.
+
     from pyhocon import ConfigFactory
     
     conf = ConfigFactory.parse_file('samples/database.conf')
     host = conf.get_string('databases.mysql.host')
+    same_host = conf.get('databases.mysql.host')
+    same_host = conf['databases.mysql.host']
+    same_host = conf['databases']['mysql.host']
     port = conf['databases.mysql.port']
     username = conf['databases']['mysql']['username']
     password = conf.get_config('databases')['mysql.password']
@@ -73,7 +75,20 @@ It is available on pypi so you can install it as follows:
     
 ## Conversion tool
 
-We provide a conversion tool to convert from HOCON to the JSON, .properties and YAML formats:
+We provide a conversion tool to convert from HOCON to the JSON, .properties and YAML formats.
+
+    usage: tool.py [-h] [-i INPUT] [-o OUTPUT] [-f FORMAT]
+    
+    pyhocon tool
+    
+    optional arguments:
+      -h, --help            show this help message and exit
+      -i INPUT, --input INPUT FILE
+      -o OUTPUT, --output OUTPUT FILE
+      -f FORMAT, --format FORMAT
+                            output format: json or properties
+
+If -i is omitted, the tool will read from the standard input. If -o is omitted, the result will be written to the standard output.
 
 ####  JSON
 
@@ -149,6 +164,75 @@ We provide a conversion tool to convert from HOCON to the JSON, .properties and 
     
     retries_msg: You have 3 retries
 
+# Includes
+
+We support the include semantics using one of the followings:
+    include "test.conf"
+    include "http://abc.com/test.conf"
+    include "https://abc.com/test.conf"
+    include "file://abc.com/test.conf"
+    include file("test.conf")
+    include url("http://abc.com/test.conf")
+    include url("https://abc.com/test.conf")
+    include url("file://abc.com/test.conf")
+
+When one use a relative path (e.g., test.conf), we use the same directory as the file that includes the new file as a base directory. If
+the standard input is used, we use the current directory as a base directory.
+
+For example if we have the following files:
+
+cat.conf:
+
+    {
+      garfield: {
+        say: meow
+      }
+    }    
+
+dog.conf:
+
+    {
+      mutt: {
+        say: woof
+        hates: {
+          include "cat.conf"
+        }
+      }
+    }
+    
+animals.conf:
+    
+    {
+      cat : {
+        include "cat.conf"
+      }
+    
+      dog: {
+        include "dog.conf"
+      }
+    }    
+
+Then evaluating animals.conf will result in the followings:
+
+    $ pyhocon -i samples/animals.conf
+    {
+      "cat": {
+        "garfield": {
+          "say": "meow"
+        }
+      },
+      "dog": {
+        "mutt": {
+          "say": "woof",
+          "hates": {
+            "garfield": {
+              "say": "meow"
+            }
+          }
+        }
+      }
+    }
+
 ## TODO
 
 Items                                  | Status
@@ -171,11 +255,12 @@ Substitutions                          | :white_check_mark:
 Self-referential substitutions         | :x:
 The `+=` separator                     | :x:
 Includes                               | :x:
-Include semantics: merging             | :x:
-Include semantics: substitution        | :x:
+Include semantics: merging             | :white_check_mark:
+Include semantics: substitution        | :white_check_mark:
 Include semantics: missing files       | :x:
 Include semantics: file formats and extensions     | :x:
 Include semantics: locating resources              | :x:
+Include semantics: preventing cycles               | :x:
 Conversion of numerically-index objects to arrays  | :x:
 
 API Recommendations                                        | Status

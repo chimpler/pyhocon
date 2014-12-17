@@ -202,3 +202,8 @@ class TestConfigParser(object):
 
         assert config.get('a.b.c') == 7
         assert config.get('d') == 'test 7 me'
+
+    def test_include_dict(self):
+        config = ConfigFactory.parse_file("samples/animals.conf")
+        assert config.get('cat.garfield.say') == 'meow'
+        assert config.get('dog.mutt.hates.garfield.say') == 'meow'

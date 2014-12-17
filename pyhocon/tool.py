@@ -125,32 +125,45 @@ class HOCONConverter(object):
         return '\n'.join([line for line in lines if len(line) > 0])
 
     @staticmethod
-    def convert(format):
+    def convert(input_file=None, output_file=None, format='json'):
         """Convert to json, properties or yaml
 
         :param format: json, properties or yaml
         :type format: basestring
         :return: json, properties or yaml string representation
         """
-        content = sys.stdin.read()
-        config = ConfigFactory.parse_string(content)
+
+        if input_file is None:
+            content = sys.stdin.read()
+            config = ConfigFactory.parse_string(content)
+        else:
+            config = ConfigFactory.parse_file(input_file)
+
         if format.lower() == 'json':
-            print HOCONConverter.to_json(config)
+            res = HOCONConverter.to_json(config)
         elif format.lower() == 'properties':
-            print HOCONConverter.to_properties(config)
+            res = HOCONConverter.to_properties(config)
         elif format.lower() == 'yaml':
-            print HOCONConverter.to_yaml(config)
+            res = HOCONConverter.to_yaml(config)
         else:
             raise Exception("Format must be 'json', 'properties' or 'yaml'")
+
+        if output_file is None:
+            print res
+        else:
+            with open(output_file, "w") as fd:
+                fd.write(res)
 
 
 def main():
     parser = argparse.ArgumentParser(description='pyhocon tool')
+    parser.add_argument('-i', '--input', help='input file')
+    parser.add_argument('-o', '--output', help='output file')
     parser.add_argument('-f', '--format', help='output format: json or properties', default='json')
     args = parser.parse_args()
     if args.format.lower() not in ['json', 'properties', 'yaml']:
         raise Exception("Format must be 'json', 'properties' or 'yaml'")
-    HOCONConverter.convert(args.format)
+    HOCONConverter.convert(args.input, args.output, args.format)
 
 
 if __name__ == '__main__':
