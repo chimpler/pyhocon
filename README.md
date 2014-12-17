@@ -77,7 +77,7 @@ if it is not an int), `get_string`, `get_list`, `get_double`, `get_bool`, `get_c
 
 We provide a conversion tool to convert from HOCON to the JSON, .properties and YAML formats.
 
-    usage: tool.py [-h] [-i INPUT] [-o OUTPUT] [-f FORMAT]
+    usage: pyhocon [-h] [-i INPUT] [-o OUTPUT] [-f FORMAT]
     
     pyhocon tool
     
@@ -86,7 +86,7 @@ We provide a conversion tool to convert from HOCON to the JSON, .properties and 
       -i INPUT, --input INPUT FILE
       -o OUTPUT, --output OUTPUT FILE
       -f FORMAT, --format FORMAT
-                            output format: json or properties
+                            output format: json, properties or yaml
 
 If -i is omitted, the tool will read from the standard input. If -o is omitted, the result will be written to the standard output.
 

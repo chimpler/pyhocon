@@ -159,7 +159,7 @@ def main():
     parser = argparse.ArgumentParser(description='pyhocon tool')
     parser.add_argument('-i', '--input', help='input file')
     parser.add_argument('-o', '--output', help='output file')
-    parser.add_argument('-f', '--format', help='output format: json or properties', default='json')
+    parser.add_argument('-f', '--format', help='output format: json, properties or yaml', default='json')
     args = parser.parse_args()
     if args.format.lower() not in ['json', 'properties', 'yaml']:
         raise Exception("Format must be 'json', 'properties' or 'yaml'")
