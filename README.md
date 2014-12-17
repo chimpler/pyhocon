@@ -177,7 +177,7 @@ We support the include semantics using one of the followings:
     include url("https://abc.com/test.conf")
     include url("file://abc.com/test.conf")
 
-When one use a relative path (e.g., test.conf), we use the same directory as the file that includes the new file as a base directory. If
+When one uses a relative path (e.g., test.conf), we use the same directory as the file that includes the new file as a base directory. If
 the standard input is used, we use the current directory as a base directory.
 
 For example if we have the following files:
@@ -196,6 +196,10 @@ dog.conf:
       mutt: {
         say: woof
         hates: {
+          garfield: {
+            notes: I don't like him
+            say: meeeeeeeooooowww
+          }
           include "cat.conf"
         }
       }
@@ -227,12 +231,15 @@ Then evaluating animals.conf will result in the followings:
           "say": "woof",
           "hates": {
             "garfield": {
+              "notes": "I don't like him",
               "say": "meow"
             }
           }
         }
       }
     }
+
+As you can see, the attributes in cat.conf were merged to the ones in dog.conf. Note that the attribute "say" in dog.conf got overwritten by the one in cat.conf.
 
 ## TODO
 
@@ -255,7 +262,7 @@ Paths as keys                          | :white_check_mark:
 Substitutions                          | :white_check_mark:
 Self-referential substitutions         | :x:
 The `+=` separator                     | :x:
-Includes                               | :x:
+Includes                               | :white_check_mark:
 Include semantics: merging             | :white_check_mark:
 Include semantics: substitution        | :white_check_mark:
 Include semantics: missing files       | :x:
