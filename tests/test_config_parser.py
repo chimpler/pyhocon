@@ -57,12 +57,14 @@ class TestConfigParser(object):
             b="abc",
             c=the man!
             d=woof
+            a-b-c-d=test
             """
         )
         assert config.get('a') == 1
         assert config.get('b') == 'abc'
         assert config.get('c') == 'the man!'
         assert config.get('d') == 'woof'
+        assert config.get('a-b-c-d') == 'test'
 
     def test_parse_with_comments(self):
         config = ConfigFactory.parse_string(
