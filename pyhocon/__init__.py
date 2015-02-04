@@ -137,7 +137,7 @@ class ConfigParser(object):
         true_expr = Keyword("true", caseless=True).setParseAction(replaceWith(True))
         false_expr = Keyword("false", caseless=True).setParseAction(replaceWith(False))
         null_expr = Keyword("null", caseless=True).setParseAction(replaceWith(None))
-        key = QuotedString('"', escChar='\\') | Word(alphanums + '._-')
+        key = QuotedString('"', escChar='\\') | Word(alphanums + '._- ')
 
         eol = Word('\n\r').suppress()
         eol_comma = Word('\n\r,').suppress()
@@ -288,7 +288,7 @@ class ConfigTreeParser(TokenConverter):
 
             for tokens in expanded_tokens:
                 # key, value1, value2, ...
-                key = tokens[0]
+                key = tokens[0].strip()
                 values = tokens[1:]
 
                 # empty string
