@@ -82,7 +82,7 @@ class ConfigTree(object):
         :return:
         """
         tokens = re.findall('"[^"]+"|[^\.]+', str)
-        return map(lambda t: t if '.' in t else t.strip('"'), tokens)
+        return map(lambda t: t.strip('"'), tokens)
 
     def put(self, key, value, append=False):
         """Put a value in the tree (dot separated)
