@@ -50,6 +50,24 @@ class TestConfigParser(object):
         config = ConfigFactory.parse_string("[1, 2, 3]")
         assert config == [1, 2, 3]
 
+    def test_quoted_key_with_dots(self):
+        config = ConfigFactory.parse_string(
+            """
+            "a.b.c.d": 3
+            t {
+              "d": {
+                "c": 5
+              }
+            }
+            k {
+                "b.f.d": 7
+            }
+            """
+        )
+        assert config['"a.b.c.d"'] == 3
+        assert config['t.d.c'] == 5
+        assert config['k."b.f.d"'] == 7
+
     def test_comma_to_separate_expr(self):
         config = ConfigFactory.parse_string(
             """

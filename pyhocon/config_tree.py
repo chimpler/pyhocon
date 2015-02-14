@@ -1,4 +1,5 @@
 from collections import OrderedDict
+import re
 from pyhocon.exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
 
 
@@ -71,6 +72,18 @@ class ConfigTree(object):
         else:
             raise ConfigWrongTypeException("{key} has type {type} rather than dict".format(key='.'.join(key_path[:key_index + 1]), type=type(elt).__name__))
 
+    def _parse_key(self, str):
+        """
+        Split a key into path elements:
+        - a.b.c => a, b, c
+        - a."b.c" => a, "b.c"
+        - a.b."c" => a, b, c (special case)
+        :param str:
+        :return:
+        """
+        tokens = re.findall('"[^"]+"|[^\.]+', str)
+        return map(lambda t: t if '.' in t else t.strip('"'), tokens)
+
     def put(self, key, value, append=False):
         """Put a value in the tree (dot separated)
 
@@ -78,7 +91,7 @@ class ConfigTree(object):
         :type key: basestring
         :param value: value to put
         """
-        self._put(key.split(ConfigTree.KEY_SEP), value, append)
+        self._put(self._parse_key(key), value, append)
 
     def get(self, key):
         """Get a value from the tree
@@ -87,7 +100,7 @@ class ConfigTree(object):
         :type key: basestring
         :return: value in the tree located at key
         """
-        return self._get(key.split(ConfigTree.KEY_SEP))
+        return self._get(self._parse_key(key))
 
     def get_string(self, key):
         """Return string representation of value found at key

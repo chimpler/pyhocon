@@ -92,7 +92,7 @@ If -i is omitted, the tool will read from the standard input. If -o is omitted, 
 
 ####  JSON
 
-    $ cat samples/databases.conf | pyhocon -f json
+    $ cat samples/database.conf | pyhocon -f json
     
     {
       "databases": {
@@ -119,7 +119,7 @@ If -i is omitted, the tool will read from the standard input. If -o is omitted, 
     
 ####  .properties
 
-    $ cat samples/databases.conf | pyhocon -f properties
+    $ cat samples/database.conf | pyhocon -f properties
 
     databases.active = true
     databases.enable_logging = false
@@ -140,7 +140,7 @@ If -i is omitted, the tool will read from the standard input. If -o is omitted, 
         
 #### YAML
 
-    $ cat samples/databases.conf | pyhocon -f yaml
+    $ cat samples/database.conf | pyhocon -f yaml
 
     databases:
       active: true
