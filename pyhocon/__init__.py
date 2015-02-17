@@ -162,8 +162,6 @@ class ConfigParser(object):
         values_expr = ConcatenatedValueParser(value_expr - ZeroOrMore(comment | (value_expr - Optional(Literal('\\') - eol).suppress()) | value_expr))
         # multiline if \ at the end of the line
 
-        list_expr << ListParser(Suppress('[') - ZeroOrMore(comment | values_expr | eol_comma) - Suppress(']')) - ZeroOrMore(list_expr)
-
         include_expr = (Keyword("include", caseless=True).suppress() - (
             quoted_string | ((Keyword('url') | Keyword('file')) - Literal('(').suppress() - quoted_string - Literal(')').suppress())))\
             .setParseAction(include_config)
@@ -173,6 +171,8 @@ class ConfigParser(object):
         inside_dict_expr = ConfigTreeParser(ZeroOrMore(comment | include_expr | assign_expr | eol_comma))
         dict_expr << Suppress('{') - inside_dict_expr + Suppress('}') - ZeroOrMore(dict_expr)
         assign_dict_expr = Suppress(Optional(oneOf(['=', ':']))) + dict_expr
+
+        list_expr << ListParser(Suppress('[') - ZeroOrMore(comment | values_expr | dict_expr | eol_comma) - Suppress(']')) - ZeroOrMore(list_expr)
 
         # special case when we have a value assignment where the string can potentially be the remainder of the line
         assign_value_or_list_expr = Suppress(oneOf(['=', ':'])) + (comment | list_expr | values_expr | eol_comma)
