@@ -231,3 +231,18 @@ class TestConfigParser(object):
         config = ConfigFactory.parse_file("samples/animals.conf")
         assert config.get('cat.garfield.say') == 'meow'
         assert config.get('dog.mutt.hates.garfield.say') == 'meow'
+
+    def test_list_of_dicts(self):
+        config = ConfigFactory.parse_string(
+            """
+            a: [
+                {a: 1, b: 2},
+                {a: 3, c: 4},
+            ]
+            """
+        )
+        assert len(config.get('a')) == 2
+        assert config.get('a')[0].get('a') == 1
+        assert config.get('a')[0].get('b') == 2
+        assert config.get('a')[1].get('a') == 3
+        assert config.get('a')[1].get('c') == 4
