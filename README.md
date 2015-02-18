@@ -280,3 +280,7 @@ Duration format                                            | :x:
 Size in bytes format                                       | :x:
 Config object merging and file merging                     | :x:
 Java properties mapping                                    | :x:
+
+### Contributors
+
+  - Aleksey Ostapenko ([@kbabka](https://github.com/kbakba))
