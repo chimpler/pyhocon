@@ -1,10 +1,17 @@
 import re
 import os
 import socket
-import urllib2
 from pyhocon.config_tree import ConfigTree, ConfigSubstitution, ConfigList, ConfigValues, ConfigUnquotedString
 from pyhocon.exceptions import ConfigSubstitutionException
 from pyparsing import *
+
+
+try:
+    # For Python 3.0 and later
+    from urllib.request import urlopen
+except ImportError:
+    # Fall back to Python 2's urllib2
+    from urllib2 import urlopen
 
 
 class ConfigFactory(object):
@@ -284,7 +291,7 @@ class ConfigTreeParser(TokenConverter):
         config_tree = ConfigTree()
         for element in token_list:
             # from include then merge items
-            expanded_tokens = element._dictionary.iteritems() if isinstance(element, ConfigTree) else [element]
+            expanded_tokens = element._dictionary.items() if isinstance(element, ConfigTree) else [element]
 
             for tokens in expanded_tokens:
                 # key, value1, value2, ...
