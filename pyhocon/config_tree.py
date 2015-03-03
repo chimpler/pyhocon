@@ -20,7 +20,7 @@ class ConfigTree(object):
         """
         for key, value in b._dictionary.items():
             # if key is in both a and b and both values are dictionary then merge it otherwise override it
-            if key in a._dictionary.items() and isinstance(a._dictionary[key], ConfigTree) and isinstance(a._dictionary[key], ConfigTree):
+            if key in list(a._dictionary.items()) and isinstance(a._dictionary[key], ConfigTree) and isinstance(a._dictionary[key], ConfigTree):
                 self._merge_dict(a._dictionary[key], b._dictionary[key])
             else:
                 a._dictionary[key] = value
@@ -82,7 +82,7 @@ class ConfigTree(object):
         :return:
         """
         tokens = re.findall('"[^"]+"|[^\.]+', str)
-        return map(lambda t: t.strip('"'), tokens)
+        return [t.strip('"') for t in tokens]
 
     def put(self, key, value, append=False):
         """Put a value in the tree (dot separated)
@@ -178,30 +178,6 @@ class ConfigTree(object):
         """
         return self._dictionary.items()
 
-    def iteritems(self):
-        """Return items iterator found in the config
-
-        :return: items iterator
-        :type return: iterator
-        """
-        return self._dictionary.iteritems()
-
-    def iterkeys(self):
-        """Return keys iterator found in the config
-
-        :return: keys iterator
-        :type return: iterator
-        """
-        return self._dictionary.iterkeys()
-
-    def itervalues(self):
-        """Return values iterator found in the config
-
-        :return: values iterator
-        :type return: iterator
-        """
-        return self._dictionary.itervalues()
-
     def __getitem__(self, item):
         val = self.get(item)
         if val is None:
@@ -275,11 +251,11 @@ class ConfigSubstitution(object):
 
 class ConfigUnquotedString(str):
 
-    def __init__(self, value):
-        super(ConfigUnquotedString, self).__init__(value)
+    def __new__(cls, value):
+        return super(ConfigUnquotedString, cls).__new__(cls, value)
 
 
 class ConfigSlashString(str):
 
-    def __init__(self, value):
-        super(ConfigUnquotedString, self).__init__(value)
+    def __new__(cls, value):
+        return super(ConfigSlashString, cls).__new__(cls, value)

@@ -21,10 +21,10 @@ It is available on pypi so you can install it as follows:
 
 The parsed config can be seen as a nested dictionary (with types automatically inferred) where values can be accessed using normal
 dictionary getter (e.g., `conf['a']['b']` or using paths like `conf['a.b']`) or via the methods `get`, `get_int` (throws an exception
-if it is not an int), `get_string`, `get_list`, `get_double`, `get_bool`, `get_config`.
+if it is not an int), `get_string`, `get_list`, `get_float`, `get_bool`, `get_config`.
 
     from pyhocon import ConfigFactory
-    
+
     conf = ConfigFactory.parse_file('samples/database.conf')
     host = conf.get_string('databases.mysql.host')
     same_host = conf.get('databases.mysql.host')
@@ -56,7 +56,7 @@ if it is not an int), `get_string`, `get_list`, `get_double`, `get_bool`, `get_c
           retries = 3
         }
       }
-    
+
       // multi line support
       motd = """
                 Hello "man"!
@@ -68,19 +68,19 @@ if it is not an int), `get_string`, `get_list`, `get_double`, `get_bool`, `get_c
         "192.168.0.2" // optional quotes
         192.168.0.3, # can have a trailing , which is ok
       ]
-    
+
       # you can use substitution with unquoted strings
       retries_msg = You have ${databases.mysql.retries} retries
     }
-    
+
 ## Conversion tool
 
 We provide a conversion tool to convert from HOCON to the JSON, .properties and YAML formats.
 
     usage: pyhocon [-h] [-i INPUT] [-o OUTPUT] [-f FORMAT]
-    
+
     pyhocon tool
-    
+
     optional arguments:
       -h, --help            show this help message and exit
       -i INPUT, --input INPUT FILE
@@ -93,7 +93,7 @@ If -i is omitted, the tool will read from the standard input. If -o is omitted, 
 ####  JSON
 
     $ cat samples/database.conf | pyhocon -f json
-    
+
     {
       "databases": {
         "active": true,
@@ -116,7 +116,7 @@ If -i is omitted, the tool will read from the standard input. If -o is omitted, 
       "motd": "\n            Hello \"man\"!\n            How is it going?\n         ",
       "retries_msg": "You have 3 retries"
     }
-    
+
 ####  .properties
 
     $ cat samples/database.conf | pyhocon -f properties
@@ -135,9 +135,9 @@ If -i is omitted, the tool will read from the standard input. If -o is omitted, 
     motd = \
                 Hello "man"\!\
                 How is it going?\
-    
+
     retries_msg = You have 3 retries
-        
+
 #### YAML
 
     $ cat samples/database.conf | pyhocon -f yaml
@@ -158,10 +158,10 @@ If -i is omitted, the tool will read from the standard input. If -o is omitted, 
         - 192.168.0.2
         - 192.168.0.3
     motd: |
-    
+
                 Hello "man"!
                 How is it going?
-    
+
     retries_msg: You have 3 retries
 
 ## Includes
@@ -188,7 +188,7 @@ cat.conf:
       garfield: {
         say: meow
       }
-    }    
+    }
 
 dog.conf:
 
@@ -204,18 +204,18 @@ dog.conf:
         }
       }
     }
-    
+
 animals.conf:
-    
+
     {
       cat : {
         include "cat.conf"
       }
-    
+
       dog: {
         include "dog.conf"
       }
-    }    
+    }
 
 Then evaluating animals.conf will result in the followings:
 

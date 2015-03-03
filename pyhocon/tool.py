@@ -149,7 +149,7 @@ class HOCONConverter(object):
             raise Exception("Format must be 'json', 'properties' or 'yaml'")
 
         if output_file is None:
-            print res
+            print(res)
         else:
             with open(output_file, "w") as fd:
                 fd.write(res)
