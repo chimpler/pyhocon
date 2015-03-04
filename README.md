@@ -284,3 +284,4 @@ Java properties mapping                                    | :x:
 ### Contributors
 
   - Aleksey Ostapenko ([@kbabka](https://github.com/kbakba))
+  - Martynas Mickevičius ([@2m](https://github.com/2m))
