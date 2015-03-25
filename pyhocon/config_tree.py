@@ -3,11 +3,11 @@ import re
 from pyhocon.exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
 
 
-class ConfigTree(object):
+class ConfigTree(OrderedDict):
     KEY_SEP = '.'
 
     def __init__(self):
-        self._dictionary = OrderedDict()
+        super(ConfigTree, self).__init__()
 
     def _merge_config_tree(self, a, b):
         """Merge config b into a
@@ -18,12 +18,12 @@ class ConfigTree(object):
         :type b: ConfigTree
         :return: merged config a
         """
-        for key, value in b._dictionary.items():
+        for key, value in b.items():
             # if key is in both a and b and both values are dictionary then merge it otherwise override it
-            if key in list(a._dictionary.items()) and isinstance(a._dictionary[key], ConfigTree) and isinstance(a._dictionary[key], ConfigTree):
-                self._merge_dict(a._dictionary[key], b._dictionary[key])
+            if key in list(a.items()) and isinstance(a[key], ConfigTree) and isinstance(a[key], ConfigTree):
+                self._merge_dict(a[key], b[key])
             else:
-                a._dictionary[key] = value
+                a[key] = value
 
         return a
 
@@ -33,14 +33,14 @@ class ConfigTree(object):
             # if value to set does not exist, override
             # if they are both configs then merge
             # if not then override
-            if key_elt in self._dictionary and isinstance(self._dictionary[key_elt], ConfigTree) and isinstance(value, ConfigTree):
-                self._merge_config_tree(self._dictionary[key_elt], value)
+            if key_elt in self and isinstance(self[key_elt], ConfigTree) and isinstance(value, ConfigTree):
+                self._merge_config_tree(self[key_elt], value)
             elif append:
-                l = self._dictionary.get(key_elt)
+                l = self.get(key_elt)
                 if isinstance(l, list):
                     l += value
                 elif l is None:
-                    self._dictionary[key_elt] = value
+                    self[key_elt] = value
                 else:
                     raise ConfigWrongTypeException("Cannot concatenate the list {key}: {value} to {prev_value} of {type}".format(
                         key='.'.join(key_path),
@@ -49,18 +49,18 @@ class ConfigTree(object):
                         type=l.__class__.__name__)
                     )
             else:
-                self._dictionary[key_elt] = value
+                super(ConfigTree, self).__setitem__(key_elt, value)
         else:
-            next_config_tree = self._dictionary.get(key_elt)
+            next_config_tree = super(ConfigTree, self).get(key_elt)
             if not isinstance(next_config_tree, ConfigTree):
                 # create a new dictionary or overwrite a previous value
                 next_config_tree = ConfigTree()
-                self._dictionary[key_elt] = next_config_tree
+                self[key_elt] = next_config_tree
             next_config_tree._put(key_path[1:], value, append)
 
     def _get(self, key_path, key_index=0):
         key_elt = key_path[key_index]
-        elt = self._dictionary.get(key_elt)
+        elt = super(ConfigTree, self).get(key_elt)
 
         if elt is None:
             raise ConfigMissingException("No configuration setting found for key {key}".format(key='.'.join(key_path[:key_index + 1])))
@@ -170,35 +170,12 @@ class ConfigTree(object):
         else:
             raise ConfigException("{key} has type '{type}' rather than 'config'".format(key=key, type=type(value).__name__))
 
-    def items(self):
-        """Return items found in the config
-
-        :return: list of items
-        :type return: list
-        """
-        return self._dictionary.items()
 
     def __getitem__(self, item):
         val = self.get(item)
         if val is None:
             raise KeyError(item)
-
         return val
-
-    def __contains__(self, item):
-        return item in self._dictionary
-
-    def __str__(self):
-        return str(self._dictionary)
-
-    def __repr__(self):
-        return repr(self._dictionary)
-
-    def __len__(self):
-        return len(self._dictionary)
-
-    def __setitem__(self, key, value):
-        self._dictionary.__setitem__(key, value)
 
 
 class ConfigList(list):
