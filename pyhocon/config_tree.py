@@ -170,7 +170,6 @@ class ConfigTree(OrderedDict):
         else:
             raise ConfigException("{key} has type '{type}' rather than 'config'".format(key=key, type=type(value).__name__))
 
-
     def __getitem__(self, item):
         val = self.get(item)
         if val is None:

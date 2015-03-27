@@ -28,11 +28,11 @@ class TestConfigParser(object):
         config_tree = ConfigTree()
         config_tree.put("a.b.c", 5)
         for k in config_tree:
-           assert k == "a"
-           assert config_tree[k]["b.c"] == 5
+            assert k == "a"
+            assert config_tree[k]["b.c"] == 5
 
     def test_config_logging(self):
-        import logging, logging.config
+        import logging.config
         config_tree = ConfigTree()
         config_tree.put('version', 1)
         config_tree.put('root.level', logging.INFO)
