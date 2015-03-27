@@ -291,7 +291,7 @@ class ConfigTreeParser(TokenConverter):
         config_tree = ConfigTree()
         for element in token_list:
             # from include then merge items
-            expanded_tokens = element._dictionary.items() if isinstance(element, ConfigTree) else [element]
+            expanded_tokens = element.items() if isinstance(element, ConfigTree) else [element]
 
             for tokens in expanded_tokens:
                 # key, value1, value2, ...
