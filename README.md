@@ -285,3 +285,4 @@ Java properties mapping                                    | :x:
 
   - Aleksey Ostapenko ([@kbabka](https://github.com/kbakba))
   - Martynas Mickevičius ([@2m](https://github.com/2m))
+  - Joe Halliwell ([@joehalliwell](https://github.com/joehalliwell))
