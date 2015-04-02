@@ -38,3 +38,8 @@ class TestConfigParser(object):
         config_tree.put('root.level', logging.INFO)
         assert dict(config_tree)['version'] == 1
         logging.config.dictConfig(config_tree)
+
+    def test_config_tree_null(self):
+        config_tree = ConfigTree()
+        config_tree.put("a.b.c", None)
+        assert config_tree.get("a.b.c") is None

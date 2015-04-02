@@ -60,9 +60,9 @@ class ConfigTree(OrderedDict):
 
     def _get(self, key_path, key_index=0):
         key_elt = key_path[key_index]
-        elt = super(ConfigTree, self).get(key_elt)
+        elt = super(ConfigTree, self).get(key_elt, self.UndefinedKey)
 
-        if elt is None:
+        if elt is self.UndefinedKey:
             raise ConfigMissingException("No configuration setting found for key {key}".format(key='.'.join(key_path[:key_index + 1])))
 
         if key_index == len(key_path) - 1:
@@ -172,9 +172,12 @@ class ConfigTree(OrderedDict):
 
     def __getitem__(self, item):
         val = self.get(item)
-        if val is None:
+        if val is self.UndefinedKey:
             raise KeyError(item)
         return val
+
+    class UndefinedKey(object):
+        pass
 
 
 class ConfigList(list):
