@@ -1,4 +1,6 @@
+import pytest
 from pyhocon import ConfigFactory
+from pyhocon.exceptions import ConfigMissingException
 
 
 class TestConfigParser(object):
@@ -116,6 +118,24 @@ class TestConfigParser(object):
         assert config.get('a.b') == 'test'
         assert config.get_string('a.b') == 'test'
         assert config.get('t') == [1, 2, 3]
+
+    def test_missing_config(self):
+        config = ConfigFactory.parse_string(
+            """
+            a = 5
+            """
+        )
+        # b is not set so show raise an exception
+        with pytest.raises(ConfigMissingException):
+            assert config.get('b')
+
+    def test_parse_null(self):
+        config = ConfigFactory.parse_string(
+            """
+            a = null
+            """
+        )
+        assert config.get('a') is None
 
     def test_parse_empty(self):
         config = ConfigFactory.parse_string(
