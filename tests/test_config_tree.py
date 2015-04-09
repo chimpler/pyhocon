@@ -37,7 +37,6 @@ class TestConfigParser(object):
         config_tree.put('version', 1)
         config_tree.put('root.level', logging.INFO)
         assert dict(config_tree)['version'] == 1
-        logging.config.dictConfig(config_tree)
 
     def test_config_tree_null(self):
         config_tree = ConfigTree()
