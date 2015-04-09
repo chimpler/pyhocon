@@ -287,3 +287,4 @@ Java properties mapping                                    | :x:
   - Martynas Mickevičius ([@2m](https://github.com/2m))
   - Joe Halliwell ([@joehalliwell](https://github.com/joehalliwell))
   - Tasuku Okuda ([@okdtsk](https://github.com/okdtsk))
+  - Uri Laserson ([@laserson](https://github.com/laserson))
