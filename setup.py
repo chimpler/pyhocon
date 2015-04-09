@@ -3,6 +3,10 @@
 import sys
 from setuptools import setup
 
+required_packages = ['pyparsing==2.0.3']
+if sys.version_info[:2] == (2, 6):
+    required_packages.append('ordereddict')
+
 setup(
     name='pyhocon',
     version='0.2.4',
@@ -20,7 +24,7 @@ setup(
     packages=[
         'pyhocon',
     ],
-    install_requires=['pyparsing==2.0.3'] + ['ordereddict'] if sys.version_info[:2] == (2, 6) else [],
+    install_requires=required_packages,
     entry_points={
         'console_scripts': [
             'pyhocon=pyhocon.tool:main'
