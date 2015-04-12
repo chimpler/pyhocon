@@ -22,7 +22,7 @@ class HOCONConverter(object):
                 for key, item in config.items():
                     bet_lines.append('{indent}"{key}": {value}'.format(
                         indent=''.rjust((level + 1) * 2, ' '),
-                        key=key,
+                        key=key.strip('"'),  # for dotted keys enclosed with "" to not be interpreted as nested key
                         value=HOCONConverter.to_json(item, level + 1))
                     )
                 lines += ',\n'.join(bet_lines)
@@ -65,7 +65,7 @@ class HOCONConverter(object):
                 for key, item in config.items():
                     bet_lines.append('{indent}{key}: {value}'.format(
                         indent=''.rjust(level * 2, ' '),
-                        key=key,
+                        key=key.strip('"'),  # for dotted keys enclosed with "" to not be interpreted as nested key,
                         value=HOCONConverter.to_yaml(item, level + 1))
                     )
                 lines += '\n'.join(bet_lines)
@@ -105,23 +105,24 @@ class HOCONConverter(object):
         def escape_value(value):
             return value.replace('=', '\\=').replace('!', '\\!').replace('#', '\\#').replace('\n', '\\\n')
 
+        stripped_key_stack = [key.strip('"') for key in key_stack]
         lines = []
         if isinstance(config, ConfigTree):
             for key, item in config.items():
                 if item is not None:
-                    lines.append(HOCONConverter.to_properties(item, key_stack + [key]))
+                    lines.append(HOCONConverter.to_properties(item, stripped_key_stack + [key]))
         elif isinstance(config, list):
             for index, item in enumerate(config):
                 if item is not None:
-                    lines.append(HOCONConverter.to_properties(item, key_stack + [str(index)]))
+                    lines.append(HOCONConverter.to_properties(item, stripped_key_stack + [str(index)]))
         elif isinstance(config, str):
-            lines.append('.'.join(key_stack) + ' = ' + escape_value(config))
+            lines.append('.'.join(stripped_key_stack) + ' = ' + escape_value(config))
         elif config is True:
-            lines.append('.'.join(key_stack) + ' = true')
+            lines.append('.'.join(stripped_key_stack) + ' = true')
         elif config is False:
-            lines.append('.'.join(key_stack) + ' = false')
+            lines.append('.'.join(stripped_key_stack) + ' = false')
         else:
-            lines.append('.'.join(key_stack) + ' = ' + str(config))
+            lines.append('.'.join(stripped_key_stack) + ' = ' + str(config))
         return '\n'.join([line for line in lines if len(line) > 0])
 
     @staticmethod

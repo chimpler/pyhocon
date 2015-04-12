@@ -288,3 +288,8 @@ Java properties mapping                                    | :x:
   - Joe Halliwell ([@joehalliwell](https://github.com/joehalliwell))
   - Tasuku Okuda ([@okdtsk](https://github.com/okdtsk))
   - Uri Laserson ([@laserson](https://github.com/laserson))
+
+### Thanks
+
+  - Agnibha ([@agnibha](https://github.com/agnibha))
+  - Ernest Mishkin ([@eric239](https://github.com/eric239))

@@ -248,6 +248,27 @@ class TestConfigParser(object):
         assert config.get('a.b.c') == 7
         assert config.get('d') == 'test 7 me'
 
+    def test_dict_substitutions(self):
+        config = ConfigFactory.parse_string(
+            """
+                data-center-generic = { cluster-size = 6 }
+                data-center-east = ${data-center-generic} {name = "east"}
+            """
+        )
+
+        assert config.get('data-center-east.cluster-size') == 6
+        assert config.get('data-center-east.name') == 'east'
+
+    def test_list_substitutions(self):
+        config = ConfigFactory.parse_string(
+            """
+                common_modules = [php, python]
+                host_modules = ${common_modules} [java]
+            """
+        )
+
+        assert config.get('host_modules') == ['php', 'python', 'java']
+
     def test_include_dict(self):
         config = ConfigFactory.parse_file("samples/animals.conf")
         assert config.get('cat.garfield.say') == 'meow'

@@ -9,8 +9,12 @@ from pyhocon.exceptions import ConfigException, ConfigWrongTypeException, Config
 class ConfigTree(OrderedDict):
     KEY_SEP = '.'
 
-    def __init__(self):
-        super(ConfigTree, self).__init__()
+    def __init__(self, *args, **kwds):
+        super(ConfigTree, self).__init__(*args, **kwds)
+        for key, value in self.items():
+            if isinstance(value, ConfigValues):
+                value.parent = self
+                value.index = key
 
     def _merge_config_tree(self, a, b):
         """Merge config b into a
@@ -79,13 +83,14 @@ class ConfigTree(OrderedDict):
         """
         Split a key into path elements:
         - a.b.c => a, b, c
-        - a."b.c" => a, "b.c"
+        - a."b.c" => a, QuotedKey("b.c")
+        - "a" => a
         - a.b."c" => a, b, c (special case)
         :param str:
         :return:
         """
         tokens = re.findall('"[^"]+"|[^\.]+', str)
-        return [t.strip('"') for t in tokens]
+        return [token if '.' in token else token.strip('"') for token in tokens]
 
     def put(self, key, value, append=False):
         """Put a value in the tree (dot separated)
@@ -184,7 +189,7 @@ class ConfigTree(OrderedDict):
 
 
 class ConfigList(list):
-    def __init__(self, iterable):
+    def __init__(self, iterable=[]):
         l = list(iterable)
         super(ConfigList, self).__init__(l)
         for index, value in enumerate(l):
@@ -214,13 +219,45 @@ class ConfigValues(object):
         if self.has_substitution():
             return self
 
-        if len(self.tokens) == 1:
-            return self.tokens[0]
+        def determine_type(token):
+            return ConfigTree if isinstance(token, ConfigTree) else ConfigList if isinstance(token, list) else str
 
-        return ''.join(token if isinstance(token, str) else str(token) + ' ' for token in self.tokens[:-1]) + str(self.tokens[-1])
+        # check if all tokens are compatible
+        first_tok_type = determine_type(self.tokens[0])
+        for index, token in enumerate(self.tokens[1:]):
+            tok_type = determine_type(token)
+            if first_tok_type is not tok_type:
+                raise ConfigWrongTypeException("Token '{token}' of type {tok_type} (index {index}) must be of type {req_tok_type}".format(
+                    token=token, index=index+1, tok_type=tok_type.__name__, req_tok_type=first_tok_type.__name__)
+                )
+
+        if first_tok_type is ConfigTree:
+            result = ConfigTree()
+            for token in self.tokens:
+                for key, val in token.items():
+                    # update references for substituted contents
+                    if isinstance(val, ConfigValues):
+                        val.parent = result
+                        val.index = key
+                    result[key] = val
+
+            return result
+        elif first_tok_type is ConfigList:
+            result = ConfigList()
+            for token in self.tokens:
+                result.extend(token)
+            return [result]
+        else:
+            if len(self.tokens) == 1:
+                return self.tokens[0]
+            else:
+                return ''.join(token if isinstance(token, str) else str(token) + ' ' for token in self.tokens[:-1]) + str(self.tokens[-1])
 
     def put(self, index, value):
         self.tokens[index] = value
+
+    def __repr__(self):
+        return '[ConfigValues: ' + ','.join(str(o) for o in self.tokens) + ']'
 
 
 class ConfigSubstitution(object):
@@ -229,6 +266,9 @@ class ConfigSubstitution(object):
         self.ws = ws
         self.index = None
         self.parent = None
+
+    def __repr__(self):
+        return '[ConfigSubstitution: ' + self.variable + ']'
 
 
 class ConfigUnquotedString(str):
