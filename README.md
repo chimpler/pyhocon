@@ -73,6 +73,14 @@ if it is not an int), `get_string`, `get_list`, `get_float`, `get_bool`, `get_co
       retries_msg = You have ${databases.mysql.retries} retries
     }
 
+    // dict merge
+    data-center-generic = { cluster-size = 6 }
+    data-center-east = ${data-center-generic} { name = "east" }
+
+    // list merge
+    default-jvm-opts = [-XX:+UseParNewGC]
+    large-jvm-opts = ${default-jvm-opts} [-Xm16g]
+
 ## Conversion tool
 
 We provide a conversion tool to convert from HOCON to the JSON, .properties and YAML formats.
