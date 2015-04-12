@@ -259,6 +259,27 @@ class TestConfigParser(object):
         assert config.get('data-center-east.cluster-size') == 6
         assert config.get('data-center-east.name') == 'east'
 
+        config2 = ConfigFactory.parse_string(
+            """
+                data-center-generic = { cluster-size = 6 }
+                data-center-east = {name = "east"} ${data-center-generic}
+            """
+        )
+
+        assert config2.get('data-center-east.cluster-size') == 6
+        assert config2.get('data-center-east.name') == 'east'
+
+        config3 = ConfigFactory.parse_string(
+            """
+                data-center-generic = { cluster-size = 6 }
+                data-center-east = {name = "east"} ${data-center-generic} { cluster-size = 9, opts = "-Xmx4g" }
+            """
+        )
+
+        assert config3.get('data-center-east.cluster-size') == 9
+        assert config3.get('data-center-east.name') == 'east'
+        assert config3.get('data-center-east.opts') == '-Xmx4g'
+
     def test_list_substitutions(self):
         config = ConfigFactory.parse_string(
             """
@@ -268,6 +289,24 @@ class TestConfigParser(object):
         )
 
         assert config.get('host_modules') == ['php', 'python', 'java']
+
+        config2 = ConfigFactory.parse_string(
+            """
+                common_modules = [php, python]
+                host_modules = [java] ${common_modules}
+            """
+        )
+
+        assert config2.get('host_modules') == ['java', 'php', 'python']
+
+        config3 = ConfigFactory.parse_string(
+            """
+                common_modules = [php, python]
+                host_modules = [java] ${common_modules} [perl]
+            """
+        )
+
+        assert config3.get('host_modules') == ['java', 'php', 'python', 'perl']
 
     def test_include_dict(self):
         config = ConfigFactory.parse_file("samples/animals.conf")

@@ -137,10 +137,7 @@ class ConfigParser(object):
 
         ParserElement.setDefaultWhitespaceChars(' \t')
 
-        dict_expr = Forward()
-        list_expr = Forward()
         assign_expr = Forward()
-
         true_expr = Keyword("true", caseless=True).setParseAction(replaceWith(True))
         false_expr = Keyword("false", caseless=True).setParseAction(replaceWith(False))
         null_expr = Keyword("null", caseless=True).setParseAction(replaceWith(None))
@@ -177,10 +174,7 @@ class ConfigParser(object):
         # last zeroOrMore is because we can have t = {a:4} {b: 6} {c: 7} which is dictionary concatenation
         inside_dict_expr = ConfigTreeParser(ZeroOrMore(comment | include_expr | assign_expr | eol_comma))
         dict_expr = Suppress('{') - inside_dict_expr - Suppress('}')
-        # dict_expr << dict_or_substitution + ZeroOrMore(dict_or_substitution)
-
         list_expr = Suppress('[') - ListParser(ZeroOrMore(comment | dict_expr | values_expr | eol_comma)) - Suppress(']')
-        # list_expr << ConcatenatedValueParser(list_or_substitution - ZeroOrMore(list_or_substitution))
 
         # special case when we have a value assignment where the string can potentially be the remainder of the line
         assign_expr << Group(key - Suppress(Optional(Literal('=') | Literal(':'))) +
