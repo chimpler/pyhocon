@@ -2,7 +2,7 @@
 
 ## Version 0.2.5
 
-* added list and dict inheritance. PR [#9]
+* added list and dict inheritance. PR [#11]
 
 ## Version 0.2.4
 
