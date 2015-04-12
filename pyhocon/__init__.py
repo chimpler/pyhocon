@@ -137,10 +137,7 @@ class ConfigParser(object):
 
         ParserElement.setDefaultWhitespaceChars(' \t')
 
-        dict_expr = Forward()
-        list_expr = Forward()
         assign_expr = Forward()
-
         true_expr = Keyword("true", caseless=True).setParseAction(replaceWith(True))
         false_expr = Keyword("false", caseless=True).setParseAction(replaceWith(False))
         null_expr = Keyword("null", caseless=True).setParseAction(replaceWith(None))
@@ -176,14 +173,12 @@ class ConfigParser(object):
         # for a dictionary : or = is optional
         # last zeroOrMore is because we can have t = {a:4} {b: 6} {c: 7} which is dictionary concatenation
         inside_dict_expr = ConfigTreeParser(ZeroOrMore(comment | include_expr | assign_expr | eol_comma))
-        dict_expr << Suppress('{') - inside_dict_expr + Suppress('}') - ZeroOrMore(dict_expr)
-        assign_dict_expr = Suppress(Optional(oneOf(['=', ':']))) + dict_expr
-
-        list_expr << ListParser(Suppress('[') - ZeroOrMore(comment | values_expr | dict_expr | eol_comma) - Suppress(']')) - ZeroOrMore(list_expr)
+        dict_expr = Suppress('{') - inside_dict_expr - Suppress('}')
+        list_expr = Suppress('[') - ListParser(ZeroOrMore(comment | dict_expr | values_expr | eol_comma)) - Suppress(']')
 
         # special case when we have a value assignment where the string can potentially be the remainder of the line
-        assign_value_or_list_expr = Suppress(oneOf(['=', ':'])) + (comment | list_expr | values_expr | eol_comma)
-        assign_expr << Group(key + (assign_dict_expr | assign_value_or_list_expr))
+        assign_expr << Group(key - Suppress(Optional(Literal('=') | Literal(':'))) +
+                             (ConcatenatedValueParser(OneOrMore(substitution_expr | list_expr | dict_expr)) | comment | values_expr | eol_comma))
 
         # the file can be { ... } where {} can be omitted or []
         config_expr = ZeroOrMore(comment | eol) \
@@ -198,7 +193,7 @@ class ConfigParser(object):
         variable = substitution.variable
         try:
             return config.get(variable)
-        except:
+        except Exception:
             # default to environment variable
             value = os.environ.get(variable)
             if value is None:
@@ -225,10 +220,10 @@ class ConfigParser(object):
                         # replace token by substitution
                         config_values = substitution.parent
                         # if there is more than one element in the config values then it's a string
-
-                        tokens = substitution.parent.tokens
                         config_values.put(substitution.index, resolved_value)
-                        config_values.parent[config_values.key] = config_values.transform()
+                        transformation = config_values.transform()
+                        result = transformation[0] if isinstance(transformation, list) else transformation
+                        config_values.parent[config_values.key] = result
                         _substitutions.remove(substitution)
                 if not unresolved:
                     break

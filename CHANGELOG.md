@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.2.5
+
+* added list and dict inheritance. PR [#9]
+
 ## Version 0.2.4
 
 * added python 2.6 support. PR [#8]
