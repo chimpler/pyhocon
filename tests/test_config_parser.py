@@ -4,7 +4,6 @@ from pyhocon.exceptions import ConfigMissingException, ConfigWrongTypeException
 
 
 class TestConfigParser(object):
-
     def test_parse_simple_value(self):
         config = ConfigFactory.parse_string(
             """t = {
@@ -90,6 +89,53 @@ class TestConfigParser(object):
         assert config.get('a-b-c-d') == 'test'
         assert config.get('a b c d') == 'test2'
         assert config.get('a b c d e') == 'test3'
+
+    def test_dict_merge(self):
+        config = ConfigFactory.parse_string(
+            """
+            a {
+                    d {
+                            g.h.j.u: 5
+                            g {
+                                    h.d: 4
+                            }
+                            g.h.k: f d
+                    }
+
+                    h.i.m = 7
+                    h.i {
+                            d: 5
+                    }
+
+                    h.i {
+                            e:65
+                    }
+            }
+            """)
+
+        expected_result = {
+            "a": {
+                "d": {
+                    "g": {
+                        "h": {
+                            "j": {
+                                "u": 5
+                            },
+                            "d": 4,
+                            "k": "f d"
+                        }
+                    }
+                },
+                "h": {
+                    "i": {
+                        "m": 7,
+                        "d": 5,
+                        "e": 65
+                    }
+                }
+            }
+        }
+        assert expected_result == config
 
     def test_parse_with_comments(self):
         config = ConfigFactory.parse_string(
