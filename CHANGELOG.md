@@ -1,5 +1,10 @@
 # Changelog
 
+
+## Version 0.2.7
+
+* fixed dict merge. PR [#14]
+
 ## Version 0.2.6
 
 * fixed string substitutions. PR [#13]
