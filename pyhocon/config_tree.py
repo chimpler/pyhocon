@@ -233,7 +233,6 @@ class ConfigValues(object):
         for index, token in enumerate(self.tokens[1:]):
             tok_type = determine_type(token)
             if first_tok_type is not tok_type:
-                print self.tokens
                 raise ConfigWrongTypeException("Token '{token}' of type {tok_type} (index {index}) must be of type {req_tok_type}".format(
                     token=token, index=index+1, tok_type=tok_type.__name__, req_tok_type=first_tok_type.__name__)
                 )
