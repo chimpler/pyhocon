@@ -1,6 +1,6 @@
 import pytest
-from pyhocon import ConfigFactory
-from pyhocon.exceptions import ConfigMissingException
+from pyhocon import ConfigFactory, ConfigSubstitutionException
+from pyhocon.exceptions import ConfigMissingException, ConfigWrongTypeException
 
 
 class TestConfigParser(object):
@@ -213,8 +213,98 @@ class TestConfigParser(object):
         assert config.get('a') == [1, 2, 3, 4, 5, 6]
         assert config.get_list('a') == [1, 2, 3, 4, 5, 6]
 
-    def test_substitutions(self):
-        config = ConfigFactory.parse_string(
+    def test_string_substitutions(self):
+        config1 = ConfigFactory.parse_string(
+            """
+            {
+                a: {
+                    b: {
+                        c = str
+                        e = "str      "
+                    }
+                }
+                d = ${a.b.c}
+                f = ${a.b.e}
+            }
+            """
+        )
+
+        assert config1.get('a.b.c') == 'str'
+        assert config1.get('d') == 'str'
+        assert config1.get('f') == 'str      '
+
+        config2 = ConfigFactory.parse_string(
+            """
+            {
+                a: {
+                    b: {
+                        c = str
+                        e = "str      "
+                    }
+                }
+                d = test  ${a.b.c}
+                f = test  ${a.b.e}
+            }
+            """
+        )
+
+        assert config2.get('a.b.c') == 'str'
+        assert config2.get('d') == 'test  str'
+        assert config2.get('f') == 'test  str      '
+
+        config3 = ConfigFactory.parse_string(
+            """
+            {
+                a: {
+                    b: {
+                        c = str
+                        e = "str      "
+                    }
+                }
+                d = test  ${a.b.c}  me
+                f = test  ${a.b.e}  me
+            }
+            """
+        )
+
+        assert config3.get('a.b.c') == 'str'
+        assert config3.get('d') == 'test  str  me'
+        assert config3.get('f') == 'test  str        me'
+
+    def test_int_substitutions(self):
+        config1 = ConfigFactory.parse_string(
+            """
+            {
+                a: {
+                    b: {
+                        c = 5
+                    }
+                }
+                d = ${a.b.c}
+            }
+            """
+        )
+
+        assert config1.get('a.b.c') == 5
+        assert config1.get('d') == 5
+
+        config2 = ConfigFactory.parse_string(
+            """
+            {
+                a: {
+                    b: {
+                        c = 5
+                    }
+                }
+                d = test ${a.b.c}
+            }
+            """
+        )
+
+        assert config2.get('a.b.c') == 5
+        assert config2.get('d') == 'test 5'
+
+        config3 = ConfigFactory.parse_string(
             """
             {
                 a: {
@@ -227,10 +317,10 @@ class TestConfigParser(object):
             """
         )
 
-        assert config.get('a.b.c') == 5
-        assert config.get('d') == 'test 5 me'
+        assert config3.get('a.b.c') == 5
+        assert config3.get('d') == 'test 5 me'
 
-    def test_cascade_substitutions(self):
+    def test_cascade_string_substitutions(self):
         config = ConfigFactory.parse_string(
             """
             {
@@ -333,6 +423,117 @@ class TestConfigParser(object):
         assert config4.get('common_modules') == ['php', 'python']
         assert config4.get('host_modules') == ['java', 'php', 'python', 'perl']
         assert config4.get('full_modules') == ['java', 'php', 'python', 'perl', 'c', 'go']
+
+    def test_non_existent_substitution(self):
+        with pytest.raises(ConfigSubstitutionException):
+            ConfigFactory.parse_string(
+                """
+                    common_modules = ${non_existent}
+                """
+            )
+
+        with pytest.raises(ConfigSubstitutionException):
+            ConfigFactory.parse_string(
+                """
+                    common_modules = abc ${non_existent}
+                """
+            )
+
+        with pytest.raises(ConfigSubstitutionException):
+            ConfigFactory.parse_string(
+                """
+                    common_modules = ${non_existent} abc
+                """
+            )
+
+        with pytest.raises(ConfigSubstitutionException):
+            ConfigFactory.parse_string(
+                """
+                    common_modules = abc ${non_existent} def
+                """
+            )
+
+    def test_non_compatible_substitution(self):
+        with pytest.raises(ConfigWrongTypeException):
+            ConfigFactory.parse_string(
+                """
+                    common_modules = [perl]
+                    host_modules = 55 ${common_modules}
+                """
+            )
+
+        with pytest.raises(ConfigWrongTypeException):
+            ConfigFactory.parse_string(
+                """
+                    common_modules = [perl]
+                    host_modules = ${common_modules} 55
+                """
+            )
+
+        with pytest.raises(ConfigWrongTypeException):
+            ConfigFactory.parse_string(
+                """
+                    common_modules = [perl]
+                    host_modules = aa ${common_modules} bb
+                """
+            )
+
+        with pytest.raises(ConfigWrongTypeException):
+            ConfigFactory.parse_string(
+                """
+                    common_modules = [perl]
+                    host_modules = aa ${common_modules}
+                """
+            )
+
+        with pytest.raises(ConfigWrongTypeException):
+            ConfigFactory.parse_string(
+                """
+                    common_modules = [perl]
+                    host_modules = ${common_modules} aa
+                """
+            )
+
+        with pytest.raises(ConfigWrongTypeException):
+            ConfigFactory.parse_string(
+                """
+                    common_modules = [perl]
+                    host_modules = aa ${common_modules} bb
+                """
+            )
+
+    def test_concat_multi_line_string(self):
+        config = ConfigFactory.parse_string(
+            """
+                common_modules = perl \
+                java \
+                python
+            """
+        )
+
+        assert [x.strip() for x in config['common_modules'].split() if x.strip(' ') != ''] == ['perl', 'java', 'python']
+
+    def test_concat_multi_line_list(self):
+        config = ConfigFactory.parse_string(
+            """
+                common_modules = [perl] \
+                [java] \
+                [python]
+            """
+        )
+
+        assert config['common_modules'] == ['perl', 'java', 'python']
+
+    def test_concat_multi_line_dict(self):
+        config = ConfigFactory.parse_string(
+            """
+                common_modules = {a:perl} \
+                {b:java} \
+                {c:python}
+            """
+        )
+
+        assert config['common_modules'] == {'a': 'perl', 'b': 'java', 'c': 'python'}
 
     def test_include_dict(self):
         config = ConfigFactory.parse_file("samples/animals.conf")

@@ -145,7 +145,7 @@ class ConfigParser(object):
 
         eol = Word('\n\r').suppress()
         eol_comma = Word('\n\r,').suppress()
-        comment = (Optional(eol_comma) + (Literal('#') | Literal('//')) - SkipTo(eol)).suppress()
+        comment = Suppress(Optional(eol_comma) + (Literal('#') | Literal('//')) - SkipTo(eol))
         number_expr = Regex('[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE]\d+)?(?=[ \t]*([\$\}\],#\n\r]|//))', re.DOTALL).setParseAction(convert_number)
 
         # multi line string using """
@@ -162,9 +162,7 @@ class ConfigParser(object):
         substitution_expr = Regex('\$\{[^\}]+\}\s*').setParseAction(create_substitution)
         string_expr = multiline_string | quoted_string | unquoted_string
 
-        value_expr = number_expr | true_expr | false_expr | null_expr | string_expr | substitution_expr
-        values_expr = ConcatenatedValueParser(value_expr - ZeroOrMore(comment | (value_expr - Optional(Literal('\\') - eol).suppress()) | value_expr))
-        # multiline if \ at the end of the line
+        value_expr = number_expr | true_expr | false_expr | null_expr | string_expr
 
         include_expr = (Keyword("include", caseless=True).suppress() - (
             quoted_string | ((Keyword('url') | Keyword('file')) - Literal('(').suppress() - quoted_string - Literal(')').suppress())))\
@@ -174,11 +172,13 @@ class ConfigParser(object):
         # last zeroOrMore is because we can have t = {a:4} {b: 6} {c: 7} which is dictionary concatenation
         inside_dict_expr = ConfigTreeParser(ZeroOrMore(comment | include_expr | assign_expr | eol_comma))
         dict_expr = Suppress('{') - inside_dict_expr - Suppress('}')
-        list_expr = Suppress('[') - ListParser(ZeroOrMore(comment | dict_expr | values_expr | eol_comma)) - Suppress(']')
+        list_expr = Suppress('[') - ListParser(ZeroOrMore(comment | dict_expr | value_expr | eol_comma)) - Suppress(']')
 
         # special case when we have a value assignment where the string can potentially be the remainder of the line
-        assign_expr << Group(key - Suppress(Optional(Literal('=') | Literal(':'))) +
-                             (ConcatenatedValueParser(OneOrMore(substitution_expr | list_expr | dict_expr)) | comment | values_expr | eol_comma))
+        assign_expr << Group(key - Suppress(Optional(Literal('=') | Literal(':'))) -
+                             (ConcatenatedValueParser(
+                                 ZeroOrMore(substitution_expr | list_expr | dict_expr | comment | value_expr | (Literal('\\') - eol).suppress())
+                             )))
 
         # the file can be { ... } where {} can be omitted or []
         config_expr = ZeroOrMore(comment | eol) \
@@ -219,8 +219,11 @@ class ConfigParser(object):
                     else:
                         # replace token by substitution
                         config_values = substitution.parent
-                        # if there is more than one element in the config values then it's a string
-                        config_values.put(substitution.index, resolved_value)
+                        # if it is a string, then add the extra ws that was present in the original string after the substitution
+                        formatted_resolved_value = \
+                            resolved_value + substitution.ws if isinstance(resolved_value, str) \
+                            and substitution.index < len(config_values.tokens) - 1 else resolved_value
+                        config_values.put(substitution.index, formatted_resolved_value)
                         transformation = config_values.transform()
                         result = transformation[0] if isinstance(transformation, list) else transformation
                         config_values.parent[config_values.key] = result
