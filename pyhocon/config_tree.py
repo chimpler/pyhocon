@@ -27,8 +27,8 @@ class ConfigTree(OrderedDict):
         """
         for key, value in b.items():
             # if key is in both a and b and both values are dictionary then merge it otherwise override it
-            if key in list(a.items()) and isinstance(a[key], ConfigTree) and isinstance(a[key], ConfigTree):
-                self._merge_dict(a[key], b[key])
+            if key in a.keys() and isinstance(a[key], ConfigTree) and isinstance(a[key], ConfigTree):
+                self._merge_config_tree(a[key], b[key])
             else:
                 a[key] = value
 
