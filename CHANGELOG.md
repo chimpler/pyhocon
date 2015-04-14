@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.2.6
+
+* fixed string substitutions. PR [#13]
+
 ## Version 0.2.5
 
 * added list and dict inheritance. PR [#11]
