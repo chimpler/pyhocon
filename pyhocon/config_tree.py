@@ -203,12 +203,18 @@ class ConfigValues(object):
         self.tokens = iterable
         self.parent = None
         self.key = None
+
         for index, token in enumerate(self.tokens):
             if isinstance(token, ConfigSubstitution):
                 token.parent = self
                 token.index = index
 
         # if the last token is an unquoted string then right strip it
+
+        # no value return empty string
+        if len(self.tokens) == 0:
+            self.tokens = ['']
+
         if isinstance(self.tokens[-1], ConfigUnquotedString):
             self.tokens[-1] = self.tokens[-1].rstrip()
 
@@ -227,6 +233,7 @@ class ConfigValues(object):
         for index, token in enumerate(self.tokens[1:]):
             tok_type = determine_type(token)
             if first_tok_type is not tok_type:
+                print self.tokens
                 raise ConfigWrongTypeException("Token '{token}' of type {tok_type} (index {index}) must be of type {req_tok_type}".format(
                     token=token, index=index+1, tok_type=tok_type.__name__, req_tok_type=first_tok_type.__name__)
                 )
