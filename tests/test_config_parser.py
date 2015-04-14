@@ -511,7 +511,7 @@ class TestConfigParser(object):
             """
         )
 
-        assert [x.strip(' ') for x in config['common_modules'].split(' ') if x.strip(' ') != ''] == ['perl', 'java', 'python']
+        assert [x.strip() for x in config['common_modules'].split() if x.strip(' ') != ''] == ['perl', 'java', 'python']
 
     def test_concat_multi_line_list(self):
         config = ConfigFactory.parse_string(
