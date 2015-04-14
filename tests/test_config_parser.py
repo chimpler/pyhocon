@@ -502,15 +502,38 @@ class TestConfigParser(object):
                 """
             )
 
+    def test_concat_multi_line_string(self):
+        config = ConfigFactory.parse_string(
+            """
+                common_modules = perl \
+                java \
+                python
+            """
+        )
+
+        assert [x.strip(' ') for x in config['common_modules'].split(' ') if x.strip(' ') != ''] == ['perl', 'java', 'python']
+
     def test_concat_multi_line_list(self):
         config = ConfigFactory.parse_string(
-                """
-                    common_modules = [perl] \
-                    [java]
-                """
-            )
+            """
+                common_modules = [perl] \
+                [java] \
+                [python]
+            """
+        )
 
-        pass
+        assert config['common_modules'] == ['perl', 'java', 'python']
+
+    def test_concat_multi_line_dict(self):
+        config = ConfigFactory.parse_string(
+            """
+                common_modules = {a:perl} \
+                {b:java} \
+                {c:python}
+            """
+        )
+
+        assert config['common_modules'] == {'a': 'perl', 'b': 'java', 'c': 'python'}
 
     def test_include_dict(self):
         config = ConfigFactory.parse_file("samples/animals.conf")
