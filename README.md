@@ -2,6 +2,7 @@ pyhocon
 =======
 
 [![pypi](http://img.shields.io/pypi/v/pyhocon.png)](https://pypi.python.org/pypi/pyhocon)
+[![Supported Python Versions](https://pypip.in/py_versions/pyhocon/badge.svg)](https://pypi.python.org/pypi/pyhocon/)
 [![pypi downloads](http://img.shields.io/pypi/dm/pyhocon.png)](https://pypi.python.org/pypi/pyhocon)
 [![Build Status](https://travis-ci.org/chimpler/pyhocon.svg)](https://travis-ci.org/chimpler/pyhocon)
 
