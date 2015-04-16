@@ -10,5 +10,3 @@ install:
   - pip install tox
 script:
   - tox -e ${TOX_ENV}
-after_success:
-  - coveralls --verbose
