@@ -1,6 +1,10 @@
 # Changelog
 
 
+## Version 0.2.8
+
+* fixed parse_URL
+
 ## Version 0.2.7
 
 * fixed dict merge. PR [#14]
