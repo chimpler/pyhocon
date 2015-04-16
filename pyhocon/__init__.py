@@ -5,13 +5,14 @@ from pyhocon.config_tree import ConfigTree, ConfigSubstitution, ConfigList, Conf
 from pyhocon.exceptions import ConfigSubstitutionException
 from pyparsing import *
 
-
+use_urllib2 = False
 try:
     # For Python 3.0 and later
     from urllib.request import urlopen
 except ImportError:
     # Fall back to Python 2's urllib2
     from urllib2 import urlopen
+    use_urllib2 = True
 
 
 class ConfigFactory(object):
@@ -40,7 +41,7 @@ class ConfigFactory(object):
         socket_timeout = socket._GLOBAL_DEFAULT_TIMEOUT if timeout is None else timeout
         fd = urlopen(url, timeout=socket_timeout)
         try:
-            content = fd.read()
+            content = fd.read() if use_urllib2 else fd.read().decode('utf-8')
             return ConfigFactory.parse_string(content, os.path.dirname(url))
         finally:
             fd.close()
