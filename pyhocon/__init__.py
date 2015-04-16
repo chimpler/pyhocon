@@ -38,7 +38,7 @@ class ConfigFactory(object):
         :type return: Config
         """
         socket_timeout = socket._GLOBAL_DEFAULT_TIMEOUT if timeout is None else timeout
-        fd = urllib2.urlopen(url, timeout=socket_timeout)
+        fd = urlopen(url, timeout=socket_timeout)
         try:
             content = fd.read()
             return ConfigFactory.parse_string(content, os.path.dirname(url))

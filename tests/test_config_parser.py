@@ -4,6 +4,7 @@ from pyhocon.exceptions import ConfigMissingException, ConfigWrongTypeException
 
 
 class TestConfigParser(object):
+
     def test_parse_simple_value(self):
         config = ConfigFactory.parse_string(
             """t = {
@@ -580,6 +581,11 @@ class TestConfigParser(object):
         )
 
         assert config['common_modules'] == {'a': 'perl', 'b': 'java', 'c': 'python'}
+
+    def test_parse_URL(self):
+        config = ConfigFactory.parse_URL("file:samples/aws.conf")
+        assert config.get('data-center-generic.cluster-size') == 6
+        assert config.get('large-jvm-opts') == ['-XX:+UseParNewGC', '-Xm16g']
 
     def test_include_dict(self):
         config = ConfigFactory.parse_file("samples/animals.conf")
