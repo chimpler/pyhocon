@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.2.9
+
+* fixed expression assignment (only dictionaries with no concat can omit the : or = sign) PR [#15]
 
 ## Version 0.2.8
 
