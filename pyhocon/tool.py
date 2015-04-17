@@ -156,7 +156,7 @@ class HOCONConverter(object):
                 fd.write(res)
 
 
-def main():
+def main():  # pragma: no cover
     parser = argparse.ArgumentParser(description='pyhocon tool')
     parser.add_argument('-i', '--input', help='input file')
     parser.add_argument('-o', '--output', help='output file')
@@ -167,5 +167,5 @@ def main():
     HOCONConverter.convert(args.input, args.output, args.format)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     main()

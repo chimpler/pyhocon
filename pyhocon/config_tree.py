@@ -1,3 +1,6 @@
+from pyparsing import lineno
+from pyparsing import col
+
 try:
     from collections import OrderedDict
 except ImportError:
@@ -49,11 +52,12 @@ class ConfigTree(OrderedDict):
                 elif l is None:
                     self[key_elt] = value
                 else:
-                    raise ConfigWrongTypeException("Cannot concatenate the list {key}: {value} to {prev_value} of {type}".format(
-                        key='.'.join(key_path),
-                        value=value,
-                        prev_value=l,
-                        type=l.__class__.__name__)
+                    raise ConfigWrongTypeException(
+                        "Cannot concatenate the list {key}: {value} to {prev_value} of {type}".format(
+                            key='.'.join(key_path),
+                            value=value,
+                            prev_value=l,
+                            type=l.__class__.__name__)
                     )
             else:
                 super(ConfigTree, self).__setitem__(key_elt, value)
@@ -70,14 +74,17 @@ class ConfigTree(OrderedDict):
         elt = super(ConfigTree, self).get(key_elt, self.UndefinedKey)
 
         if elt is self.UndefinedKey:
-            raise ConfigMissingException("No configuration setting found for key {key}".format(key='.'.join(key_path[:key_index + 1])))
+            raise ConfigMissingException(
+                "No configuration setting found for key {key}".format(key='.'.join(key_path[:key_index + 1])))
 
         if key_index == len(key_path) - 1:
             return elt
         elif isinstance(elt, ConfigTree):
             return elt._get(key_path, key_index + 1)
         else:
-            raise ConfigWrongTypeException("{key} has type {type} rather than dict".format(key='.'.join(key_path[:key_index + 1]), type=type(elt).__name__))
+            raise ConfigWrongTypeException(
+                "{key} has type {type} rather than dict".format(key='.'.join(key_path[:key_index + 1]),
+                                                                type=type(elt).__name__))
 
     def _parse_key(self, str):
         """
@@ -162,7 +169,8 @@ class ConfigTree(OrderedDict):
         if isinstance(value, list):
             return value
         else:
-            raise ConfigException("{key} has type '{type}' rather than 'list'".format(key=key, type=type(value).__name__))
+            raise ConfigException(
+                "{key} has type '{type}' rather than 'list'".format(key=key, type=type(value).__name__))
 
     def get_config(self, key):
         """Return tree config representation of value found at key
@@ -173,10 +181,11 @@ class ConfigTree(OrderedDict):
         :type return: ConfigTree
         """
         value = self.get(key)
-        if isinstance(value, ConfigTree):
+        if isinstance(value, dict):
             return value
         else:
-            raise ConfigException("{key} has type '{type}' rather than 'config'".format(key=key, type=type(value).__name__))
+            raise ConfigException(
+                "{key} has type '{type}' rather than 'config'".format(key=key, type=type(value).__name__))
 
     def __getitem__(self, item):
         val = self.get(item)
@@ -199,10 +208,12 @@ class ConfigList(list):
 
 
 class ConfigValues(object):
-    def __init__(self, iterable):
-        self.tokens = iterable
+    def __init__(self, tokens, instring, loc):
+        self.tokens = tokens
         self.parent = None
         self.key = None
+        self._instring = instring
+        self._loc = loc
 
         for index, token in enumerate(self.tokens):
             if isinstance(token, ConfigSubstitution):
@@ -233,9 +244,14 @@ class ConfigValues(object):
         for index, token in enumerate(self.tokens[1:]):
             tok_type = determine_type(token)
             if first_tok_type is not tok_type:
-                raise ConfigWrongTypeException("Token '{token}' of type {tok_type} (index {index}) must be of type {req_tok_type}".format(
-                    token=token, index=index+1, tok_type=tok_type.__name__, req_tok_type=first_tok_type.__name__)
-                )
+                raise ConfigWrongTypeException(
+                    "Token '{token}' of type {tok_type} (index {index}) must be of type {req_tok_type} (line: {line}, col: {col})".format(
+                        token=token,
+                        index=index + 1,
+                        tok_type=tok_type.__name__,
+                        req_tok_type=first_tok_type.__name__,
+                        line=lineno(self._loc, self._instring),
+                        col=col(self._loc, self._instring)))
 
         if first_tok_type is ConfigTree:
             result = ConfigTree()
@@ -257,33 +273,30 @@ class ConfigValues(object):
             if len(self.tokens) == 1:
                 return self.tokens[0]
             else:
-                return ''.join(token if isinstance(token, str) else str(token) + ' ' for token in self.tokens[:-1]) + str(self.tokens[-1])
+                return ''.join(
+                    token if isinstance(token, str) else str(token) + ' ' for token in self.tokens[:-1]) + str(
+                    self.tokens[-1])
 
     def put(self, index, value):
         self.tokens[index] = value
 
-    def __repr__(self):
+    def __repr__(self):  # pragma: no cover
         return '[ConfigValues: ' + ','.join(str(o) for o in self.tokens) + ']'
 
 
 class ConfigSubstitution(object):
-    def __init__(self, variable, ws):
+    def __init__(self, variable, ws, instring, loc):
         self.variable = variable
         self.ws = ws
         self.index = None
         self.parent = None
+        self.instring = instring
+        self.loc = loc
 
-    def __repr__(self):
+    def __repr__(self):  # pragma: no cover
         return '[ConfigSubstitution: ' + self.variable + ']'
 
 
 class ConfigUnquotedString(str):
-
     def __new__(cls, value):
         return super(ConfigUnquotedString, cls).__new__(cls, value)
-
-
-class ConfigSlashString(str):
-
-    def __new__(cls, value):
-        return super(ConfigSlashString, cls).__new__(cls, value)

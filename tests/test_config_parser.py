@@ -1,3 +1,4 @@
+from pyparsing import ParseSyntaxException, ParseException
 import pytest
 from pyhocon import ConfigFactory, ConfigSubstitutionException
 from pyhocon.exceptions import ConfigMissingException, ConfigWrongTypeException
@@ -606,3 +607,30 @@ class TestConfigParser(object):
         assert config.get('a')[0].get('b') == 2
         assert config.get('a')[1].get('a') == 3
         assert config.get('a')[1].get('c') == 4
+
+    def test_invalid_assignment(self):
+        with pytest.raises(ParseSyntaxException):
+            ConfigFactory.parse_string('common_modules [perl]')
+
+        with pytest.raises(ParseException):
+            ConfigFactory.parse_string('common_modules {} {perl: 1}')
+
+        with pytest.raises(ParseSyntaxException):
+            ConfigFactory.parse_string(
+                """
+                a = {f: 5}
+                common_modules ${a} {perl: 1}
+                """)
+
+    def test_invalid_dict(self):
+        with pytest.raises(ParseSyntaxException):
+            ConfigFactory.parse_string(
+                """
+                a = {
+                    f: 5
+                    g
+                }
+                """)
+
+        with pytest.raises(ParseSyntaxException):
+            ConfigFactory.parse_string('a = {g}')
