@@ -104,12 +104,12 @@ class ConfigParser(object):
         substitutions = []
         SUBSTITUTION = "\$\{(?P<variable>[^}]+)\}(?P<ws>\s*)"
 
-        def create_substitution(token):
+        def create_substitution(instring, loc, token):
             # remove the ${ and }
             match = re.match(SUBSTITUTION, token[0])
             variable = match.group('variable')
             ws = match.group('ws')
-            substitution = ConfigSubstitution(variable, ws)
+            substitution = ConfigSubstitution(variable, ws, instring, loc)
             substitutions.append(substitution)
             return substitution
 
@@ -176,10 +176,10 @@ class ConfigParser(object):
         list_expr = Suppress('[') - ListParser(ZeroOrMore(comment | dict_expr | value_expr | eol_comma)) - Suppress(']')
 
         # special case when we have a value assignment where the string can potentially be the remainder of the line
-        assign_expr << Group(key - Suppress(Optional(Literal('=') | Literal(':'))) -
+        assign_expr << Group(key - (dict_expr | Suppress(Literal('=') | Literal(':')) -
                              (ConcatenatedValueParser(
                                  ZeroOrMore(substitution_expr | list_expr | dict_expr | comment | value_expr | (Literal('\\') - eol).suppress())
-                             )))
+                             ))))
 
         # the file can be { ... } where {} can be omitted or []
         config_expr = ZeroOrMore(comment | eol) \
@@ -198,13 +198,18 @@ class ConfigParser(object):
             # default to environment variable
             value = os.environ.get(variable)
             if value is None:
-                raise ConfigSubstitutionException("Cannot resolve variable ${{{variable}}}".format(variable=variable))
+                raise ConfigSubstitutionException("Cannot resolve variable ${{{variable}}} (line: {line}, col: {col})".format(
+                    variable=variable,
+                    line=lineno(substitution.loc, substitution.instring),
+                    col=col(substitution.loc, substitution.instring)))
             elif isinstance(value, ConfigList) or isinstance(value, ConfigTree):
                 raise ConfigSubstitutionException(
-                    "Cannot substitute variable ${{{variable}}} because it does not point to a string, int, float, boolean or null (type)".format(
+                    "Cannot substitute variable ${{{variable}}} because it does not point to a "
+                    "string, int, float, boolean or null {type} (line:{line}, col: {col})".format(
                         variable=variable,
-                        type=value.__class__.__name__)
-                )
+                        type=value.__class__.__name__,
+                        line=lineno(substitution.loc, substitution.instring),
+                        col=col(substitution.loc, substitution.instring)))
             return value
 
     @staticmethod
@@ -233,8 +238,10 @@ class ConfigParser(object):
                     break
             else:
                 raise ConfigSubstitutionException("Cannot resolve {variables}. Check for cycles.".format(
-                    variables=', '.join('${' + substitution.variable + '}' for substitution in _substitutions)
-                ))
+                    variables=', '.join('${{{variable}}}: (line: {line}, col: {col})'.format(
+                        variable=substitution.variable,
+                        line=lineno(substitution.loc, substitution.instring),
+                        col=col(substitution.loc, substitution.instring)) for substitution in _substitutions)))
 
         return config
 
@@ -267,7 +274,7 @@ class ConcatenatedValueParser(TokenConverter):
         self.key = None
 
     def postParse(self, instring, loc, token_list):
-        config_values = ConfigValues(token_list)
+        config_values = ConfigValues(token_list, instring, loc)
         return config_values.transform()
 
 
