@@ -1,4 +1,5 @@
 import tempfile
+import pytest
 from pyhocon import ConfigFactory
 from pyhocon.tool import HOCONConverter
 
@@ -14,6 +15,8 @@ class TestHOCONConverter(object):
                 3\"\"\"
             f = true
             g = []
+            h = null
+            i = {}
         """
 
     CONFIG = ConfigFactory.parse_string(CONFIG_STRING)
@@ -32,7 +35,9 @@ class TestHOCONConverter(object):
               "d": "a",
               "e": "1\\n                2\\n                3",
               "f": true,
-              "g": []
+              "g": [],
+              "h": null,
+              "i": {}
             }
         """
 
@@ -51,6 +56,8 @@ class TestHOCONConverter(object):
                         3
             f: true
             g: []
+            h: None
+            i:
         """
 
     EXPECTED_PROPERTIES = \
@@ -96,3 +103,7 @@ class TestHOCONConverter(object):
         self._test_convert(TestHOCONConverter.CONFIG_STRING, TestHOCONConverter.EXPECTED_JSON, 'json')
         self._test_convert(TestHOCONConverter.CONFIG_STRING, TestHOCONConverter.EXPECTED_YAML, 'yaml')
         self._test_convert(TestHOCONConverter.CONFIG_STRING, TestHOCONConverter.EXPECTED_PROPERTIES, 'properties')
+
+    def test_invalid_format(self):
+        with pytest.raises(Exception):
+            self._test_convert(TestHOCONConverter.CONFIG_STRING, TestHOCONConverter.EXPECTED_PROPERTIES, 'invalid')

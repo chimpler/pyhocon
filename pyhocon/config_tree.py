@@ -280,7 +280,7 @@ class ConfigValues(object):
     def put(self, index, value):
         self.tokens[index] = value
 
-    def __repr__(self):
+    def __repr__(self):  # pragma: no cover
         return '[ConfigValues: ' + ','.join(str(o) for o in self.tokens) + ']'
 
 
@@ -293,7 +293,7 @@ class ConfigSubstitution(object):
         self.instring = instring
         self.loc = loc
 
-    def __repr__(self):
+    def __repr__(self):  # pragma: no cover
         return '[ConfigSubstitution: ' + self.variable + ']'
 
 
