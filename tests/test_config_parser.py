@@ -1,3 +1,4 @@
+import tempfile
 from pyparsing import ParseSyntaxException, ParseException
 import pytest
 from pyhocon import ConfigFactory, ConfigSubstitutionException
@@ -602,11 +603,58 @@ class TestConfigParser(object):
             ]
             """
         )
-        assert len(config.get('a')) == 2
-        assert config.get('a')[0].get('a') == 1
-        assert config.get('a')[0].get('b') == 2
-        assert config.get('a')[1].get('a') == 3
-        assert config.get('a')[1].get('c') == 4
+        assert config['a'] == [
+            {'a': 1, 'b': 2},
+            {'a': 3, 'c': 4}
+        ]
+
+    def test_list_of_lists(self):
+        config = ConfigFactory.parse_string(
+            """
+            a: [
+                [1, 2]
+                [3, 4]
+            ]
+            """
+        )
+        assert config['a'] == [
+            [1, 2],
+            [3, 4]
+        ]
+
+    def test_list_of_dicts_with_merge(self):
+        config = ConfigFactory.parse_string(
+            """
+            b = {f: 4}
+            a: [
+                ${b} {a: 1, b: 2},
+                {a: 3, c: 4} ${b},
+                {a: 3} ${b} {c: 6},
+            ]
+            """
+        )
+        assert config['a'] == [
+            {'a': 1, 'b': 2, 'f': 4},
+            {'a': 3, 'c': 4, 'f': 4},
+            {'a': 3, 'c': 6, 'f': 4}
+        ]
+
+    def test_list_of_lists_with_merge(self):
+        config = ConfigFactory.parse_string(
+            """
+            b = [5, 6]
+            a: [
+                ${b} [1, 2]
+                [3, 4] ${b}
+                [1, 2] ${b} [7, 8]
+            ]
+            """
+        )
+        assert config['a'] == [
+            [5, 6, 1, 2],
+            [3, 4, 5, 6],
+            [1, 2, 5, 6, 7, 8]
+        ]
 
     def test_invalid_assignment(self):
         with pytest.raises(ParseSyntaxException):
@@ -634,3 +682,85 @@ class TestConfigParser(object):
 
         with pytest.raises(ParseSyntaxException):
             ConfigFactory.parse_string('a = {g}')
+
+    def test_include_list(self):
+        with tempfile.NamedTemporaryFile('w') as fdin:
+            fdin.write('[1, 2]')
+            fdin.flush()
+
+            config1 = ConfigFactory.parse_string(
+                """
+                a: [
+                    include "{tmp_file}"
+                    3
+                    4
+                ]
+                """.format(tmp_file=fdin.name)
+            )
+            assert config1['a'] == [1, 2, 3, 4]
+
+            config2 = ConfigFactory.parse_string(
+                """
+                a: [
+                    3
+                    4
+                    include "{tmp_file}"
+                ]
+                """.format(tmp_file=fdin.name)
+            )
+            assert config2['a'] == [3, 4, 1, 2]
+
+            config3 = ConfigFactory.parse_string(
+                """
+                a: [
+                    3
+                    include "{tmp_file}"
+                    4
+                ]
+                """.format(tmp_file=fdin.name)
+            )
+            assert config3['a'] == [3, 1, 2, 4]
+
+    def test_include_dict(self):
+        expected_res = {
+            'a': 1,
+            'b': 2,
+            'c': 3,
+            'd': 4
+        }
+        with tempfile.NamedTemporaryFile('w') as fdin:
+            fdin.write('{a: 1, b: 2}')
+            fdin.flush()
+
+            config1 = ConfigFactory.parse_string(
+                """
+                a: {{
+                    include "{tmp_file}"
+                    c: 3
+                    d: 4
+                }}
+                """.format(tmp_file=fdin.name)
+            )
+            assert config1['a'] == expected_res
+
+            config2 = ConfigFactory.parse_string(
+                """
+                a: {{
+                    c: 3
+                    d: 4
+                    include "{tmp_file}"
+                }}
+                """.format(tmp_file=fdin.name)
+            )
+            assert config2['a'] == expected_res
+
+            config3 = ConfigFactory.parse_string(
+                """
+                a: {{
+                    c: 3
+                    include "{tmp_file}"
+                    d: 4
+                }}
+                """.format(tmp_file=fdin.name)
+            )
+            assert config3['a'] == expected_res
