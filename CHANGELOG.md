@@ -1,8 +1,12 @@
 # Changelog
 
+## Version 0.3.0
+
+* fixed list of dict merge and includes in list. PR [#16]
+
 ## Version 0.2.9
 
-* fixed expression assignment (only dictionaries with no concat can omit the : or = sign) PR [#15]
+* fixed expression assignment (only dictionaries with no concat can omit the : or = sign). PR [#15]
 
 ## Version 0.2.8
 
