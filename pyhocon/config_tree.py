@@ -204,7 +204,12 @@ class ConfigList(list):
         for index, value in enumerate(l):
             if isinstance(value, ConfigValues):
                 value.parent = self
-                value.index = index
+                value.key = index
+
+
+class ConfigInclude(object):
+    def __init__(self, tokens):
+        self.tokens = tokens
 
 
 class ConfigValues(object):
@@ -260,14 +265,19 @@ class ConfigValues(object):
                     # update references for substituted contents
                     if isinstance(val, ConfigValues):
                         val.parent = result
-                        val.index = key
+                        val.key = key
                     result[key] = val
-
             return result
         elif first_tok_type is ConfigList:
-            result = ConfigList()
-            for token in self.tokens:
-                result.extend(token)
+            result = []
+            for sublist in self.tokens:
+                sublist_result = ConfigList()
+                for index, token in enumerate(sublist):
+                    if isinstance(token, ConfigValues):
+                        token.parent = result
+                        token.key = index
+                    sublist_result.append(token)
+                result.extend(sublist_result)
             return [result]
         else:
             if len(self.tokens) == 1:

@@ -1,7 +1,8 @@
 import re
 import os
 import socket
-from pyhocon.config_tree import ConfigTree, ConfigSubstitution, ConfigList, ConfigValues, ConfigUnquotedString
+from pyhocon.config_tree import ConfigTree, ConfigSubstitution, ConfigList, ConfigValues, ConfigUnquotedString, \
+    ConfigInclude
 from pyhocon.exceptions import ConfigSubstitutionException
 from pyparsing import *
 
@@ -12,6 +13,7 @@ try:
 except ImportError:
     # Fall back to Python 2's urllib2
     from urllib2 import urlopen
+
     use_urllib2 = True
 
 
@@ -82,6 +84,7 @@ class ConfigParser(object):
         :type content: basestring
         :return: a ConfigTree or a list
         """
+
         def norm_string(value):
             for k, v in ConfigParser.REPLACEMENTS.items():
                 value = value.replace(k, v)
@@ -134,7 +137,7 @@ class ConfigParser(object):
                 path = file if basedir is None else os.path.join(basedir, file)
                 obj = ConfigFactory.parse_file(path)
 
-            return [obj]
+            return ConfigInclude(obj if isinstance(obj, list) else obj.items())
 
         ParserElement.setDefaultWhitespaceChars(' \t')
 
@@ -147,7 +150,8 @@ class ConfigParser(object):
         eol = Word('\n\r').suppress()
         eol_comma = Word('\n\r,').suppress()
         comment = Suppress(Optional(eol_comma) + (Literal('#') | Literal('//')) - SkipTo(eol))
-        number_expr = Regex('[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE]\d+)?(?=[ \t]*([\$\}\],#\n\r]|//))', re.DOTALL).setParseAction(convert_number)
+        number_expr = Regex('[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE]\d+)?(?=[ \t]*([\$\}\],#\n\r]|//))',
+                            re.DOTALL).setParseAction(convert_number)
 
         # multi line string using """
         # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
@@ -159,32 +163,34 @@ class ConfigParser(object):
         # line1  \
         # line2 \
         # so a backslash precedes the \n
-        unquoted_string = Regex(r'(\\[ \t]*[\r\n]|[^\[\{\n\]\}#,=\$])+?(?=(\$|[ \t]*(//|[\}\],#\n\r])))', re.DOTALL).setParseAction(unescape_string)
-        substitution_expr = Regex('\$\{[^\}]+\}\s*').setParseAction(create_substitution)
+        unquoted_string = Regex(r'(\\[ \t]*[\r\n]|[^\[\{\n\]\}#,=\$])+?(?=(\$|[ \t]*(//|[\}\],#\n\r])))',
+                                re.DOTALL).setParseAction(unescape_string)
+        substitution_expr = Regex('\$\{[^\}]+\}[ \t]*').setParseAction(create_substitution)
         string_expr = multiline_string | quoted_string | unquoted_string
 
         value_expr = number_expr | true_expr | false_expr | null_expr | string_expr
 
         include_expr = (Keyword("include", caseless=True).suppress() - (
-            quoted_string | ((Keyword('url') | Keyword('file')) - Literal('(').suppress() - quoted_string - Literal(')').suppress())))\
+            quoted_string | ((Keyword('url') | Keyword('file')) - Literal('(').suppress() - quoted_string - Literal(')').suppress()))) \
             .setParseAction(include_config)
 
+        dict_expr = Forward()
+        list_expr = Forward()
+        multi_value_expr = ZeroOrMore((Literal(
+            '\\') - eol).suppress() | comment | include_expr | substitution_expr | dict_expr | list_expr | value_expr)
         # for a dictionary : or = is optional
         # last zeroOrMore is because we can have t = {a:4} {b: 6} {c: 7} which is dictionary concatenation
         inside_dict_expr = ConfigTreeParser(ZeroOrMore(comment | include_expr | assign_expr | eol_comma))
-        dict_expr = Suppress('{') - inside_dict_expr - Suppress('}')
-        list_expr = Suppress('[') - ListParser(ZeroOrMore(comment | dict_expr | value_expr | eol_comma)) - Suppress(']')
+        dict_expr << Suppress('{') - inside_dict_expr - Suppress('}')
+        list_entry = ConcatenatedValueParser(multi_value_expr)
+        list_expr << Suppress('[') - ListParser(list_entry - ZeroOrMore(eol_comma - list_entry)) - Suppress(']')
 
         # special case when we have a value assignment where the string can potentially be the remainder of the line
-        assign_expr << Group(key - (dict_expr | Suppress(Literal('=') | Literal(':')) -
-                             (ConcatenatedValueParser(
-                                 ZeroOrMore(substitution_expr | list_expr | dict_expr | comment | value_expr | (Literal('\\') - eol).suppress())
-                             ))))
+        assign_expr << Group(
+            key - (dict_expr | Suppress(Literal('=') | Literal(':')) - ConcatenatedValueParser(multi_value_expr)))
 
         # the file can be { ... } where {} can be omitted or []
-        config_expr = ZeroOrMore(comment | eol) \
-            + (list_expr | dict_expr | inside_dict_expr) \
-            + ZeroOrMore(comment | eol_comma)
+        config_expr = ZeroOrMore(comment | eol) + (list_expr | dict_expr | inside_dict_expr) + ZeroOrMore(comment | eol_comma)
         config = config_expr.parseString(content, parseAll=True)[0]
         ConfigParser._resolve_substitutions(config, substitutions)
         return config
@@ -198,10 +204,11 @@ class ConfigParser(object):
             # default to environment variable
             value = os.environ.get(variable)
             if value is None:
-                raise ConfigSubstitutionException("Cannot resolve variable ${{{variable}}} (line: {line}, col: {col})".format(
-                    variable=variable,
-                    line=lineno(substitution.loc, substitution.instring),
-                    col=col(substitution.loc, substitution.instring)))
+                raise ConfigSubstitutionException(
+                    "Cannot resolve variable ${{{variable}}} (line: {line}, col: {col})".format(
+                        variable=variable,
+                        line=lineno(substitution.loc, substitution.instring),
+                        col=col(substitution.loc, substitution.instring)))
             elif isinstance(value, ConfigList) or isinstance(value, ConfigTree):
                 raise ConfigSubstitutionException(
                     "Cannot substitute variable ${{{variable}}} because it does not point to a "
@@ -227,8 +234,8 @@ class ConfigParser(object):
                         config_values = substitution.parent
                         # if it is a string, then add the extra ws that was present in the original string after the substitution
                         formatted_resolved_value = \
-                            resolved_value + substitution.ws if isinstance(resolved_value, str) \
-                            and substitution.index < len(config_values.tokens) - 1 else resolved_value
+                            resolved_value + substitution.ws \
+                            if isinstance(resolved_value, str) and substitution.index < len(config_values.tokens) - 1 else resolved_value
                         config_values.put(substitution.index, formatted_resolved_value)
                         transformation = config_values.transform()
                         result = transformation[0] if isinstance(transformation, list) else transformation
@@ -262,12 +269,14 @@ class ListParser(TokenConverter):
         :param token_list:
         :return:
         """
-        config_list = ConfigList(token_list)
+        cleaned_token_list = [token for tokens in (token.tokens if isinstance(token, ConfigInclude) else [token]
+                                                   for token in token_list if token != '')
+                              for token in tokens]
+        config_list = ConfigList(cleaned_token_list)
         return [config_list]
 
 
 class ConcatenatedValueParser(TokenConverter):
-
     def __init__(self, expr=None):
         super(ConcatenatedValueParser, self).__init__(expr)
         self.parent = None
@@ -282,6 +291,7 @@ class ConfigTreeParser(TokenConverter):
     """
     Parse a config tree from tokens
     """
+
     def __init__(self, expr=None):
         super(ConfigTreeParser, self).__init__(expr)
         self.saveAsList = True
@@ -296,11 +306,10 @@ class ConfigTreeParser(TokenConverter):
         """
         config_tree = ConfigTree()
         for element in token_list:
-            # from include then merge items
-            expanded_tokens = element.items() if isinstance(element, ConfigTree) else [element]
+            expanded_tokens = element.tokens if isinstance(element, ConfigInclude) else [element]
 
             for tokens in expanded_tokens:
-                # key, value1, value2, ...
+                # key, value1 (optional), ...
                 key = tokens[0].strip()
                 values = tokens[1:]
 
@@ -308,22 +317,17 @@ class ConfigTreeParser(TokenConverter):
                 if len(values) == 0:
                     config_tree.put(key, '')
                 else:
-                    if isinstance(values[0], list):
-                        # Merge arrays
-                        config_tree.put(key, values[0], False)
-                        for value in values[1:]:
-                            config_tree.put(key, value, True)
+                    value = values[0]
+                    if isinstance(value, list):
+                        config_tree.put(key, value, False)
                     else:
                         # Merge dict
-                        for value in values:
-                            if isinstance(value, ConfigList):
-                                conf_value = list(value)
-                            elif isinstance(value, ConfigValues):
-                                conf_value = value
-                                value.parent = config_tree
-                                value.key = key
-                            else:
-                                conf_value = value
-                            config_tree.put(key, conf_value)
+                        if isinstance(value, ConfigValues):
+                            conf_value = value
+                            value.parent = config_tree
+                            value.key = key
+                        else:
+                            conf_value = value
+                        config_tree.put(key, conf_value)
 
         return config_tree

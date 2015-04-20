@@ -13,7 +13,8 @@ class TestHOCONConverter(object):
             e = \"\"\"1
                 2
                 3\"\"\"
-            f = true
+            f1 = true
+            f2 = false
             g = []
             h = null
             i = {}
@@ -34,7 +35,8 @@ class TestHOCONConverter(object):
               "c": 1,
               "d": "a",
               "e": "1\\n                2\\n                3",
-              "f": true,
+              "f1": true,
+              "f2": false,
               "g": [],
               "h": null,
               "i": {}
@@ -54,7 +56,8 @@ class TestHOCONConverter(object):
              1
                             2
                         3
-            f: true
+            f1: true
+            f2: false
             g: []
             h: None
             i:
@@ -70,7 +73,8 @@ class TestHOCONConverter(object):
             e = 1\\
                             2\\
                         3
-            f = true
+            f1 = true
+            f2 = false
         """
 
     def test_to_json(self):
