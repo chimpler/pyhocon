@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.3.1
+
+* can specify default value in get, get_int, ... PR[#17]
+
 ## Version 0.3.0
 
 * fixed list of dict merge and includes in list. PR [#16]
