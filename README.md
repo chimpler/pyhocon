@@ -36,6 +36,7 @@ if it is not an int), `get_string`, `get_list`, `get_float`, `get_bool`, `get_co
     port = conf['databases.mysql.port']
     username = conf['databases']['mysql']['username']
     password = conf.get_config('databases')['mysql.password']
+    password = conf.get('databases.mysql.password', 'default_password')
 
 ## Example of HOCON file
 
@@ -99,7 +100,7 @@ We provide a conversion tool to convert from HOCON to the JSON, .properties and 
       -f FORMAT, --format FORMAT
                             output format: json, properties or yaml
 
-If -i is omitted, the tool will read from the standard input. If -o is omitted, the result will be written to the standard output.
+If `-i` is omitted, the tool will read from the standard input. If `-o` is omitted, the result will be written to the standard output.
 
 ####  JSON
 

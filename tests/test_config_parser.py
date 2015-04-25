@@ -176,7 +176,7 @@ class TestConfigParser(object):
         )
         # b is not set so show raise an exception
         with pytest.raises(ConfigMissingException):
-            assert config.get('b')
+            config.get('b')
 
     def test_parse_null(self):
         config = ConfigFactory.parse_string(

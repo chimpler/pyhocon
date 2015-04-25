@@ -85,3 +85,43 @@ class TestConfigParser(object):
         assert config_tree["config"] == {'a': 5}
         assert config_tree.get("config") == {'a': 5}
         assert config_tree.get_config("config") == {'a': 5}
+
+    def test_getters_with_default(self):
+        config_tree = ConfigTree()
+        config_tree.put("int", 5)
+        assert config_tree.get("int-new", 1) == 1
+        assert config_tree.get_int("int", 1) == 5
+        assert config_tree.get_int("int-new", 1) == 1
+        assert config_tree.get_int("int-new.test", 1) == 1
+
+        config_tree.put("float", 4.5)
+        assert config_tree.get("float", 1.0) == 4.5
+        assert config_tree.get("float-new", 1.0) == 1.0
+        assert config_tree.get_float("float", 1.0) == 4.5
+        assert config_tree.get_float("float-new", 1.0) == 1.0
+        assert config_tree.get_float("float-new.test", 1.0) == 1.0
+
+        config_tree.put("string", "string")
+        assert config_tree.get("string", "default") == "string"
+        assert config_tree.get("string-new", "default") == "default"
+        assert config_tree.get_string("string", "default") == "string"
+        assert config_tree.get_string("string-new", "default") == "default"
+        assert config_tree.get_string("string-new.test", "default") == "default"
+
+        config_tree.put("list", [1, 2, 3])
+        assert config_tree.get("list", [4]) == [1, 2, 3]
+        assert config_tree.get("list-new", [4]) == [4]
+        assert config_tree.get_list("list", [4]) == [1, 2, 3]
+        assert config_tree.get_list("list-new", [4]) == [4]
+
+        config_tree.put("bool", True)
+        assert config_tree.get("bool", False) is True
+        assert config_tree.get("bool-new", False) is False
+        assert config_tree.get_bool("bool", False) is True
+        assert config_tree.get_bool("bool-new", False) is False
+
+        config_tree.put("config", {'a': 5})
+        assert config_tree.get("config", {'b': 1}) == {'a': 5}
+        assert config_tree.get("config-new", {'b': 1}) == {'b': 1}
+        assert config_tree.get_config("config", {'b': 1}) == {'a': 5}
+        assert config_tree.get_config("config-new", {'b': 1}) == {'b': 1}

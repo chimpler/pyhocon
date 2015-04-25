@@ -9,6 +9,10 @@ import re
 from pyhocon.exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
 
 
+class UndefinedKey(object):
+    pass
+
+
 class ConfigTree(OrderedDict):
     KEY_SEP = '.'
 
@@ -69,22 +73,28 @@ class ConfigTree(OrderedDict):
                 self[key_elt] = next_config_tree
             next_config_tree._put(key_path[1:], value, append)
 
-    def _get(self, key_path, key_index=0):
+    def _get(self, key_path, key_index=0, default=UndefinedKey):
         key_elt = key_path[key_index]
-        elt = super(ConfigTree, self).get(key_elt, self.UndefinedKey)
+        elt = super(ConfigTree, self).get(key_elt, UndefinedKey)
 
-        if elt is self.UndefinedKey:
-            raise ConfigMissingException(
-                "No configuration setting found for key {key}".format(key='.'.join(key_path[:key_index + 1])))
+        if elt is UndefinedKey:
+            if default is UndefinedKey:
+                raise ConfigMissingException(
+                    "No configuration setting found for key {key}".format(key='.'.join(key_path[:key_index + 1])))
+            else:
+                return default
 
         if key_index == len(key_path) - 1:
             return elt
         elif isinstance(elt, ConfigTree):
-            return elt._get(key_path, key_index + 1)
+            return elt._get(key_path, key_index + 1, default)
         else:
-            raise ConfigWrongTypeException(
-                "{key} has type {type} rather than dict".format(key='.'.join(key_path[:key_index + 1]),
-                                                                type=type(elt).__name__))
+            if default is UndefinedKey:
+                raise ConfigWrongTypeException(
+                    "{key} has type {type} rather than dict".format(key='.'.join(key_path[:key_index + 1]),
+                                                                    type=type(elt).__name__))
+            else:
+                return default
 
     def _parse_key(self, str):
         """
@@ -108,79 +118,93 @@ class ConfigTree(OrderedDict):
         """
         self._put(self._parse_key(key), value, append)
 
-    def get(self, key):
+    def get(self, key, default=UndefinedKey):
         """Get a value from the tree
 
         :param key: key to use (dot separated). E.g., a.b.c
         :type key: basestring
+        :param default: default value if key not found
+        :type default: object
         :return: value in the tree located at key
         """
-        return self._get(self._parse_key(key))
+        return self._get(self._parse_key(key), 0, default)
 
-    def get_string(self, key):
+    def get_string(self, key, default=UndefinedKey):
         """Return string representation of value found at key
 
         :param key: key to use (dot separated). E.g., a.b.c
         :type key: basestring
+        :param default: default value if key not found
+        :type default: basestring
         :return: string value
         :type return: basestring
         """
-        return str(self.get(key))
+        return str(self.get(key, default))
 
-    def get_int(self, key):
+    def get_int(self, key, default=UndefinedKey):
         """Return int representation of value found at key
 
         :param key: key to use (dot separated). E.g., a.b.c
         :type key: basestring
+        :param default: default value if key not found
+        :type default: int
         :return: int value
         :type return: int
         """
-        return int(self.get(key))
+        return int(self.get(key, default))
 
-    def get_float(self, key):
+    def get_float(self, key, default=UndefinedKey):
         """Return float representation of value found at key
 
         :param key: key to use (dot separated). E.g., a.b.c
         :type key: basestring
+        :param default: default value if key not found
+        :type default: float
         :return: float value
         :type return: float
         """
-        return float(self.get(key))
+        return float(self.get(key, default))
 
-    def get_bool(self, key):
+    def get_bool(self, key, default=UndefinedKey):
         """Return boolean representation of value found at key
 
         :param key: key to use (dot separated). E.g., a.b.c
         :type key: basestring
+        :param default: default value if key not found
+        :type default: bool
         :return: boolean value
         :type return: bool
         """
-        return bool(self.get(key))
+        return bool(self.get(key, default))
 
-    def get_list(self, key):
+    def get_list(self, key, default=UndefinedKey):
         """Return list representation of value found at key
 
         :param key: key to use (dot separated). E.g., a.b.c
         :type key: basestring
+        :param default: default value if key not found
+        :type default: list
         :return: list value
         :type return: list
         """
-        value = self.get(key)
+        value = self.get(key, default)
         if isinstance(value, list):
             return value
         else:
             raise ConfigException(
                 "{key} has type '{type}' rather than 'list'".format(key=key, type=type(value).__name__))
 
-    def get_config(self, key):
+    def get_config(self, key, default=UndefinedKey):
         """Return tree config representation of value found at key
 
         :param key: key to use (dot separated). E.g., a.b.c
         :type key: basestring
+        :param default: default value if key not found
+        :type default: config
         :return: config value
         :type return: ConfigTree
         """
-        value = self.get(key)
+        value = self.get(key, default)
         if isinstance(value, dict):
             return value
         else:
@@ -189,12 +213,9 @@ class ConfigTree(OrderedDict):
 
     def __getitem__(self, item):
         val = self.get(item)
-        if val is self.UndefinedKey:
+        if val is UndefinedKey:
             raise KeyError(item)
         return val
-
-    class UndefinedKey(object):
-        pass
 
 
 class ConfigList(list):
