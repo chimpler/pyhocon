@@ -1,9 +1,9 @@
 from pyparsing import lineno
 from pyparsing import col
 
-try:
+try:  # pragma: no cover
     from collections import OrderedDict
-except ImportError:
+except ImportError:  # pragma: no cover
     from ordereddict import OrderedDict
 import re
 from pyhocon.exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
@@ -50,7 +50,9 @@ class ConfigTree(OrderedDict):
             if key_elt in self and isinstance(self[key_elt], ConfigTree) and isinstance(value, ConfigTree):
                 self._merge_config_tree(self[key_elt], value)
             elif append:
-                l = self.get(key_elt)
+                # If we have t=1
+                # and we try to put t.a=5 then t is replaced by {a: 5}
+                l = self.get(key_elt, None)
                 if isinstance(l, list):
                     l += value
                 elif l is None:

@@ -21,6 +21,7 @@ class TestConfigParser(object):
 
     def test_config_list(self):
         config_tree = ConfigTree()
+
         config_tree.put("a.b.c", [4, 5])
         assert config_tree.get("a.b.c") == [4, 5]
 
@@ -125,3 +126,9 @@ class TestConfigParser(object):
         assert config_tree.get("config-new", {'b': 1}) == {'b': 1}
         assert config_tree.get_config("config", {'b': 1}) == {'a': 5}
         assert config_tree.get_config("config-new", {'b': 1}) == {'b': 1}
+
+    def test_overrides_int_with_config(self):
+        config_tree = ConfigTree()
+        config_tree.put("int", 5)
+        config_tree.put("int.config", 1)
+        assert config_tree == {'int': {'config': 1}}
