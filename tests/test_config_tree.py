@@ -127,8 +127,14 @@ class TestConfigParser(object):
         assert config_tree.get_config("config", {'b': 1}) == {'a': 5}
         assert config_tree.get_config("config-new", {'b': 1}) == {'b': 1}
 
-    def test_overrides_int_with_config(self):
+    def test_overrides_int_with_config_no_append(self):
         config_tree = ConfigTree()
         config_tree.put("int", 5)
         config_tree.put("int.config", 1)
+        assert config_tree == {'int': {'config': 1}}
+
+    def test_overrides_int_with_config_append(self):
+        config_tree = ConfigTree()
+        config_tree.put("int", 5, True)
+        config_tree.put("int.config", 1, True)
         assert config_tree == {'int': {'config': 1}}
