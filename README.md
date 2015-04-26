@@ -1,14 +1,14 @@
 pyhocon
 =======
 
-[![Join the chat at https://gitter.im/chimpler/pyhocon](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/chimpler/pyhocon?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
 [![pypi](http://img.shields.io/pypi/v/pyhocon.png)](https://pypi.python.org/pypi/pyhocon)
 [![Supported Python Versions](https://pypip.in/py_versions/pyhocon/badge.svg)](https://pypi.python.org/pypi/pyhocon/)
 [![pypi downloads](http://img.shields.io/pypi/dm/pyhocon.png)](https://pypi.python.org/pypi/pyhocon)
 [![Build Status](https://travis-ci.org/chimpler/pyhocon.svg)](https://travis-ci.org/chimpler/pyhocon)
+[![Codacy Badge](https://www.codacy.com/project/badge/684cdd4d82734702ac612bf8b25fc5a0)](https://www.codacy.com/app/francois-dangngoc/pyhocon)
 [![License](https://pypip.in/license/pyhocon/badge.svg)](https://pypi.python.org/pypi/pyhocon/)
 [![Coverage Status](https://coveralls.io/repos/chimpler/pyhocon/badge.svg)](https://coveralls.io/r/chimpler/pyhocon)
+[![Join the chat at https://gitter.im/chimpler/pyhocon](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/chimpler/pyhocon?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 HOCON parser for Python
 

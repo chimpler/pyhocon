@@ -584,12 +584,12 @@ class TestConfigParser(object):
 
         assert config['common_modules'] == {'a': 'perl', 'b': 'java', 'c': 'python'}
 
-    def test_parse_URL(self):
+    def test_parse_URL_from_samples(self):
         config = ConfigFactory.parse_URL("file:samples/aws.conf")
         assert config.get('data-center-generic.cluster-size') == 6
         assert config.get('large-jvm-opts') == ['-XX:+UseParNewGC', '-Xm16g']
 
-    def test_include_dict(self):
+    def test_include_dict_from_samples(self):
         config = ConfigFactory.parse_file("samples/animals.conf")
         assert config.get('cat.garfield.say') == 'meow'
         assert config.get('dog.mutt.hates.garfield.say') == 'meow'
