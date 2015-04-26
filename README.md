@@ -38,7 +38,7 @@ if it is not an int), `get_string`, `get_list`, `get_float`, `get_bool`, `get_co
     port = conf['databases.mysql.port']
     username = conf['databases']['mysql']['username']
     password = conf.get_config('databases')['mysql.password']
-    password = conf.get('databases.mysql.password', 'default_password')
+    password = conf.get('databases.mysql.password', 'default_password') #  use default value if key not found
 
 ## Example of HOCON file
 
@@ -271,7 +271,7 @@ String value concatenation             | :white_check_mark:
 Array concatenation                    | :white_check_mark:
 Object concatenation                   | :white_check_mark:
 Arrays without commas                  | :white_check_mark:
-Path expressions                       | :x:
+Path expressions                       | :white_check_mark:
 Paths as keys                          | :white_check_mark:
 Substitutions                          | :white_check_mark:
 Self-referential substitutions         | :x:
