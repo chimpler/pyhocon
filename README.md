@@ -1,6 +1,8 @@
 pyhocon
 =======
 
+[![Join the chat at https://gitter.im/chimpler/pyhocon](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/chimpler/pyhocon?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![pypi](http://img.shields.io/pypi/v/pyhocon.png)](https://pypi.python.org/pypi/pyhocon)
 [![Supported Python Versions](https://pypip.in/py_versions/pyhocon/badge.svg)](https://pypi.python.org/pypi/pyhocon/)
 [![pypi downloads](http://img.shields.io/pypi/dm/pyhocon.png)](https://pypi.python.org/pypi/pyhocon)
