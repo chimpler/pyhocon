@@ -764,6 +764,30 @@ class TestConfigParser(object):
             )
             assert config3['a'] == expected_res
 
+    def test_substitution_override(self):
+        config = ConfigFactory.parse_string(
+            """
+            database {
+                host = localhost
+                port = 5432
+                user = people
+                name = peopledb
+                pass = peoplepass
+            }
+
+            user=test_user
+            pass=test_pass
+
+            database {
+                user = ${user}
+                pass = ${pass}
+            }
+
+            """)
+
+        assert config['database.user'] == 'test_user'
+        assert config['database.pass'] == 'test_pass'
+
     def test_optional_substitution(self):
         config = ConfigFactory.parse_string(
             """
