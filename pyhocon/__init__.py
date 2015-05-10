@@ -263,7 +263,6 @@ class ConfigParser(object):
                         else:
                             result = transformation[0] if isinstance(transformation, list) else transformation
                             config_values.parent[config_values.key] = result
-                        print config_values.parent, id(config_values.parent)
                         _substitutions.remove(substitution)
                 if not unresolved:
                     break
@@ -353,5 +352,4 @@ class ConfigTreeParser(TokenConverter):
                         else:
                             conf_value = value
                         config_tree.put(key, conf_value)
-        print "--", config_tree, id(config_tree)
         return config_tree
