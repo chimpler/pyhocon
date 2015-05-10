@@ -104,8 +104,10 @@ class ConfigParser(object):
             except ValueError:
                 return float(n)
 
-        substitutions = []
+        # ${path} or ${?path} for optional substitution
         SUBSTITUTION = "\$\{(?P<optional>\?)?(?P<variable>[^}]+)\}(?P<ws>\s*)"
+
+        substitutions = []
 
         def create_substitution(instring, loc, token):
             # remove the ${ and }

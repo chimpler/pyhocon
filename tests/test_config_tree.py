@@ -34,7 +34,9 @@ class TestConfigParser(object):
     def test_config_tree_number(self):
         config_tree = ConfigTree()
         config_tree.put("a.b.c", 5)
+        config_tree.put("a.b.e", 4.5)
         assert config_tree.get("a.b.c") == 5
+        assert config_tree.get("a.b.e") == 4.5
 
     def test_config_tree_iterator(self):
         config_tree = ConfigTree()

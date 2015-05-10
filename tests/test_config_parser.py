@@ -261,6 +261,15 @@ class TestConfigParser(object):
         assert config.get('a') == [1, 2, 3, 4, 5, 6]
         assert config.get_list('a') == [1, 2, 3, 4, 5, 6]
 
+    def test_bad_concat(self):
+        ConfigFactory.parse_string('a = 45\n')
+        with pytest.raises(ConfigWrongTypeException):
+            ConfigFactory.parse_string('a = [4] "4"')
+        with pytest.raises(ConfigWrongTypeException):
+            ConfigFactory.parse_string('a = "4" [5]')
+        with pytest.raises(ConfigWrongTypeException):
+            ConfigFactory.parse_string('a = {b: 5} "4"')
+
     def test_string_substitutions(self):
         config1 = ConfigFactory.parse_string(
             """
@@ -788,6 +797,24 @@ class TestConfigParser(object):
         assert config['database.user'] == 'test_user'
         assert config['database.pass'] == 'test_pass'
 
+    def test_substitution_override(self):
+        config = ConfigFactory.parse_string(
+            """
+            database {
+                name = peopledb
+                pass = peoplepass
+            }
+
+            database {
+                name = ${?user}
+                pass = ${?pass}
+            }
+
+            """)
+
+        assert config['database.name'] == 'peopledb'
+        assert config['database.pass'] == 'peoplepass'
+
     def test_optional_substitution(self):
         config = ConfigFactory.parse_string(
             """
@@ -804,3 +831,12 @@ class TestConfigParser(object):
         assert config['e'] == 45
         assert 'g' not in config
         assert config['h'] == 1
+
+    def test_substitution_cycle(self):
+        with pytest.raises(ConfigSubstitutionException):
+            ConfigFactory.parse_string(
+                """
+                a = ${b}
+                b = ${c}
+                c = ${a}
+                """)
