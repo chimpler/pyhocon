@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.3.2
+
+* implemented optional substitution (e.g., ${?abc}) and fixed substitution logic when having dict merge. PR[#20]
+
 ## Version 0.3.1
 
 * can specify default value in get, get_int, ... PR[#17]

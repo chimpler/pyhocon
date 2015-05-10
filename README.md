@@ -77,6 +77,9 @@ if it is not an int), `get_string`, `get_list`, `get_float`, `get_bool`, `get_co
 
       # you can use substitution with unquoted strings
       retries_msg = You have ${databases.mysql.retries} retries
+
+      # retries message will be overriden if environment variable CUSTOM_MSG is set
+      retries_msg = ${?CUSTOM_MSG}
     }
 
     // dict merge
@@ -307,3 +310,4 @@ Java properties mapping                                    | :x:
 
   - Agnibha ([@agnibha](https://github.com/agnibha))
   - Ernest Mishkin ([@eric239](https://github.com/eric239))
+  - Bastian Kuberek ([@bkuberek](https://github.com/bkuberek))
