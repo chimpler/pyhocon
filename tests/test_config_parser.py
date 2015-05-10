@@ -6,7 +6,6 @@ from pyhocon.exceptions import ConfigMissingException, ConfigWrongTypeException
 
 
 class TestConfigParser(object):
-
     def test_parse_simple_value(self):
         config = ConfigFactory.parse_string(
             """t = {
@@ -764,3 +763,20 @@ class TestConfigParser(object):
                 """.format(tmp_file=fdin.name)
             )
             assert config3['a'] == expected_res
+
+    def test_optional_substitution(self):
+        config = ConfigFactory.parse_string(
+            """
+            a = 45
+            b = ${?c}
+            d = ${?c} 4
+            e = ${?a}
+            g = ${?c1} ${?c2}
+            h = ${?c1} ${?c2} 1
+            """)
+
+        assert 'b' not in config
+        assert config['d'] == 4
+        assert config['e'] == 45
+        assert 'g' not in config
+        assert config['h'] == 1
