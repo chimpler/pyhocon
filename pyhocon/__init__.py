@@ -3,7 +3,7 @@ import os
 import socket
 from pyhocon.config_tree import ConfigTree, ConfigSubstitution, ConfigList, ConfigValues, ConfigUnquotedString, \
     ConfigInclude
-from pyhocon.exceptions import ConfigSubstitutionException
+from pyhocon.exceptions import ConfigSubstitutionException, ConfigMissingException
 from pyparsing import *
 
 use_urllib2 = False
@@ -104,15 +104,18 @@ class ConfigParser(object):
             except ValueError:
                 return float(n)
 
+        # ${path} or ${?path} for optional substitution
+        SUBSTITUTION = "\$\{(?P<optional>\?)?(?P<variable>[^}]+)\}(?P<ws>\s*)"
+
         substitutions = []
-        SUBSTITUTION = "\$\{(?P<variable>[^}]+)\}(?P<ws>\s*)"
 
         def create_substitution(instring, loc, token):
             # remove the ${ and }
             match = re.match(SUBSTITUTION, token[0])
             variable = match.group('variable')
             ws = match.group('ws')
-            substitution = ConfigSubstitution(variable, ws, instring, loc)
+            optional = match.group('optional') == '?'
+            substitution = ConfigSubstitution(variable, optional, ws, instring, loc)
             substitutions.append(substitution)
             return substitution
 
@@ -197,18 +200,27 @@ class ConfigParser(object):
 
     @staticmethod
     def _resolve_variable(config, substitution):
+        """
+        :param config:
+        :param substitution:
+        :return: (is_resolved, resolved_variable)
+        """
         variable = substitution.variable
         try:
-            return config.get(variable)
-        except Exception:
+            return True, config.get(variable)
+        except ConfigMissingException:
             # default to environment variable
             value = os.environ.get(variable)
+
             if value is None:
-                raise ConfigSubstitutionException(
-                    "Cannot resolve variable ${{{variable}}} (line: {line}, col: {col})".format(
-                        variable=variable,
-                        line=lineno(substitution.loc, substitution.instring),
-                        col=col(substitution.loc, substitution.instring)))
+                if substitution.optional:
+                    return False, None
+                else:
+                    raise ConfigSubstitutionException(
+                        "Cannot resolve variable ${{{variable}}} (line: {line}, col: {col})".format(
+                            variable=variable,
+                            line=lineno(substitution.loc, substitution.instring),
+                            col=col(substitution.loc, substitution.instring)))
             elif isinstance(value, ConfigList) or isinstance(value, ConfigTree):
                 raise ConfigSubstitutionException(
                     "Cannot substitute variable ${{{variable}}} because it does not point to a "
@@ -217,7 +229,7 @@ class ConfigParser(object):
                         type=value.__class__.__name__,
                         line=lineno(substitution.loc, substitution.instring),
                         col=col(substitution.loc, substitution.instring)))
-            return value
+            return True, value
 
     @staticmethod
     def _resolve_substitutions(config, substitutions):
@@ -226,7 +238,12 @@ class ConfigParser(object):
             for i in range(len(substitutions)):
                 unresolved = False
                 for substitution in list(_substitutions):
-                    resolved_value = ConfigParser._resolve_variable(config, substitution)
+                    is_optional_resolved, resolved_value = ConfigParser._resolve_variable(config, substitution)
+
+                    # if the substitition is optional
+                    if not is_optional_resolved and substitution.optional:
+                        resolved_value = None
+
                     if isinstance(resolved_value, ConfigValues):
                         unresolved = True
                     else:
@@ -238,8 +255,16 @@ class ConfigParser(object):
                             if isinstance(resolved_value, str) and substitution.index < len(config_values.tokens) - 1 else resolved_value
                         config_values.put(substitution.index, formatted_resolved_value)
                         transformation = config_values.transform()
-                        result = transformation[0] if isinstance(transformation, list) else transformation
-                        config_values.parent[config_values.key] = result
+                        if transformation is None and not is_optional_resolved:
+                            # if it does not override anything remove the key
+                            # otherwise put back old value that it was overriding
+                            if config_values.overriden_value is None:
+                                del config_values.parent[config_values.key]
+                            else:
+                                config_values.parent[config_values.key] = config_values.overriden_value
+                        else:
+                            result = transformation[0] if isinstance(transformation, list) else transformation
+                            config_values.parent[config_values.key] = result
                         _substitutions.remove(substitution)
                 if not unresolved:
                     break
@@ -329,5 +354,4 @@ class ConfigTreeParser(TokenConverter):
                         else:
                             conf_value = value
                         config_tree.put(key, conf_value)
-
         return config_tree

@@ -37,6 +37,10 @@ class ConfigTree(OrderedDict):
             if key in a and isinstance(a[key], ConfigTree) and isinstance(a[key], ConfigTree):
                 self._merge_config_tree(a[key], b[key])
             else:
+                if isinstance(value, ConfigValues):
+                    value.parent = a
+                    value.key = key
+                    value.overriden_value = a.get(key, None)
                 a[key] = value
 
         return a
@@ -81,8 +85,7 @@ class ConfigTree(OrderedDict):
 
         if elt is UndefinedKey:
             if default is UndefinedKey:
-                raise ConfigMissingException(
-                    "No configuration setting found for key {key}".format(key='.'.join(key_path[:key_index + 1])))
+                raise ConfigMissingException("No configuration setting found for key {key}".format(key='.'.join(key_path[:key_index + 1])))
             else:
                 return default
 
@@ -242,18 +245,18 @@ class ConfigValues(object):
         self.key = None
         self._instring = instring
         self._loc = loc
+        self.overriden_value = None
 
         for index, token in enumerate(self.tokens):
             if isinstance(token, ConfigSubstitution):
                 token.parent = self
                 token.index = index
 
-        # if the last token is an unquoted string then right strip it
-
         # no value return empty string
         if len(self.tokens) == 0:
             self.tokens = ['']
 
+        # if the last token is an unquoted string then right strip it
         if isinstance(self.tokens[-1], ConfigUnquotedString):
             self.tokens[-1] = self.tokens[-1].rstrip()
 
@@ -261,15 +264,24 @@ class ConfigValues(object):
         return next((True for token in self.tokens if isinstance(token, ConfigSubstitution)), False)
 
     def transform(self):
-        if self.has_substitution():
-            return self
-
         def determine_type(token):
             return ConfigTree if isinstance(token, ConfigTree) else ConfigList if isinstance(token, list) else str
 
+        def format_str(v):
+            return '' if v is None else str(v)
+
+        if self.has_substitution():
+            return self
+
+        # remove None tokens
+        tokens = [token for token in self.tokens if token is not None]
+
+        if not tokens:
+            return None
+
         # check if all tokens are compatible
-        first_tok_type = determine_type(self.tokens[0])
-        for index, token in enumerate(self.tokens[1:]):
+        first_tok_type = determine_type(tokens[0])
+        for index, token in enumerate(tokens[1:]):
             tok_type = determine_type(token)
             if first_tok_type is not tok_type:
                 raise ConfigWrongTypeException(
@@ -283,7 +295,7 @@ class ConfigValues(object):
 
         if first_tok_type is ConfigTree:
             result = ConfigTree()
-            for token in self.tokens:
+            for token in tokens:
                 for key, val in token.items():
                     # update references for substituted contents
                     if isinstance(val, ConfigValues):
@@ -293,7 +305,7 @@ class ConfigValues(object):
             return result
         elif first_tok_type is ConfigList:
             result = []
-            for sublist in self.tokens:
+            for sublist in tokens:
                 sublist_result = ConfigList()
                 for index, token in enumerate(sublist):
                     if isinstance(token, ConfigValues):
@@ -303,12 +315,11 @@ class ConfigValues(object):
                 result.extend(sublist_result)
             return [result]
         else:
-            if len(self.tokens) == 1:
-                return self.tokens[0]
+            if len(tokens) == 1:
+                return tokens[0]
             else:
                 return ''.join(
-                    token if isinstance(token, str) else str(token) + ' ' for token in self.tokens[:-1]) + str(
-                    self.tokens[-1])
+                    token if isinstance(token, str) else format_str(token) + ' ' for token in tokens[:-1]) + format_str(tokens[-1])
 
     def put(self, index, value):
         self.tokens[index] = value
@@ -318,8 +329,9 @@ class ConfigValues(object):
 
 
 class ConfigSubstitution(object):
-    def __init__(self, variable, ws, instring, loc):
+    def __init__(self, variable, optional, ws, instring, loc):
         self.variable = variable
+        self.optional = optional
         self.ws = ws
         self.index = None
         self.parent = None
