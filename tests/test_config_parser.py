@@ -929,7 +929,7 @@ class TestConfigParser(object):
         assert config['b'] == ['c', 'd']
         assert config['c'] == ['e', 'f']
 
-    def test_assign_dict_strings_with_eol(self):
+    def test_assign_dict_strings_with_equal_sign_with_eol(self):
         config = ConfigFactory.parse_string(
             """
             a =
@@ -944,6 +944,32 @@ class TestConfigParser(object):
             d: 4,}
 
             c =
+
+            {
+            e: 5,
+            f: 6
+            }
+            """
+        )
+        assert config['a'] == {'a': 1, 'b': 2}
+        assert config['b'] == {'c': 3, 'd': 4}
+        assert config['c'] == {'e': 5, 'f': 6}
+
+    def test_assign_dict_strings_no_equal_sign_with_eol(self):
+        config = ConfigFactory.parse_string(
+            """
+            a
+            {
+            a: 1,
+            b: 2,
+            }
+
+            b # test
+            {
+            c: 3,
+            d: 4,}
+
+            c
 
             {
             e: 5,

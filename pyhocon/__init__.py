@@ -154,6 +154,7 @@ class ConfigParser(object):
         eol_comma = Word('\n\r,').suppress()
         comment = (Literal('#') | Literal('//')) - SkipTo(eol)
         comment_eol = Suppress(Optional(eol_comma) + comment)
+        comment_no_comma_eol = Suppress(Optional(comment) + Optional(eol))
         number_expr = Regex('[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE]\d+)?(?=[ \t]*([\$\}\],#\n\r]|//))',
                             re.DOTALL).setParseAction(convert_number)
 
@@ -191,11 +192,7 @@ class ConfigParser(object):
 
         # special case when we have a value assignment where the string can potentially be the remainder of the line
         assign_expr << Group(
-            key - Optional(eol)
-            - (
-                dict_expr | Suppress(Literal('=') | Literal(':'))
-                - (Optional(comment) - Optional(eol)).suppress() - ConcatenatedValueParser(multi_value_expr)
-            )
+            key - comment_no_comma_eol - (dict_expr | Suppress(Literal('=') | Literal(':')) - comment_no_comma_eol - ConcatenatedValueParser(multi_value_expr))
         )
 
         # the file can be { ... } where {} can be omitted or []
