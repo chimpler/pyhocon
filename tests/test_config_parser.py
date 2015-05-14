@@ -848,6 +848,7 @@ class TestConfigParser(object):
             4
 
             b = # test
+            # test2
             5
 
             c =
@@ -866,6 +867,7 @@ class TestConfigParser(object):
             "a"
 
             b = # test
+            # test2
             "b"
 
             c =
@@ -887,6 +889,7 @@ class TestConfigParser(object):
             ]
 
             b = # test
+            # test2
             [
             3,
             4,]
@@ -913,6 +916,7 @@ class TestConfigParser(object):
             ]
 
             b = # test
+            # test2
             [
             "c",
             "d",]
@@ -939,6 +943,7 @@ class TestConfigParser(object):
             }
 
             b = # test
+            # test2
             {
             c: 3,
             d: 4,}
@@ -965,6 +970,7 @@ class TestConfigParser(object):
             }
 
             b # test
+            # test2
             {
             c: 3,
             d: 4,}
