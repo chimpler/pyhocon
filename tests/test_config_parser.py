@@ -602,6 +602,10 @@ class TestConfigParser(object):
         assert config.get('cat.garfield.say') == 'meow'
         assert config.get('dog.mutt.hates.garfield.say') == 'meow'
 
+    def test_include_dict_not_exists(self):
+        config = ConfigFactory.parse_string('test {include "no_exists.conf", a: 5}')
+        assert config['test'] == {'a': 5}
+
     def test_list_of_dicts(self):
         config = ConfigFactory.parse_string(
             """

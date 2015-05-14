@@ -1,5 +1,6 @@
 import argparse
 import sys
+import logging
 from pyhocon import ConfigFactory
 from pyhocon.config_tree import ConfigTree
 
@@ -164,6 +165,7 @@ def main():  # pragma: no cover
     args = parser.parse_args()
     if args.format.lower() not in ['json', 'properties', 'yaml']:
         raise Exception("Format must be 'json', 'properties' or 'yaml'")
+    logging.basicConfig()
     HOCONConverter.convert(args.input, args.output, args.format)
 
 

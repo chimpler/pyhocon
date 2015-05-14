@@ -5,6 +5,7 @@ from pyhocon.config_tree import ConfigTree, ConfigSubstitution, ConfigList, Conf
     ConfigInclude
 from pyhocon.exceptions import ConfigSubstitutionException, ConfigMissingException
 from pyparsing import *
+import logging
 
 use_urllib2 = False
 try:
@@ -18,6 +19,7 @@ except ImportError:
 
 
 class ConfigFactory(object):
+
     @staticmethod
     def parse_file(filename):
         """Parse file
@@ -75,6 +77,8 @@ class ConfigParser(object):
         '\\!': '!',
         '\\"': '"'
     }
+
+    _logger = logging.getLogger('ConfigParser')
 
     @staticmethod
     def parse(content, basedir=None):
@@ -138,6 +142,9 @@ class ConfigParser(object):
 
             if file is not None:
                 path = file if basedir is None else os.path.join(basedir, file)
+                if not os.path.exists(path):
+                    ConfigParser._logger.warn('Cannot find file {file}'.format(file=path))
+                    return []
                 obj = ConfigFactory.parse_file(path)
 
             return ConfigInclude(obj if isinstance(obj, list) else obj.items())
