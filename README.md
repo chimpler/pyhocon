@@ -305,9 +305,9 @@ Java properties mapping                                    | :x:
   - Joe Halliwell ([@joehalliwell](https://github.com/joehalliwell))
   - Tasuku Okuda ([@okdtsk](https://github.com/okdtsk))
   - Uri Laserson ([@laserson](https://github.com/laserson))
+  - Bastian Kuberek ([@bkuberek](https://github.com/bkuberek))
 
 ### Thanks
 
   - Agnibha ([@agnibha](https://github.com/agnibha))
   - Ernest Mishkin ([@eric239](https://github.com/eric239))
-  - Bastian Kuberek ([@bkuberek](https://github.com/bkuberek))
