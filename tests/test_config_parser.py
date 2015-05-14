@@ -797,7 +797,21 @@ class TestConfigParser(object):
         assert config['database.user'] == 'test_user'
         assert config['database.pass'] == 'test_pass'
 
-    def test_substitution_override(self):
+    def test_substitution_flat_override(self):
+        config = ConfigFactory.parse_string(
+            """
+            database {
+                name = peopledb
+                pass = peoplepass
+                name = ${?NOT_EXISTS}
+                pass = ${?NOT_EXISTS}
+            }
+            """)
+
+        assert config['database.name'] == 'peopledb'
+        assert config['database.pass'] == 'peoplepass'
+
+    def test_substitution_nested_override(self):
         config = ConfigFactory.parse_string(
             """
             database {
