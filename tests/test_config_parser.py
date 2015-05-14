@@ -840,3 +840,149 @@ class TestConfigParser(object):
                 b = ${c}
                 c = ${a}
                 """)
+
+    def test_assign_number_with_eol(self):
+        config = ConfigFactory.parse_string(
+            """
+            a =
+            4
+
+            b = # test
+            # test2
+            5
+
+            c =
+
+            6
+            """
+        )
+        assert config['a'] == 4
+        assert config['b'] == 5
+        assert config['c'] == 6
+
+    def test_assign_strings_with_eol(self):
+        config = ConfigFactory.parse_string(
+            """
+            a =
+            "a"
+
+            b = # test
+            # test2
+            "b"
+
+            c =
+
+            "c"
+            """
+        )
+        assert config['a'] == 'a'
+        assert config['b'] == 'b'
+        assert config['c'] == 'c'
+
+    def test_assign_list_numbers_with_eol(self):
+        config = ConfigFactory.parse_string(
+            """
+            a =
+            [
+            1,
+            2,
+            ]
+
+            b = # test
+            # test2
+            [
+            3,
+            4,]
+
+            c =
+
+            [
+            5,
+            6
+            ]
+            """
+        )
+        assert config['a'] == [1, 2]
+        assert config['b'] == [3, 4]
+        assert config['c'] == [5, 6]
+
+    def test_assign_list_strings_with_eol(self):
+        config = ConfigFactory.parse_string(
+            """
+            a =
+            [
+            "a",
+            "b",
+            ]
+
+            b = # test
+            # test2
+            [
+            "c",
+            "d",]
+
+            c =
+
+            [
+            "e",
+            "f"
+            ]
+            """
+        )
+        assert config['a'] == ['a', 'b']
+        assert config['b'] == ['c', 'd']
+        assert config['c'] == ['e', 'f']
+
+    def test_assign_dict_strings_with_equal_sign_with_eol(self):
+        config = ConfigFactory.parse_string(
+            """
+            a =
+            {
+            a: 1,
+            b: 2,
+            }
+
+            b = # test
+            # test2
+            {
+            c: 3,
+            d: 4,}
+
+            c =
+
+            {
+            e: 5,
+            f: 6
+            }
+            """
+        )
+        assert config['a'] == {'a': 1, 'b': 2}
+        assert config['b'] == {'c': 3, 'd': 4}
+        assert config['c'] == {'e': 5, 'f': 6}
+
+    def test_assign_dict_strings_no_equal_sign_with_eol(self):
+        config = ConfigFactory.parse_string(
+            """
+            a
+            {
+            a: 1,
+            b: 2,
+            }
+
+            b # test
+            # test2
+            {
+            c: 3,
+            d: 4,}
+
+            c
+
+            {
+            e: 5,
+            f: 6
+            }
+            """
+        )
+        assert config['a'] == {'a': 1, 'b': 2}
+        assert config['b'] == {'c': 3, 'd': 4}
+        assert config['c'] == {'e': 5, 'f': 6}
