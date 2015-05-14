@@ -19,17 +19,24 @@ except ImportError:
 
 class ConfigFactory(object):
     @staticmethod
-    def parse_file(filename):
+    def parse_file(filename, required=True):
         """Parse file
 
         :param filename: filename
         :type filename: basestring
+        :param required: If true, raises an exception if can't load file
+        :type required: boolean
         :return: Config object
         :type return: Config
         """
-        with open(filename, 'r') as fd:
-            content = fd.read()
-            return ConfigFactory.parse_string(content, os.path.dirname(filename))
+        try:
+            with open(filename, 'r') as fd:
+                content = fd.read()
+                return ConfigFactory.parse_string(content, os.path.dirname(filename))
+        except IOError as e:
+            if required:
+                raise e
+            return []
 
     @staticmethod
     def parse_URL(url, timeout=None):
@@ -138,7 +145,7 @@ class ConfigParser(object):
 
             if file is not None:
                 path = file if basedir is None else os.path.join(basedir, file)
-                obj = ConfigFactory.parse_file(path)
+                obj = ConfigFactory.parse_file(path, required=False)
 
             return ConfigInclude(obj if isinstance(obj, list) else obj.items())
 
