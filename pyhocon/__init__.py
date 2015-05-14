@@ -152,7 +152,8 @@ class ConfigParser(object):
 
         eol = Word('\n\r').suppress()
         eol_comma = Word('\n\r,').suppress()
-        comment = Suppress(Optional(eol_comma) + (Literal('#') | Literal('//')) - SkipTo(eol))
+        comment = (Literal('#') | Literal('//')) - SkipTo(eol)
+        comment_eol = Suppress(Optional(eol_comma) + comment)
         number_expr = Regex('[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE]\d+)?(?=[ \t]*([\$\}\],#\n\r]|//))',
                             re.DOTALL).setParseAction(convert_number)
 
@@ -180,20 +181,21 @@ class ConfigParser(object):
         dict_expr = Forward()
         list_expr = Forward()
         multi_value_expr = ZeroOrMore((Literal(
-            '\\') - eol).suppress() | comment | include_expr | substitution_expr | dict_expr | list_expr | value_expr)
+            '\\') - eol).suppress() | comment_eol | include_expr | substitution_expr | dict_expr | list_expr | value_expr)
         # for a dictionary : or = is optional
         # last zeroOrMore is because we can have t = {a:4} {b: 6} {c: 7} which is dictionary concatenation
-        inside_dict_expr = ConfigTreeParser(ZeroOrMore(comment | include_expr | assign_expr | eol_comma))
+        inside_dict_expr = ConfigTreeParser(ZeroOrMore(comment_eol | include_expr | assign_expr | eol_comma))
         dict_expr << Suppress('{') - inside_dict_expr - Suppress('}')
         list_entry = ConcatenatedValueParser(multi_value_expr)
         list_expr << Suppress('[') - ListParser(list_entry - ZeroOrMore(eol_comma - list_entry)) - Suppress(']')
 
         # special case when we have a value assignment where the string can potentially be the remainder of the line
         assign_expr << Group(
-            key - (dict_expr | Suppress(Literal('=') | Literal(':')) - ConcatenatedValueParser(multi_value_expr)))
+            key - Optional(eol) - (dict_expr | Suppress(Literal('=') | Literal(':'))
+                                   - (Optional(comment) - Optional(eol)).suppress() - ConcatenatedValueParser(multi_value_expr)))
 
         # the file can be { ... } where {} can be omitted or []
-        config_expr = ZeroOrMore(comment | eol) + (list_expr | dict_expr | inside_dict_expr) + ZeroOrMore(comment | eol_comma)
+        config_expr = ZeroOrMore(comment_eol | eol) + (list_expr | dict_expr | inside_dict_expr) + ZeroOrMore(comment_eol | eol_comma)
         config = config_expr.parseString(content, parseAll=True)[0]
         ConfigParser._resolve_substitutions(config, substitutions)
         return config
