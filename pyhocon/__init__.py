@@ -192,7 +192,9 @@ class ConfigParser(object):
 
         # special case when we have a value assignment where the string can potentially be the remainder of the line
         assign_expr << Group(
-            key - ZeroOrMore(comment_no_comma_eol) - (dict_expr | Suppress(Literal('=') | Literal(':')) - ZeroOrMore(comment_no_comma_eol) - ConcatenatedValueParser(multi_value_expr))
+            key -
+            ZeroOrMore(comment_no_comma_eol) -
+            (dict_expr | Suppress(Literal('=') | Literal(':')) - ZeroOrMore(comment_no_comma_eol) - ConcatenatedValueParser(multi_value_expr))
         )
 
         # the file can be { ... } where {} can be omitted or []
