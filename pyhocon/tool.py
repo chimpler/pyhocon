@@ -1,7 +1,11 @@
 import argparse
+import logging
 import sys
 from pyhocon import ConfigFactory
 from pyhocon.config_tree import ConfigTree
+
+
+LOG_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 
 
 class HOCONConverter(object):
@@ -161,9 +165,23 @@ def main():  # pragma: no cover
     parser.add_argument('-i', '--input', help='input file')
     parser.add_argument('-o', '--output', help='output file')
     parser.add_argument('-f', '--format', help='output format: json, properties or yaml', default='json')
+    parser.add_argument('-v', '--verbosity', action='count', default=0, help='Increase output verbosity')
     args = parser.parse_args()
+
     if args.format.lower() not in ['json', 'properties', 'yaml']:
         raise Exception("Format must be 'json', 'properties' or 'yaml'")
+
+    logger = logging.getLogger()
+    log_handler = logging.StreamHandler() if args.verbosity > 0 else logging.NullHandler()
+    log_handler.setFormatter(logging.Formatter(LOG_FORMAT))
+    logger.addHandler(log_handler)
+    if args.verbosity == 1:
+        logger.setLevel(logging.ERROR)
+    elif args.verbosity == 2:
+        logger.setLevel(logging.INFO)
+    elif args.verbosity >= 3:
+        logger.setLevel(logging.DEBUG)
+
     HOCONConverter.convert(args.input, args.output, args.format)
 
 

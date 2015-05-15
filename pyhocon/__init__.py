@@ -1,3 +1,4 @@
+import logging
 import re
 import os
 import socket
@@ -10,11 +11,15 @@ use_urllib2 = False
 try:
     # For Python 3.0 and later
     from urllib.request import urlopen
+    from urllib.error import HTTPError
 except ImportError:
     # Fall back to Python 2's urllib2
-    from urllib2 import urlopen
+    from urllib2 import urlopen, HTTPError
 
     use_urllib2 = True
+
+
+logger = logging.getLogger(__name__)
 
 
 class ConfigFactory(object):
@@ -36,6 +41,7 @@ class ConfigFactory(object):
         except IOError as e:
             if required:
                 raise e
+            logger.warn('Cannot include file %s. File does not exist or cannot be read.', filename)
             return []
 
     @staticmethod
@@ -48,10 +54,12 @@ class ConfigFactory(object):
         :type return: Config
         """
         socket_timeout = socket._GLOBAL_DEFAULT_TIMEOUT if timeout is None else timeout
-        fd = urlopen(url, timeout=socket_timeout)
         try:
+            fd = urlopen(url, timeout=socket_timeout)
             content = fd.read() if use_urllib2 else fd.read().decode('utf-8')
             return ConfigFactory.parse_string(content, os.path.dirname(url))
+        except HTTPError:
+            logger.warn('Cannot include url %s. Resource is inaccessible.', url)
         finally:
             fd.close()
 
@@ -141,10 +149,12 @@ class ConfigParser(object):
                     file = token[1]
 
             if url is not None:
+                logger.debug('Loading config from url %s', url)
                 obj = ConfigFactory.parse_URL(url)
 
             if file is not None:
                 path = file if basedir is None else os.path.join(basedir, file)
+                logger.debug('Loading config from file %s', path)
                 obj = ConfigFactory.parse_file(path, required=False)
 
             return ConfigInclude(obj if isinstance(obj, list) else obj.items())
