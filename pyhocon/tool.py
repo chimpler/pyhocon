@@ -171,8 +171,11 @@ def main():  # pragma: no cover
     if args.format.lower() not in ['json', 'properties', 'yaml']:
         raise Exception("Format must be 'json', 'properties' or 'yaml'")
 
+    # Python 2.6 support
+    def null_handler():
+        return logging.NullHandler() if hasattr(logging, 'NullHandler') else logging.FileHandler('/dev/null')
     logger = logging.getLogger()
-    log_handler = logging.StreamHandler() if args.verbosity > 0 else logging.NullHandler()
+    log_handler = logging.StreamHandler() if args.verbosity > 0 else null_handler()
     log_handler.setFormatter(logging.Formatter(LOG_FORMAT))
     logger.addHandler(log_handler)
     if args.verbosity == 1:
