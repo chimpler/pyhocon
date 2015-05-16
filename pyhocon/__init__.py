@@ -122,8 +122,6 @@ class ConfigParser(object):
         # ${path} or ${?path} for optional substitution
         SUBSTITUTION = "\$\{(?P<optional>\?)?(?P<variable>[^}]+)\}(?P<ws>\s*)"
 
-        substitutions = []
-
         def create_substitution(instring, loc, token):
             # remove the ${ and }
             match = re.match(SUBSTITUTION, token[0])
@@ -131,7 +129,6 @@ class ConfigParser(object):
             ws = match.group('ws')
             optional = match.group('optional') == '?'
             substitution = ConfigSubstitution(variable, optional, ws, instring, loc)
-            substitutions.append(substitution)
             return substitution
 
         def include_config(token):
@@ -217,7 +214,7 @@ class ConfigParser(object):
         # the file can be { ... } where {} can be omitted or []
         config_expr = ZeroOrMore(comment_eol | eol) + (list_expr | dict_expr | inside_dict_expr) + ZeroOrMore(comment_eol | eol_comma)
         config = config_expr.parseString(content, parseAll=True)[0]
-        ConfigParser._resolve_substitutions(config, substitutions)
+        ConfigParser._resolve_substitutions(config)
         return config
 
     @staticmethod
@@ -254,7 +251,29 @@ class ConfigParser(object):
             return True, value
 
     @staticmethod
-    def _resolve_substitutions(config, substitutions):
+    def _resolve_substitutions(config):
+        # traverse config to find all the substitutions
+        def find_substitutions(item):
+            """Convert HOCON input into a JSON output
+
+            :return: JSON string representation
+            :type return: basestring
+            """
+            if isinstance(item, ConfigValues):
+                return item.get_substitutions()
+
+            substitutions = []
+            if isinstance(item, ConfigTree):
+                    for key, child in item.items():
+                        substitutions += find_substitutions(child)
+            elif isinstance(item, list):
+                for child in item:
+                    substitutions += find_substitutions(child)
+
+            return substitutions
+
+        substitutions = find_substitutions(config)
+
         if len(substitutions) > 0:
             _substitutions = set(substitutions)
             for i in range(len(substitutions)):
@@ -262,7 +281,7 @@ class ConfigParser(object):
                 for substitution in list(_substitutions):
                     is_optional_resolved, resolved_value = ConfigParser._resolve_variable(config, substitution)
 
-                    # if the substitition is optional
+                    # if the substitution is optional
                     if not is_optional_resolved and substitution.optional:
                         resolved_value = None
 

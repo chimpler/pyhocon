@@ -264,7 +264,10 @@ class ConfigValues(object):
             self.tokens[-1] = self.tokens[-1].rstrip()
 
     def has_substitution(self):
-        return next((True for token in self.tokens if isinstance(token, ConfigSubstitution)), False)
+        return len(self.get_substitutions()) > 0
+
+    def get_substitutions(self):
+        return [token for token in self.tokens if isinstance(token, ConfigSubstitution)]
 
     def transform(self):
         def determine_type(token):
