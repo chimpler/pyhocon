@@ -1,5 +1,10 @@
 # Changelog
 
+# Version 0.3.4
+
+* Fixed substitutions that are overriden later on by a non substitution. PR[#34]
+* Added logging. PR[#30] and PR[#31]
+
 # Version 0.3.3
 
 * Fixed optional substitution when overriding elements at the same level. PR[#28]
