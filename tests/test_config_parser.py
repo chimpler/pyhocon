@@ -1000,3 +1000,39 @@ class TestConfigParser(object):
         assert config['a'] == {'a': 1, 'b': 2}
         assert config['b'] == {'c': 3, 'd': 4}
         assert config['c'] == {'e': 5, 'f': 6}
+
+    def test_substitutions_overwrite(self):
+        config1 = ConfigFactory.parse_string(
+            """
+            a = 123
+            a = ${?test}
+            a = 5
+            """
+        )
+
+        assert config1['a'] == 5
+
+        config2 = ConfigFactory.parse_string(
+            """
+            {
+              database {
+                host = "localhost"
+                port = 8000
+                url = ${database.host}":"${database.port}
+              }
+
+              database {
+                host = ${?DB_HOST}
+              }
+
+              database {
+                host = "other.host.net"
+                port = 433
+              }
+            }
+            """
+        )
+
+        assert config2['database']['host'] == 'other.host.net'
+        assert config2['database']['port'] == 433
+        assert config2['database']['url'] == 'other.host.net:433'
