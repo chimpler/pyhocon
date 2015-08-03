@@ -24,20 +24,22 @@ logger = logging.getLogger(__name__)
 
 class ConfigFactory(object):
     @staticmethod
-    def parse_file(filename, required=True):
+    def parse_file(filename, required=True, resolve=True):
         """Parse file
 
         :param filename: filename
         :type filename: basestring
         :param required: If true, raises an exception if can't load file
         :type required: boolean
+        :param resolve: If true, resolve substitutions
+        :type resolve: boolean
         :return: Config object
         :type return: Config
         """
         try:
             with open(filename, 'r') as fd:
                 content = fd.read()
-                return ConfigFactory.parse_string(content, os.path.dirname(filename))
+                return ConfigFactory.parse_string(content, os.path.dirname(filename), resolve)
         except IOError as e:
             if required:
                 raise e
@@ -45,11 +47,13 @@ class ConfigFactory(object):
             return []
 
     @staticmethod
-    def parse_URL(url, timeout=None):
+    def parse_URL(url, timeout=None, resolve=True):
         """Parse URL
 
         :param url: url to parse
         :type url: basestring
+        :param resolve: If true, resolve substitutions
+        :type resolve: boolean
         :return: Config object
         :type return: Config
         """
@@ -57,22 +61,24 @@ class ConfigFactory(object):
         try:
             fd = urlopen(url, timeout=socket_timeout)
             content = fd.read() if use_urllib2 else fd.read().decode('utf-8')
-            return ConfigFactory.parse_string(content, os.path.dirname(url))
+            return ConfigFactory.parse_string(content, os.path.dirname(url), resolve)
         except HTTPError:
             logger.warn('Cannot include url %s. Resource is inaccessible.', url)
         finally:
             fd.close()
 
     @staticmethod
-    def parse_string(content, basedir=None):
+    def parse_string(content, basedir=None, resolve=True):
         """Parse URL
 
-        :param url: url to parse
-        :type url: basestring
+        :param content: content to parse
+        :type content: basestring
+        :param resolve: If true, resolve substitutions
+        :type resolve: boolean
         :return: Config object
         :type return: Config
         """
-        return ConfigParser().parse(content, basedir)
+        return ConfigParser().parse(content, basedir, resolve)
 
 
 class ConfigParser(object):
@@ -92,11 +98,13 @@ class ConfigParser(object):
     }
 
     @staticmethod
-    def parse(content, basedir=None):
+    def parse(content, basedir=None, resolve=True):
         """parse a HOCON content
 
         :param content: HOCON content to parse
         :type content: basestring
+        :param resolve: If true, resolve substitutions
+        :type resolve: boolean
         :return: a ConfigTree or a list
         """
 
@@ -147,12 +155,12 @@ class ConfigParser(object):
 
             if url is not None:
                 logger.debug('Loading config from url %s', url)
-                obj = ConfigFactory.parse_URL(url)
+                obj = ConfigFactory.parse_URL(url, resolve=False)
 
             if file is not None:
                 path = file if basedir is None else os.path.join(basedir, file)
                 logger.debug('Loading config from file %s', path)
-                obj = ConfigFactory.parse_file(path, required=False)
+                obj = ConfigFactory.parse_file(path, required=False, resolve=False)
 
             return ConfigInclude(obj if isinstance(obj, list) else obj.items())
 
@@ -214,7 +222,8 @@ class ConfigParser(object):
         # the file can be { ... } where {} can be omitted or []
         config_expr = ZeroOrMore(comment_eol | eol) + (list_expr | dict_expr | inside_dict_expr) + ZeroOrMore(comment_eol | eol_comma)
         config = config_expr.parseString(content, parseAll=True)[0]
-        ConfigParser._resolve_substitutions(config)
+        if resolve:
+            ConfigParser._resolve_substitutions(config)
         return config
 
     @staticmethod
