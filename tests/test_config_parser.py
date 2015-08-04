@@ -773,7 +773,6 @@ class TestConfigParser(object):
             )
             assert config3['a'] == expected_res
 
-
     def test_include_substitution(self):
         with tempfile.NamedTemporaryFile('w') as fdin:
             fdin.write('y = ${x}')
