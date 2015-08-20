@@ -1089,8 +1089,8 @@ class TestConfigParser(object):
         config2 = config1.with_fallback('samples/aws.conf')
         assert config2 == {
             'data-center-generic': {'cluster-size': 8},
-        	'data-center-east': { 'cluster-size': 6, 'name': 'east' },
+            'data-center-east': {'cluster-size': 6, 'name': 'east'},
             'misc': 'mist',
-        	'default-jvm-opts': ['-XX:+UseParNewGC'],
-	        'large-jvm-opts': ['-XX:+UseParNewGC', '-Xm16g']
+            'default-jvm-opts': ['-XX:+UseParNewGC'],
+            'large-jvm-opts': ['-XX:+UseParNewGC', '-Xm16g']
         }

@@ -8,6 +8,7 @@ required_packages = ['pyparsing==2.0.3']
 if sys.version_info[:2] == (2, 6):
     required_packages.append('ordereddict')
 
+
 class PyTestCommand(TestCommand):
     user_options = [('pytest-args=', 'a', "Arguments to pass to py.test")]
 
@@ -29,7 +30,8 @@ setup(
     name='pyhocon',
     version='0.3.6',
     description='HOCON parser for Python',
-    long_description='pyhocon is a HOCON parser for Python. Additionally we provide a tool (pyhocon) to convert any HOCON content into json, yaml and properties format.',
+    long_description='pyhocon is a HOCON parser for Python. Additionally we provide a tool (pyhocon) to convert any HOCON '
+                     'content into json, yaml and properties format.',
     keywords='hocon parser',
     license='Apache License 2.0',
     author='Francois Dang Ngoc',
