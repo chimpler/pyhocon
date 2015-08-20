@@ -233,8 +233,7 @@ class ConfigTree(OrderedDict):
         :return: new config with fallback on config
         """
         if isinstance(config, str):
-            from .config_parser import ConfigFactory
-            print "=================", config
+            from config_parser import ConfigFactory
             return self._merge_config_tree(ConfigFactory.parse_file(config), self)
         else:
             return self._merge_config_tree(config, self)
