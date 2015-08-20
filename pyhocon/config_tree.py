@@ -6,7 +6,7 @@ try:  # pragma: no cover
 except ImportError:  # pragma: no cover
     from ordereddict import OrderedDict
 import re
-from pyhocon.exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
+from exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException, ConfigSubstitutionException
 
 
 class UndefinedKey(object):
@@ -23,7 +23,8 @@ class ConfigTree(OrderedDict):
                 value.parent = self
                 value.index = key
 
-    def _merge_config_tree(self, a, b):
+    @classmethod
+    def _merge_config_tree(cls, a, b):
         """Merge config b into a
 
         :param a: target config
@@ -35,7 +36,7 @@ class ConfigTree(OrderedDict):
         for key, value in b.items():
             # if key is in both a and b and both values are dictionary then merge it otherwise override it
             if key in a and isinstance(a[key], ConfigTree) and isinstance(a[key], ConfigTree):
-                self._merge_config_tree(a[key], b[key])
+                cls._merge_config_tree(a[key], b[key])
             else:
                 if isinstance(value, ConfigValues):
                     value.parent = a
@@ -52,7 +53,7 @@ class ConfigTree(OrderedDict):
             # if they are both configs then merge
             # if not then override
             if key_elt in self and isinstance(self[key_elt], ConfigTree) and isinstance(value, ConfigTree):
-                self._merge_config_tree(self[key_elt], value)
+                ConfigTree._merge_config_tree(self[key_elt], value)
             elif append:
                 # If we have t=1
                 # and we try to put t.a=5 then t is replaced by {a: 5}
@@ -224,6 +225,19 @@ class ConfigTree(OrderedDict):
         if val is UndefinedKey:
             raise KeyError(item)
         return val
+
+    def with_fallback(self, config):
+        """
+        return a new config with fallback on config
+        :param config: config or filename of the config to fallback on
+        :return: new config with fallback on config
+        """
+        if isinstance(config, str):
+            from .config_parser import ConfigFactory
+            print "=================", config
+            return self._merge_config_tree(ConfigFactory.parse_file(config), self)
+        else:
+            return self._merge_config_tree(config, self)
 
 
 class ConfigList(list):

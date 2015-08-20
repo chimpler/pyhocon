@@ -1050,3 +1050,47 @@ class TestConfigParser(object):
         assert config2['database']['host'] == 'other.host.net'
         assert config2['database']['port'] == 433
         assert config2['database']['url'] == 'other.host.net:433'
+
+    def test_substitutions_overwrite(self):
+        config1 = ConfigFactory.parse_string(
+            """
+            a = {
+                b: 1
+                c: 2
+            }
+            """
+        )
+
+        config2 = ConfigFactory.parse_string(
+            """
+            a.b = 4
+            a.d = 3
+            """
+        )
+
+        config3 = config1.with_fallback(config2)
+
+        assert config3['a'] == {
+            'b': 1,
+            'c': 2,
+            'd': 3
+        }
+
+    def test_substitutions_overwrite_file(self):
+        config1 = ConfigFactory.parse_string(
+            """
+            {
+                data-center-generic = { cluster-size: 8 }
+                misc = "mist"
+            }
+            """
+        )
+
+        config2 = config1.with_fallback('samples/aws.conf')
+        assert config2 == {
+            'data-center-generic': {'cluster-size': 8},
+        	'data-center-east': { 'cluster-size': 6, 'name': 'east' },
+            'misc': 'mist',
+        	'default-jvm-opts': ['-XX:+UseParNewGC'],
+	        'large-jvm-opts': ['-XX:+UseParNewGC', '-Xm16g']
+        }

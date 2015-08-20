@@ -258,6 +258,12 @@ Then evaluating animals.conf will result in the followings:
 
 As you can see, the attributes in cat.conf were merged to the ones in dog.conf. Note that the attribute "say" in dog.conf got overwritten by the one in cat.conf.
 
+## Misc
+
+### with_fallback
+
+- `with_fallback`: Usage: `config3 = config1.with_fallback(config2)` or `config3 = config1.with_fallback('samples/aws.conf')`
+
 ## TODO
 
 Items                                  | Status

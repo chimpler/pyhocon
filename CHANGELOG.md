@@ -1,5 +1,13 @@
 # Changelog
 
+# Version 0.3.5
+
+* Added with_fallback method. PR[#37]
+
+# Version 0.3.5
+
+* Fixed substitutions to be evaluated after all files are loaded. PR[#36]
+
 # Version 0.3.4
 
 * Fixed substitutions that are overriden later on by a non substitution. PR[#34]
