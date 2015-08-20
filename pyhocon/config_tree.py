@@ -6,7 +6,7 @@ try:  # pragma: no cover
 except ImportError:  # pragma: no cover
     from ordereddict import OrderedDict
 import re
-from exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException, ConfigSubstitutionException
+from .exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException, ConfigSubstitutionException
 
 
 class UndefinedKey(object):

@@ -1,9 +1,9 @@
 import re
 import os
 import socket
-from config_tree import ConfigTree, ConfigSubstitution, ConfigList, ConfigValues, ConfigUnquotedString, \
+from .config_tree import ConfigTree, ConfigSubstitution, ConfigList, ConfigValues, ConfigUnquotedString, \
     ConfigInclude
-from exceptions import ConfigSubstitutionException, ConfigMissingException
+from .exceptions import ConfigSubstitutionException, ConfigMissingException
 from pyparsing import *
 import logging
 
