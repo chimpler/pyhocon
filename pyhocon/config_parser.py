@@ -224,7 +224,7 @@ class ConfigParser(object):
         config_expr = ZeroOrMore(comment_eol | eol) + (list_expr | dict_expr | inside_dict_expr) + ZeroOrMore(comment_eol | eol_comma)
         config = config_expr.parseString(content, parseAll=True)[0]
         if resolve:
-            ConfigParser._resolve_substitutions(config)
+            ConfigParser.resolve_substitutions(config)
         return config
 
     @staticmethod
@@ -261,7 +261,7 @@ class ConfigParser(object):
             return True, value
 
     @staticmethod
-    def _resolve_substitutions(config):
+    def resolve_substitutions(config):
         # traverse config to find all the substitutions
         def find_substitutions(item):
             """Convert HOCON input into a JSON output
