@@ -234,9 +234,13 @@ class ConfigTree(OrderedDict):
         """
         if isinstance(config, str):
             from . import ConfigFactory
-            return self._merge_config_tree(ConfigFactory.parse_file(config), self)
+            result = self._merge_config_tree(ConfigFactory.parse_file(config, resolve=False), self)
         else:
-            return self._merge_config_tree(config, self)
+            result = self._merge_config_tree(config, self)
+
+        from . import ConfigParser
+        ConfigParser.resolve_substitutions(result)
+        return result
 
 
 class ConfigList(list):

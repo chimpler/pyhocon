@@ -1076,6 +1076,25 @@ class TestConfigParser(object):
             'd': 3
         }
 
+        config4 = ConfigFactory.parse_string(
+            """
+            name: foo
+            """
+        )
+
+        config5 = ConfigFactory.parse_string(
+            """
+            longName: "long "${?name}
+            """,
+            resolve=False
+        )
+
+        config6 = config4.with_fallback(config5)
+        assert config6 == {
+            'longName': 'long foo',
+            'name': 'foo'
+        }
+
     def test_substitutions_overwrite_file(self):
         config1 = ConfigFactory.parse_string(
             """
@@ -1089,7 +1108,7 @@ class TestConfigParser(object):
         config2 = config1.with_fallback('samples/aws.conf')
         assert config2 == {
             'data-center-generic': {'cluster-size': 8},
-            'data-center-east': {'cluster-size': 6, 'name': 'east'},
+            'data-center-east': {'cluster-size': 8, 'name': 'east'},
             'misc': 'mist',
             'default-jvm-opts': ['-XX:+UseParNewGC'],
             'large-jvm-opts': ['-XX:+UseParNewGC', '-Xm16g']
