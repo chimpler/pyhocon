@@ -195,14 +195,15 @@ class HOCONConverter(object):
         if format in converters:
             return converters[format](config, indent)
         else:
-            raise Exception("Format must be 'json', 'properties', 'yaml' or 'hocon'")
+            raise Exception("Invalid format '{format}'. Format must be 'json', 'properties', 'yaml' or 'hocon'".format(format=format))
 
     @staticmethod
-    def convert_from_file(input_file=None, format='json', indent=2):
+    def convert_from_file(input_file=None, output_file=None, format='json', indent=2):
         """Convert to json, properties or yaml
 
+        :param input_file: input file, if not specified stdin
+        :param output_file: output file, if not specified stdout
         :param format: json, properties or yaml
-        :type format: basestring
         :return: json, properties or yaml string representation
         """
 
@@ -212,7 +213,12 @@ class HOCONConverter(object):
         else:
             config = ConfigFactory.parse_file(input_file)
 
-        return HOCONConverter.convert(config, format, indent)
+        res = HOCONConverter.convert(config, format, indent)
+        if output_file is None:
+            print(res)
+        else:
+            with open(output_file, "w") as fd:
+                fd.write(res)
 
 
 def main():  # pragma: no cover
@@ -238,12 +244,7 @@ def main():  # pragma: no cover
     elif args.verbosity >= 3:
         logger.setLevel(logging.DEBUG)
 
-    res = HOCONConverter.convert_from_file(args.input, args.format.lower(), args.indent)
-    if args.output is None:
-        print(res)
-    else:
-        with open(args.output, "w") as fd:
-            fd.write(res)
+    HOCONConverter.convert_from_file(args.input, args.format.lower(), args.indent)
 
 
 if __name__ == '__main__':  # pragma: no cover
