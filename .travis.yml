@@ -9,3 +9,4 @@ install: pip install tox coveralls
 before_script: tox -e flake8
 script: tox -e ${TOX_ENV}
 after_success: coveralls
+sudo: false
