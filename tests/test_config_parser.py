@@ -1113,3 +1113,33 @@ class TestConfigParser(object):
             'default-jvm-opts': ['-XX:+UseParNewGC'],
             'large-jvm-opts': ['-XX:+UseParNewGC', '-Xm16g']
         }
+
+    def test_one_line_quote_escape(self):
+        config = ConfigFactory.parse_string(
+            """
+            test: "abc\n\n"
+            """
+        )
+
+        assert config['test'] == 'abc\n\n'
+
+    def test_multi_line_escape(self):
+        config = ConfigFactory.parse_string(
+            """
+with-escaped-backslash: \"\"\"
+\\\\
+\"\"\"
+
+with-newline-escape-sequence: \"\"\"
+\\n
+\"\"\"
+
+with-escaped-newline-escape-sequence: \"\"\"
+\\\\n
+\"\"\"
+            """
+        )
+
+        assert config['with-escaped-backslash'] == '\n\\\\\n'
+        assert config['with-newline-escape-sequence'] == '\n\\n\n'
+        assert config['with-escaped-newline-escape-sequence'] == '\n\\\\n\n'

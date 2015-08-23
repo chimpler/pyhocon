@@ -119,9 +119,9 @@ class ConfigParser(object):
         def unescape_string(tokens):
             return ConfigUnquotedString(norm_string(tokens[0]))
 
-        def unescape_multi_string(tokens):
+        def parse_multi_string(tokens):
             # remove the first and last 3 "
-            return norm_string(tokens[0][3: -3])
+            return tokens[0][3: -3]
 
         def convert_number(tokens):
             n = tokens[0]
@@ -185,7 +185,7 @@ class ConfigParser(object):
 
         # multi line string using """
         # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
-        multiline_string = Regex('""".*?"""', re.DOTALL | re.UNICODE).setParseAction(unescape_multi_string)
+        multiline_string = Regex('""".*?"""', re.DOTALL | re.UNICODE).setParseAction(parse_multi_string)
         # single quoted line string
         quoted_string = QuotedString(quoteChar='"', escChar='\\', multiline=True)
         # unquoted string that takes the rest of the line until an optional comment

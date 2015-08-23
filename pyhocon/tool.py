@@ -184,7 +184,7 @@ class HOCONConverter(object):
         return '\n'.join([line for line in lines if len(line) > 0])
 
     @staticmethod
-    def convert(config, format='json', indent=2):
+    def convert(config, output_format='json', indent=2):
         converters = {
             'json': HOCONConverter.to_json,
             'properties': HOCONConverter.to_properties,
@@ -192,18 +192,18 @@ class HOCONConverter(object):
             'hocon': HOCONConverter.to_hocon,
         }
 
-        if format in converters:
-            return converters[format](config, indent)
+        if output_format in converters:
+            return converters[output_format](config, indent)
         else:
-            raise Exception("Invalid format '{format}'. Format must be 'json', 'properties', 'yaml' or 'hocon'".format(format=format))
+            raise Exception("Invalid format '{format}'. Format must be 'json', 'properties', 'yaml' or 'hocon'".format(format=output_format))
 
     @staticmethod
-    def convert_from_file(input_file=None, output_file=None, format='json', indent=2):
+    def convert_from_file(input_file=None, output_file=None, output_format='json', indent=2):
         """Convert to json, properties or yaml
 
         :param input_file: input file, if not specified stdin
         :param output_file: output file, if not specified stdout
-        :param format: json, properties or yaml
+        :param output_format: json, properties or yaml
         :return: json, properties or yaml string representation
         """
 
@@ -213,7 +213,7 @@ class HOCONConverter(object):
         else:
             config = ConfigFactory.parse_file(input_file)
 
-        res = HOCONConverter.convert(config, format, indent)
+        res = HOCONConverter.convert(config, output_format, indent)
         if output_file is None:
             print(res)
         else:
@@ -244,7 +244,7 @@ def main():  # pragma: no cover
     elif args.verbosity >= 3:
         logger.setLevel(logging.DEBUG)
 
-    HOCONConverter.convert_from_file(args.input, args.format.lower(), args.indent)
+    HOCONConverter.convert_from_file(args.input, args.output, args.format.lower(), args.indent)
 
 
 if __name__ == '__main__':  # pragma: no cover
