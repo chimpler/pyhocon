@@ -43,6 +43,25 @@ class TestHOCONConverter(object):
             }
         """
 
+    EXPECTED_HOCON = \
+        """
+              a {
+                b = 1
+              }
+              b = [
+                1
+                2
+              ]
+              c = 1
+              d = "a"
+              e = \"\"\"1\n                2\n                3\"\"\"
+              f1 = true
+              f2 = false
+              g = []
+              h = null
+              i {}
+        """
+
     EXPECTED_YAML = \
         """
             a:
@@ -90,6 +109,11 @@ class TestHOCONConverter(object):
     def test_to_properties(self):
         converted = HOCONConverter.to_properties(TestHOCONConverter.CONFIG)
         assert [line.strip() for line in TestHOCONConverter.EXPECTED_PROPERTIES.split('\n') if line.strip()]\
+            == [line.strip() for line in converted.split('\n') if line.strip()]
+
+    def test_to_hocon(self):
+        converted = HOCONConverter.to_hocon(TestHOCONConverter.CONFIG)
+        assert [line.strip() for line in TestHOCONConverter.EXPECTED_HOCON.split('\n') if line.strip()]\
             == [line.strip() for line in converted.split('\n') if line.strip()]
 
     def _test_convert(self, input, expected_output, format):
