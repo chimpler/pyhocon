@@ -43,6 +43,25 @@ class TestHOCONConverter(object):
             }
         """
 
+    EXPECTED_HOCON = \
+        """
+              a {
+                b = 1
+              }
+              b = [
+                1
+                2
+              ]
+              c = 1
+              d = "a"
+              e = \"\"\"1\n                2\n                3\"\"\"
+              f1 = true
+              f2 = false
+              g = []
+              h = null
+              i {}
+        """
+
     EXPECTED_YAML = \
         """
             a:
@@ -92,22 +111,28 @@ class TestHOCONConverter(object):
         assert [line.strip() for line in TestHOCONConverter.EXPECTED_PROPERTIES.split('\n') if line.strip()]\
             == [line.strip() for line in converted.split('\n') if line.strip()]
 
-    def _test_convert(self, input, expected_output, format):
+    def test_to_hocon(self):
+        converted = HOCONConverter.to_hocon(TestHOCONConverter.CONFIG)
+        assert [line.strip() for line in TestHOCONConverter.EXPECTED_HOCON.split('\n') if line.strip()]\
+            == [line.strip() for line in converted.split('\n') if line.strip()]
+
+    def _test_convert_from_file(self, input, expected_output, format):
         with tempfile.NamedTemporaryFile('w') as fdin:
             fdin.write(input)
             fdin.flush()
             with tempfile.NamedTemporaryFile('r') as fdout:
-                HOCONConverter.convert(fdin.name, fdout.name, format)
+                HOCONConverter.convert_from_file(fdin.name, fdout.name, format)
                 with open(fdout.name) as fdi:
                     converted = fdi.read()
                     assert [line.strip() for line in expected_output.split('\n') if line.strip()]\
                         == [line.strip() for line in converted.split('\n') if line.strip()]
 
-    def test_convert(self):
-        self._test_convert(TestHOCONConverter.CONFIG_STRING, TestHOCONConverter.EXPECTED_JSON, 'json')
-        self._test_convert(TestHOCONConverter.CONFIG_STRING, TestHOCONConverter.EXPECTED_YAML, 'yaml')
-        self._test_convert(TestHOCONConverter.CONFIG_STRING, TestHOCONConverter.EXPECTED_PROPERTIES, 'properties')
+    def test_convert_from_file(self):
+        self._test_convert_from_file(TestHOCONConverter.CONFIG_STRING, TestHOCONConverter.EXPECTED_JSON, 'json')
+        self._test_convert_from_file(TestHOCONConverter.CONFIG_STRING, TestHOCONConverter.EXPECTED_YAML, 'yaml')
+        self._test_convert_from_file(TestHOCONConverter.CONFIG_STRING, TestHOCONConverter.EXPECTED_PROPERTIES, 'properties')
+        self._test_convert_from_file(TestHOCONConverter.CONFIG_STRING, TestHOCONConverter.EXPECTED_HOCON, 'hocon')
 
     def test_invalid_format(self):
         with pytest.raises(Exception):
-            self._test_convert(TestHOCONConverter.CONFIG_STRING, TestHOCONConverter.EXPECTED_PROPERTIES, 'invalid')
+            self._test_convert_from_file(TestHOCONConverter.CONFIG_STRING, TestHOCONConverter.EXPECTED_PROPERTIES, 'invalid')

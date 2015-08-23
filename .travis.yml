@@ -1,12 +1,12 @@
 language: python
 python: 2.7
 env:
-  - TOX_ENV=pep8
   - TOX_ENV=py26
   - TOX_ENV=py27
   - TOX_ENV=py33
   - TOX_ENV=py34
-install:
-  - pip install tox
-script:
-  - tox -e ${TOX_ENV}
+install: pip install tox coveralls
+before_script: tox -e flake8
+script: tox -e ${TOX_ENV}
+after_success: coveralls
+sudo: false

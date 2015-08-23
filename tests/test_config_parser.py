@@ -1051,7 +1051,7 @@ class TestConfigParser(object):
         assert config2['database']['port'] == 433
         assert config2['database']['url'] == 'other.host.net:433'
 
-    def test_substitutions_overwrite(self):
+    def test_fallback_substitutions_overwrite(self):
         config1 = ConfigFactory.parse_string(
             """
             a = {
@@ -1095,7 +1095,7 @@ class TestConfigParser(object):
             'name': 'foo'
         }
 
-    def test_substitutions_overwrite_file(self):
+    def test_fallback_substitutions_overwrite_file(self):
         config1 = ConfigFactory.parse_string(
             """
             {
