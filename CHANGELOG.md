@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.9
+
+* Added from_dict to convert a dict or ordered dict into a config tree. PR[#42]
+
 # Version 0.3.8
 
 * Fix multi line string (don't escape). PR[#41]
