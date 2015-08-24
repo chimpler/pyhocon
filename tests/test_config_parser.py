@@ -1,9 +1,12 @@
-from collections import OrderedDict
 import tempfile
 from pyparsing import ParseSyntaxException, ParseException
 import pytest
 from pyhocon import ConfigFactory, ConfigSubstitutionException
 from pyhocon.exceptions import ConfigMissingException, ConfigWrongTypeException
+try:  # pragma: no cover
+    from collections import OrderedDict
+except ImportError:  # pragma: no cover
+    from ordereddict import OrderedDict
 
 
 class TestConfigParser(object):
