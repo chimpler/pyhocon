@@ -1,6 +1,15 @@
 # Changelog
 
-# Version 0.3.5
+# Version 0.3.8
+
+* Fix multi line string (don't escape). PR[#41]
+* Added HOCON export. PR[#40]
+
+# Version 0.3.7
+
+* Added with_fallback method. PR[#38]
+
+# Version 0.3.6
 
 * Added with_fallback method. PR[#37]
 
