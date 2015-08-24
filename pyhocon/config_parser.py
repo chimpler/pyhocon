@@ -83,6 +83,16 @@ class ConfigFactory(object):
         """
         return ConfigParser().parse(content, basedir, resolve)
 
+    @staticmethod
+    def from_dict(dictionary):
+        """Convert dictionary (and ordered dictionary) into a ConfigTree
+        :param dictionary: dictionary to convert
+        :type dictionary: dict
+        :return: Config object
+        :type return: Config
+        """
+        return ConfigTree(dictionary)
+
 
 class ConfigParser(object):
     """

@@ -9,6 +9,7 @@ LOG_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 
 
 class HOCONConverter(object):
+
     @staticmethod
     def to_json(config, indent=2, level=0):
         """Convert HOCON input into a JSON output

@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import tempfile
 from pyparsing import ParseSyntaxException, ParseException
 import pytest
@@ -1143,3 +1144,22 @@ with-escaped-newline-escape-sequence: \"\"\"
         assert config['with-escaped-backslash'] == '\n\\\\\n'
         assert config['with-newline-escape-sequence'] == '\n\\n\n'
         assert config['with-escaped-newline-escape-sequence'] == '\n\\\\n\n'
+
+    def test_from_dict_with_dict(self):
+        d = {
+            'banana': 3,
+            'apple': 4,
+            'pear': 1,
+            'orange': 2,
+        }
+        config = ConfigFactory.from_dict(d)
+        assert config == d
+
+    def test_from_dict_with_ordered_dict(self):
+        d = OrderedDict()
+        d['banana'] = 3
+        d['apple'] = 4
+        d['pear'] = 1
+        d['orange'] = 2
+        config = ConfigFactory.from_dict(d)
+        assert config == d

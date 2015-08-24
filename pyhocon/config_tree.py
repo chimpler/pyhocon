@@ -18,6 +18,7 @@ class ConfigTree(OrderedDict):
 
     def __init__(self, *args, **kwds):
         super(ConfigTree, self).__init__(*args, **kwds)
+
         for key, value in self.items():
             if isinstance(value, ConfigValues):
                 value.parent = self
