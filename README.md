@@ -264,6 +264,18 @@ As you can see, the attributes in cat.conf were merged to the ones in dog.conf. 
 
 - `with_fallback`: Usage: `config3 = config1.with_fallback(config2)` or `config3 = config1.with_fallback('samples/aws.conf')`
 
+### from_dict
+
+```python
+d = OrderedDict()
+d['banana'] = 3
+d['apple'] = 4
+d['pear'] = 1
+d['orange'] = 2
+config = ConfigFactory.from_dict(d)
+assert config == d
+```
+
 ## TODO
 
 Items                                  | Status
