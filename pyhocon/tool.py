@@ -4,6 +4,11 @@ import sys
 from pyhocon import ConfigFactory
 from pyhocon.config_tree import ConfigTree
 
+try:
+    basestring
+except NameError:
+    basestring = str
+
 
 LOG_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 
@@ -45,7 +50,7 @@ class HOCONConverter(object):
                     )
                 lines += ',\n'.join(bet_lines)
                 lines += '\n{indent}]'.format(indent=''.rjust(level * indent, ' '))
-        elif isinstance(config, str):
+        elif isinstance(config, basestring):
             lines = '"{value}"'.format(value=config.replace('\n', '\\n').replace('"', '\\"'))
         elif config is None:
             lines = 'null'
@@ -93,7 +98,7 @@ class HOCONConverter(object):
                     bet_lines.append('{indent}{value}'.format(indent=''.rjust(level * indent, ' '), value=HOCONConverter.to_hocon(item, indent, level + 1)))
                 lines += '\n'.join(bet_lines)
                 lines += '\n{indent}]'.format(indent=''.rjust((level - 1) * indent, ' '))
-        elif isinstance(config, str):
+        elif isinstance(config, basestring):
             if '\n' in config:
                 lines = '"""{value}"""'.format(value=config)  # multilines
             else:
@@ -138,7 +143,7 @@ class HOCONConverter(object):
                 for item in config_list:
                     bet_lines.append('{indent}- {value}'.format(indent=''.rjust(level * indent, ' '), value=HOCONConverter.to_yaml(item, indent, level + 1)))
                 lines += '\n'.join(bet_lines)
-        elif isinstance(config, str):
+        elif isinstance(config, basestring):
             # if it contains a \n then it's multiline
             lines = config.split('\n')
             if len(lines) == 1:
@@ -174,7 +179,7 @@ class HOCONConverter(object):
             for index, item in enumerate(config):
                 if item is not None:
                     lines.append(HOCONConverter.to_properties(item, indent, stripped_key_stack + [str(index)]))
-        elif isinstance(config, str):
+        elif isinstance(config, basestring):
             lines.append('.'.join(stripped_key_stack) + ' = ' + escape_value(config))
         elif config is True:
             lines.append('.'.join(stripped_key_stack) + ' = true')

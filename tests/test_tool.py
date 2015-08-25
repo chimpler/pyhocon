@@ -5,7 +5,7 @@ from pyhocon.tool import HOCONConverter
 
 
 class TestHOCONConverter(object):
-    CONFIG_STRING = """
+    CONFIG_STRING = u"""
             a = {b: 1}
             b = [1, 2]
             c = 1
