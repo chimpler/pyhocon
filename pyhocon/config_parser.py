@@ -91,7 +91,30 @@ class ConfigFactory(object):
         :return: Config object
         :type return: Config
         """
-        return ConfigTree(dictionary)
+        def __dCpList__(inp):
+            for vl in inp:
+                if isinstance(vl, list):
+                    yield list(__dCpList__(vl))
+                elif isinstance(vl, dict):
+                    yield __dCpDict__(vl)
+
+        def __dCpDict__(inp):
+            outp = inp.copy()
+            for ky, vl in outp.iteritems():
+                if isinstance(vl, dict):
+                    outp[ky] = __dCpDict__(vl)      
+                elif isinstance(vl, list):
+                    outp[ky] = list(__dCpList__(vl))  
+            return ConfigTree(outp)
+
+        def __simpleDCp__(inp):
+            if isinstance(inp, dict):
+                return __dCpDict__(inp)
+            elif isinstance(inp, list):
+                return __dCpList__(inp)
+            else:
+                return inp
+        return __simpleDCp__(dictionary)
 
 
 class ConfigParser(object):
