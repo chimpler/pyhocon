@@ -1087,7 +1087,7 @@ class TestConfigParser(object):
         )
 
         config5 = ConfigFactory.parse_string(
-            """
+            u"""
             longName: "long "${?name}
             """,
             resolve=False

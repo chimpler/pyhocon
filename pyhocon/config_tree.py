@@ -5,6 +5,11 @@ try:  # pragma: no cover
     from collections import OrderedDict
 except ImportError:  # pragma: no cover
     from ordereddict import OrderedDict
+try:
+    basestring
+except NameError:
+    basestring = str
+
 import re
 from .exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
 
@@ -343,7 +348,7 @@ class ConfigValues(object):
                 return tokens[0]
             else:
                 return ''.join(
-                    token if isinstance(token, str) else format_str(token) + ' ' for token in tokens[:-1]) + format_str(tokens[-1])
+                    token if isinstance(token, basestring) else format_str(token) + ' ' for token in tokens[:-1]) + format_str(tokens[-1])
 
     def put(self, index, value):
         self.tokens[index] = value
