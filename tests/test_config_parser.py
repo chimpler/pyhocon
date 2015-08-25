@@ -314,7 +314,7 @@ class TestConfigParser(object):
         assert config2.get('f') == 'test  str      '
 
         config3 = ConfigFactory.parse_string(
-            """
+            u"""
             {
                 a: {
                     b: {
