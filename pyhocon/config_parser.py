@@ -20,6 +20,10 @@ except ImportError:
     from urllib2 import urlopen, HTTPError
 
     use_urllib2 = True
+try:
+    basestring
+except NameError:
+    basestring = str
 
 
 logger = logging.getLogger(__name__)
@@ -315,7 +319,7 @@ class ConfigParser(object):
                         # if it is a string, then add the extra ws that was present in the original string after the substitution
                         formatted_resolved_value = \
                             resolved_value + substitution.ws \
-                            if isinstance(resolved_value, str) and substitution.index < len(config_values.tokens) - 1 else resolved_value
+                            if isinstance(resolved_value, basestring) and substitution.index < len(config_values.tokens) - 1 else resolved_value
                         config_values.put(substitution.index, formatted_resolved_value)
                         transformation = config_values.transform()
                         if transformation is None and not is_optional_resolved:

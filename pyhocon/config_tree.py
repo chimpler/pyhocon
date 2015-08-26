@@ -5,6 +5,11 @@ try:  # pragma: no cover
     from collections import OrderedDict
 except ImportError:  # pragma: no cover
     from ordereddict import OrderedDict
+try:
+    basestring
+except NameError:
+    basestring = str
+
 import re
 from .exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
 
@@ -233,11 +238,11 @@ class ConfigTree(OrderedDict):
         :param config: config or filename of the config to fallback on
         :return: new config with fallback on config
         """
-        if isinstance(config, str):
+        if isinstance(config, ConfigTree):
+            result = self._merge_config_tree(config, self)
+        else:
             from . import ConfigFactory
             result = self._merge_config_tree(ConfigFactory.parse_file(config, resolve=False), self)
-        else:
-            result = self._merge_config_tree(config, self)
 
         from . import ConfigParser
         ConfigParser.resolve_substitutions(result)
@@ -343,7 +348,7 @@ class ConfigValues(object):
                 return tokens[0]
             else:
                 return ''.join(
-                    token if isinstance(token, str) else format_str(token) + ' ' for token in tokens[:-1]) + format_str(tokens[-1])
+                    token if isinstance(token, basestring) else format_str(token) + ' ' for token in tokens[:-1]) + format_str(tokens[-1])
 
     def put(self, index, value):
         self.tokens[index] = value

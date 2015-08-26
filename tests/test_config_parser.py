@@ -314,7 +314,7 @@ class TestConfigParser(object):
         assert config2.get('f') == 'test  str      '
 
         config3 = ConfigFactory.parse_string(
-            """
+            u"""
             {
                 a: {
                     b: {
@@ -1087,7 +1087,7 @@ class TestConfigParser(object):
         )
 
         config5 = ConfigFactory.parse_string(
-            """
+            u"""
             longName: "long "${?name}
             """,
             resolve=False
@@ -1109,7 +1109,8 @@ class TestConfigParser(object):
             """
         )
 
-        config2 = config1.with_fallback('samples/aws.conf')
+        # use unicode path here for regression testing https://github.com/chimpler/pyhocon/issues/44
+        config2 = config1.with_fallback(u'samples/aws.conf')
         assert config2 == {
             'data-center-generic': {'cluster-size': 8},
             'data-center-east': {'cluster-size': 8, 'name': 'east'},
