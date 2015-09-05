@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.10
+
+* Backward compatibility with imports
+
 # Version 0.3.9
 
 * Added from_dict to convert a dict or ordered dict into a config tree. PR[#42]
