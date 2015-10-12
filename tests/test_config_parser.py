@@ -76,6 +76,21 @@ class TestConfigParser(object):
         assert config['t.d.c'] == 5
         assert config['k."b.f.d"'] == 7
 
+    def test_dotted_notation_merge(self):
+        config = ConfigFactory.parse_string(
+            """
+            a {
+                b = foo
+                c = bar
+            }
+            a.c = ${a.b}" "${a.b}
+            a.d = baz
+            """
+        )
+        assert config['a.b'] == "foo"
+        assert config['a.c'] == "foo foo"
+        assert config['a.d'] == "baz"
+
     def test_comma_to_separate_expr(self):
         config = ConfigFactory.parse_string(
             """
