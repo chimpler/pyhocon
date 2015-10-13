@@ -232,7 +232,7 @@ def main():  # pragma: no cover
     parser.add_argument('-i', '--input', help='input file')
     parser.add_argument('-o', '--output', help='output file')
     parser.add_argument('-f', '--format', help='output format: json, properties, yaml or hocon', default='json')
-    parser.add_argument('-n', '--indent', help='indentation step (default is 2)', type=int)
+    parser.add_argument('-n', '--indent', help='indentation step (default is 2)', default=2, type=int)
     parser.add_argument('-v', '--verbosity', action='count', default=0, help='Increase output verbosity')
     args = parser.parse_args()
 
