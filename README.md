@@ -324,6 +324,8 @@ Java properties mapping                                    | :x:
   - Tasuku Okuda ([@okdtsk](https://github.com/okdtsk))
   - Uri Laserson ([@laserson](https://github.com/laserson))
   - Bastian Kuberek ([@bkuberek](https://github.com/bkuberek))
+  - Varun Madiath ([@vamega](https://github.com/vamega))
+  - Andrey Proskurnev ([@ariloulaleelay](https://github.com/ariloulaleelay))
 
 ### Thanks
 

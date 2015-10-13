@@ -1,5 +1,10 @@
 # Changelog
 
+# Version 0.3.11
+
+* Added default indent to 2. PR[#47]
+* Fix dotted notation merge. PR[#49]
+
 # Version 0.3.10
 
 * Backward compatibility with imports
