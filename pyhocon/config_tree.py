@@ -79,6 +79,8 @@ class ConfigTree(OrderedDict):
             else:
                 # if there was an override keep overide value
                 if isinstance(value, ConfigValues):
+                    value.parent = self
+                    value.key = key_elt
                     value.overriden_value = self.get(key_elt, None)
                 super(ConfigTree, self).__setitem__(key_elt, value)
         else:
