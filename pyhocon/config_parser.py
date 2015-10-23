@@ -241,6 +241,7 @@ class ConfigParser(object):
         config = config_expr.parseString(content, parseAll=True)[0]
         if resolve:
             ConfigParser.resolve_substitutions(config)
+
         return config
 
     @staticmethod
@@ -302,11 +303,13 @@ class ConfigParser(object):
 
         if len(substitutions) > 0:
             _substitutions = set(substitutions)
-            for i in range(len(substitutions)):
+
+            i = len(substitutions)
+            unresolved = True
+            while unresolved and i > 0:
                 unresolved = False
                 for substitution in list(_substitutions):
                     is_optional_resolved, resolved_value = ConfigParser._resolve_variable(config, substitution)
-
                     # if the substitution is optional
                     if not is_optional_resolved and substitution.optional:
                         resolved_value = None
@@ -332,10 +335,15 @@ class ConfigParser(object):
                         else:
                             result = transformation[0] if isinstance(transformation, list) else transformation
                             config_values.parent[config_values.key] = result
+                            s = find_substitutions(result)
+                            if s:
+                                _substitutions.update(s)
+                                unresolved = True
+                                i += 1
                         _substitutions.remove(substitution)
-                if not unresolved:
-                    break
-            else:
+                i -= 1
+
+            if unresolved:
                 raise ConfigSubstitutionException("Cannot resolve {variables}. Check for cycles.".format(
                     variables=', '.join('${{{variable}}}: (line: {line}, col: {col})'.format(
                         variable=substitution.variable,

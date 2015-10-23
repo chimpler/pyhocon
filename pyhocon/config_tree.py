@@ -336,12 +336,14 @@ class ConfigValues(object):
             return result
         elif first_tok_type is ConfigList:
             result = []
+            main_index = 0
             for sublist in tokens:
                 sublist_result = ConfigList()
-                for index, token in enumerate(sublist):
+                for token in sublist:
                     if isinstance(token, ConfigValues):
                         token.parent = result
-                        token.key = index
+                        token.key = main_index
+                    main_index += 1
                     sublist_result.append(token)
                 result.extend(sublist_result)
             return [result]
