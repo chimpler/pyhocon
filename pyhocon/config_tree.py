@@ -64,7 +64,14 @@ class ConfigTree(OrderedDict):
                 # If we have t=1
                 # and we try to put t.a=5 then t is replaced by {a: 5}
                 l = self.get(key_elt, None)
-                if isinstance(l, list):
+                if isinstance(l, ConfigValues):
+                    l.tokens.append(value)
+                    l.recompute()
+                elif isinstance(l, ConfigTree) and isinstance(value, ConfigValues):
+                    value.tokens.append(l)
+                    value.recompute()
+                    self[key_elt] = value
+                elif isinstance(l, list):
                     l += value
                 elif l is None:
                     self[key_elt] = value
@@ -274,7 +281,9 @@ class ConfigValues(object):
         self._instring = instring
         self._loc = loc
         self.overriden_value = None
+        self.recompute()
 
+    def recompute(self):
         for index, token in enumerate(self.tokens):
             if isinstance(token, ConfigSubstitution):
                 token.parent = self
@@ -336,12 +345,14 @@ class ConfigValues(object):
             return result
         elif first_tok_type is ConfigList:
             result = []
+            main_index = 0
             for sublist in tokens:
                 sublist_result = ConfigList()
-                for index, token in enumerate(sublist):
+                for token in sublist:
                     if isinstance(token, ConfigValues):
                         token.parent = result
-                        token.key = index
+                        token.key = main_index
+                    main_index += 1
                     sublist_result.append(token)
                 result.extend(sublist_result)
             return [result]

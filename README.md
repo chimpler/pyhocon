@@ -331,3 +331,4 @@ Java properties mapping                                    | :x:
 
   - Agnibha ([@agnibha](https://github.com/agnibha))
   - Ernest Mishkin ([@eric239](https://github.com/eric239))
+  - Alexey Terentiev ([@alexey-terentiev](https://github.com/alexey-terentiev))

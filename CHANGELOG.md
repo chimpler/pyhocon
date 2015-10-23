@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.12
+
+* Fixed list merge. PR[#51]
+
 # Version 0.3.11
 
 * Added default indent to 2. PR[#47]

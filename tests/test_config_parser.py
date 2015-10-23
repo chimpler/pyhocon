@@ -459,6 +459,31 @@ class TestConfigParser(object):
         assert config4.get('data-center-east-prod.cluster-size') == 6
         assert config4.get('data-center-east-prod.tmpDir') == '/tmp'
 
+        config5 = ConfigFactory.parse_string(
+            """
+                data-center-generic = { cluster-size = 6 }
+                data-center-east = ${data-center-generic}
+                data-center-east = { name = "east" }
+            """
+        )
+
+        assert config5['data-center-east'] == {
+            'name': 'east',
+            'cluster-size': 6
+        }
+
+        config6 = ConfigFactory.parse_string(
+            """
+                data-center-generic = { cluster-size = 6 }
+                data-center-east = { name = "east" }
+                data-center-east = ${data-center-generic}
+            """
+        )
+        assert config6['data-center-east'] == {
+            'name': 'east',
+            'cluster-size': 6
+        }
+
     def test_list_substitutions(self):
         config = ConfigFactory.parse_string(
             """
@@ -499,6 +524,57 @@ class TestConfigParser(object):
         assert config4.get('common_modules') == ['php', 'python']
         assert config4.get('host_modules') == ['java', 'php', 'python', 'perl']
         assert config4.get('full_modules') == ['java', 'php', 'python', 'perl', 'c', 'go']
+
+    def test_list_element_substitution(self):
+        config = ConfigFactory.parse_string(
+            """
+                main_language = php
+                languages = [java, ${main_language}]
+            """
+        )
+
+        assert config.get('languages') == ['java', 'php']
+
+    def test_substitution_list_with_append(self):
+        config = ConfigFactory.parse_string(
+            """
+            application.foo = 128m
+            application.large-jvm-opts = [-XX:+UseParNewGC] [-Xm16g, ${application.foo}]
+            application.large-jvm-opts2 = [-Xm16g, ${application.foo}] [-XX:+UseParNewGC]
+            """)
+
+        assert config["application.large-jvm-opts"] == [
+            '-XX:+UseParNewGC',
+            '-Xm16g',
+            '128m'
+        ]
+
+        assert config["application.large-jvm-opts2"] == [
+            '-Xm16g',
+            '128m',
+            '-XX:+UseParNewGC',
+        ]
+
+    def test_substitution_list_with_append_substitution(self):
+        config = ConfigFactory.parse_string(
+            """
+            application.foo = 128m
+            application.default-jvm-opts = [-XX:+UseParNewGC]
+            application.large-jvm-opts = ${application.default-jvm-opts} [-Xm16g, ${application.foo}]
+            application.large-jvm-opts2 = [-Xm16g, ${application.foo}] ${application.default-jvm-opts}
+            """)
+
+        assert config["application.large-jvm-opts"] == [
+            '-XX:+UseParNewGC',
+            '-Xm16g',
+            '128m'
+        ]
+
+        assert config["application.large-jvm-opts2"] == [
+            '-Xm16g',
+            '128m',
+            '-XX:+UseParNewGC'
+        ]
 
     def test_non_existent_substitution(self):
         with pytest.raises(ConfigSubstitutionException):

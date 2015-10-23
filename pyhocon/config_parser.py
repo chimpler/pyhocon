@@ -302,11 +302,12 @@ class ConfigParser(object):
 
         if len(substitutions) > 0:
             _substitutions = set(substitutions)
-            for i in range(len(substitutions)):
+            i = len(substitutions)
+            unresolved = True
+            while unresolved and i > 0:
                 unresolved = False
                 for substitution in list(_substitutions):
                     is_optional_resolved, resolved_value = ConfigParser._resolve_variable(config, substitution)
-
                     # if the substitution is optional
                     if not is_optional_resolved and substitution.optional:
                         resolved_value = None
@@ -332,10 +333,16 @@ class ConfigParser(object):
                         else:
                             result = transformation[0] if isinstance(transformation, list) else transformation
                             config_values.parent[config_values.key] = result
+
+                            s = find_substitutions(result)
+                            if s:
+                                _substitutions.update(s)
+                                unresolved = True
+                                i += 1
                         _substitutions.remove(substitution)
-                if not unresolved:
-                    break
-            else:
+                i -= 1
+
+            if unresolved:
                 raise ConfigSubstitutionException("Cannot resolve {variables}. Check for cycles.".format(
                     variables=', '.join('${{{variable}}}: (line: {line}, col: {col})'.format(
                         variable=substitution.variable,
@@ -413,12 +420,18 @@ class ConfigTreeParser(TokenConverter):
                     if isinstance(value, list):
                         config_tree.put(key, value, False)
                     else:
-                        # Merge dict
-                        if isinstance(value, ConfigValues):
+                        if isinstance(value, ConfigTree):
+                            config_tree.put(key, value, True)
+                        elif isinstance(value, ConfigValues):
                             conf_value = value
                             value.parent = config_tree
                             value.key = key
+                            existing_value = config_tree.get(key, None)
+                            if isinstance(existing_value, list) or isinstance(existing_value, ConfigTree):
+                                config_tree.put(key, conf_value, True)
+                            else:
+                                config_tree.put(key, conf_value, False)
                         else:
                             conf_value = value
-                        config_tree.put(key, conf_value)
+                            config_tree.put(key, conf_value, False)
         return config_tree
