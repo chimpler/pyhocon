@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.13
+
+* Fixed dictionary substititution merge. PR[#52]
+
 # Version 0.3.12
 
 * Fixed list merge. PR[#51]
