@@ -241,7 +241,6 @@ class ConfigParser(object):
         config = config_expr.parseString(content, parseAll=True)[0]
         if resolve:
             ConfigParser.resolve_substitutions(config)
-
         return config
 
     @staticmethod
@@ -421,12 +420,18 @@ class ConfigTreeParser(TokenConverter):
                     if isinstance(value, list):
                         config_tree.put(key, value, False)
                     else:
-                        # Merge dict
-                        if isinstance(value, ConfigValues):
+                        if isinstance(value, ConfigTree):
+                            config_tree.put(key, value, True)
+                        elif isinstance(value, ConfigValues):
                             conf_value = value
                             value.parent = config_tree
                             value.key = key
+                            existing_value = config_tree.get(key, None)
+                            if isinstance(existing_value, list) or isinstance(existing_value, ConfigTree):
+                                config_tree.put(key, conf_value, True)
+                            else:
+                                config_tree.put(key, conf_value, False)
                         else:
                             conf_value = value
-                        config_tree.put(key, conf_value)
+                            config_tree.put(key, conf_value, False)
         return config_tree

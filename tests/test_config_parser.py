@@ -459,6 +459,31 @@ class TestConfigParser(object):
         assert config4.get('data-center-east-prod.cluster-size') == 6
         assert config4.get('data-center-east-prod.tmpDir') == '/tmp'
 
+        config5 = ConfigFactory.parse_string(
+            """
+                data-center-generic = { cluster-size = 6 }
+                data-center-east = ${data-center-generic}
+                data-center-east = { name = "east" }
+            """
+        )
+
+        assert config5['data-center-east'] == {
+            'name': 'east',
+            'cluster-size': 6
+        }
+
+        config6 = ConfigFactory.parse_string(
+            """
+                data-center-generic = { cluster-size = 6 }
+                data-center-east = { name = "east" }
+                data-center-east = ${data-center-generic}
+            """
+        )
+        assert config6['data-center-east'] == {
+            'name': 'east',
+            'cluster-size': 6
+        }
+
     def test_list_substitutions(self):
         config = ConfigFactory.parse_string(
             """
