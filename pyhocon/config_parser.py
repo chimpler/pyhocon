@@ -302,6 +302,7 @@ class ConfigParser(object):
 
         if len(substitutions) > 0:
             _substitutions = set(substitutions)
+
             i = len(substitutions)
             unresolved = True
             while unresolved and i > 0:
@@ -333,7 +334,6 @@ class ConfigParser(object):
                         else:
                             result = transformation[0] if isinstance(transformation, list) else transformation
                             config_values.parent[config_values.key] = result
-
                             s = find_substitutions(result)
                             if s:
                                 _substitutions.update(s)
