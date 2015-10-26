@@ -6,6 +6,7 @@ from setuptools.command.test import test as TestCommand
 
 required_packages = ['pyparsing==2.0.3']
 if sys.version_info[:2] == (2, 6):
+    required_packages.append('argparse')
     required_packages.append('ordereddict')
 
 
