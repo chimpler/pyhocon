@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.14
+
+* Added argparse as a dependency if being installed on Python 2.6. PR[#54]
+
 # Version 0.3.13
 
 * Fixed dictionary substititution merge. PR[#52]
