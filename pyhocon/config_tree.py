@@ -361,7 +361,7 @@ class ConfigValues(object):
                 return tokens[0]
             else:
                 return ''.join(
-                    token if isinstance(token, basestring) else format_str(token) + ' ' for token in tokens[:-1]) + format_str(tokens[-1])
+                    format_str(token) for token in tokens[:-1]) + format_str(tokens[-1])
 
     def put(self, index, value):
         self.tokens[index] = value
