@@ -29,8 +29,8 @@ class ConfigTree(OrderedDict):
                 value.parent = self
                 value.index = key
 
-    @classmethod
-    def _merge_config_tree(cls, a, b):
+    @staticmethod
+    def merge_configs(a, b):
         """Merge config b into a
 
         :param a: target config
@@ -42,7 +42,7 @@ class ConfigTree(OrderedDict):
         for key, value in b.items():
             # if key is in both a and b and both values are dictionary then merge it otherwise override it
             if key in a and isinstance(a[key], ConfigTree) and isinstance(a[key], ConfigTree):
-                cls._merge_config_tree(a[key], b[key])
+                ConfigTree.merge_configs(a[key], b[key])
             else:
                 if isinstance(value, ConfigValues):
                     value.parent = a
@@ -59,7 +59,7 @@ class ConfigTree(OrderedDict):
             # if they are both configs then merge
             # if not then override
             if key_elt in self and isinstance(self[key_elt], ConfigTree) and isinstance(value, ConfigTree):
-                ConfigTree._merge_config_tree(self[key_elt], value)
+                ConfigTree.merge_configs(self[key_elt], value)
             elif append:
                 # If we have t=1
                 # and we try to put t.a=5 then t is replaced by {a: 5}
@@ -248,10 +248,10 @@ class ConfigTree(OrderedDict):
         :return: new config with fallback on config
         """
         if isinstance(config, ConfigTree):
-            result = self._merge_config_tree(config, self)
+            result = ConfigTree.merge_configs(config, self)
         else:
             from . import ConfigFactory
-            result = self._merge_config_tree(ConfigFactory.parse_file(config, resolve=False), self)
+            result = ConfigTree.merge_configs(ConfigFactory.parse_file(config, resolve=False), self)
 
         from . import ConfigParser
         ConfigParser.resolve_substitutions(result)
