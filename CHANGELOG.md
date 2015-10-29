@@ -1,5 +1,10 @@
 # Changelog
 
+# Version 0.3.15
+
+* Added ConfigTree.merge_configs(). PR[#57]
+* Fixed substitution with spaces PR[#59]
+
 # Version 0.3.14
 
 * Added argparse as a dependency if being installed on Python 2.6. PR[#54]
