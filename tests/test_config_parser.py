@@ -347,6 +347,22 @@ class TestConfigParser(object):
         assert config3.get('d') == 'test  str  me'
         assert config3.get('f') == 'test  str        me'
 
+    def test_string_substitutions_with_no_space(self):
+        config = ConfigFactory.parse_string(
+            """
+                app.heap_size = 128
+                app.java_opts = [
+                    -Xms${app.heap_size}m
+                    -Xmx${app.heap_size}m
+                ]
+            """
+        )
+
+        assert config.get('app.java_opts') == [
+            '-Xms128m',
+            '-Xmx128m'
+        ]
+
     def test_int_substitutions(self):
         config1 = ConfigFactory.parse_string(
             """
@@ -413,6 +429,21 @@ class TestConfigParser(object):
 
         assert config.get('a.b.c') == 7
         assert config.get('d') == 'test 7 me'
+
+    def test_multiple_substitutions(self):
+        config = ConfigFactory.parse_string(
+            """
+                a = 5
+                b=${a}${a}
+                c=${a} ${a}
+            """
+        )
+
+        assert config == {
+            'a': 5,
+            'b': '55',
+            'c': '5 5'
+        }
 
     def test_dict_substitutions(self):
         config = ConfigFactory.parse_string(

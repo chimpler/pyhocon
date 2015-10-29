@@ -209,7 +209,7 @@ class ConfigParser(object):
         # so a backslash precedes the \n
         unquoted_string = Regex(r'(\\[ \t]*[\r\n]|[^\[\{\n\]\}#,=\$])+?(?=(\$|[ \t]*(//|[\}\],#\n\r])))',
                                 re.DOTALL).setParseAction(unescape_string)
-        substitution_expr = Regex('\$\{[^\}]+\}[ \t]*').setParseAction(create_substitution)
+        substitution_expr = Regex('[ \t]*\$\{[^\}]+\}[ \t]*').setParseAction(create_substitution)
         string_expr = multiline_string | quoted_string | unquoted_string
 
         value_expr = number_expr | true_expr | false_expr | null_expr | string_expr
@@ -319,9 +319,11 @@ class ConfigParser(object):
                         # replace token by substitution
                         config_values = substitution.parent
                         # if it is a string, then add the extra ws that was present in the original string after the substitution
-                        formatted_resolved_value = \
-                            resolved_value + substitution.ws \
-                            if isinstance(resolved_value, basestring) and substitution.index < len(config_values.tokens) - 1 else resolved_value
+                        formatted_resolved_value = resolved_value \
+                            if resolved_value is None \
+                            or isinstance(resolved_value, (dict, list)) \
+                            or substitution.index == len(config_values.tokens) - 1 \
+                            else (str(resolved_value) + substitution.ws)
                         config_values.put(substitution.index, formatted_resolved_value)
                         transformation = config_values.transform()
                         if transformation is None and not is_optional_resolved:
