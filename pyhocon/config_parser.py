@@ -320,7 +320,10 @@ class ConfigParser(object):
                         config_values = substitution.parent
                         # if it is a string, then add the extra ws that was present in the original string after the substitution
                         formatted_resolved_value = resolved_value \
-                            if resolved_value is None or isinstance(resolved_value, (dict, list)) or substitution.index == len(config_values.tokens) - 1 else (str(resolved_value) + substitution.ws)
+                            if resolved_value is None \
+                               or isinstance(resolved_value, (dict, list)) \
+                               or substitution.index == len(config_values.tokens) - 1 \
+                            else (str(resolved_value) + substitution.ws)
                         config_values.put(substitution.index, formatted_resolved_value)
                         transformation = config_values.transform()
                         if transformation is None and not is_optional_resolved:
