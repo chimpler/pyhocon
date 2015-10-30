@@ -515,6 +515,20 @@ class TestConfigParser(object):
             'cluster-size': 6
         }
 
+    def test_dos_chars(self):
+        config = ConfigFactory.parse_string(
+            """
+            app.heap_size = 128\r
+            app.java_opts = [\r
+                -Xms${app.heap_size}m\r
+                -Xmx${app.heap_size}m\r
+            ]\r
+            foo = bar\r
+            """
+        )
+
+        assert config['foo'] == 'bar'
+
     def test_list_substitutions(self):
         config = ConfigFactory.parse_string(
             """
