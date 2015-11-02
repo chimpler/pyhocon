@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.16
+
+* Support \r and no eol on last line. PR[#61]
+
 # Version 0.3.15
 
 * Added ConfigTree.merge_configs(). PR[#57]
