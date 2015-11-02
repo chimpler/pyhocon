@@ -515,6 +515,26 @@ class TestConfigParser(object):
             'cluster-size': 6
         }
 
+    def test_dos_chars_with_unquoted_string_noeol(self):
+        config = ConfigFactory.parse_string("foo = bar")
+        assert config['foo'] == 'bar'
+
+    def test_dos_chars_with_quoted_string_noeol(self):
+        config = ConfigFactory.parse_string('foo = "5"')
+        assert config['foo'] == '5'
+
+    def test_dos_chars_with_triple_quoted_string_noeol(self):
+        config = ConfigFactory.parse_string('foo = """5"""')
+        assert config['foo'] == '5'
+
+    def test_dos_chars_with_int_noeol(self):
+        config = ConfigFactory.parse_string("foo = 5")
+        assert config['foo'] == 5
+
+    def test_dos_chars_with_float_noeol(self):
+        config = ConfigFactory.parse_string("foo = 5.0")
+        assert config['foo'] == 5.0
+
     def test_list_substitutions(self):
         config = ConfigFactory.parse_string(
             """

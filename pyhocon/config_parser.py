@@ -194,7 +194,7 @@ class ConfigParser(object):
         comment = (Literal('#') | Literal('//')) - SkipTo(eol)
         comment_eol = Suppress(Optional(eol_comma) + comment)
         comment_no_comma_eol = (comment | eol).suppress()
-        number_expr = Regex('[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE]\d+)?(?=[ \t]*([\$\}\],#\n\r]|//))',
+        number_expr = Regex('[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE]\d+)?(?=$|[ \t]*([\$\}\],#\n\r]|//))',
                             re.DOTALL).setParseAction(convert_number)
 
         # multi line string using """
@@ -207,7 +207,7 @@ class ConfigParser(object):
         # line1  \
         # line2 \
         # so a backslash precedes the \n
-        unquoted_string = Regex(r'(\\[ \t]*[\r\n]|[^\[\{\n\]\}#,=\$])+?(?=(\$|[ \t]*(//|[\}\],#\n\r])))',
+        unquoted_string = Regex(r'(\\[ \t]*[\r\n]|[^\[\{\n\r\]\}#,=\$])+?(?=($|\$|[ \t]*(//|[\}\],#\n\r])))',
                                 re.DOTALL).setParseAction(unescape_string)
         substitution_expr = Regex('[ \t]*\$\{[^\}]+\}[ \t]*').setParseAction(create_substitution)
         string_expr = multiline_string | quoted_string | unquoted_string
