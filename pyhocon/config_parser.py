@@ -298,23 +298,38 @@ class ConfigParser(object):
 
             return substitutions
 
+        def final_fixup(item):
+            if isinstance(item, ConfigValues):
+                return item.transform()
+            elif isinstance(item, list):
+                return list([final_fixup(child) for child in item])
+            elif isinstance(item, ConfigTree):
+                items = list(item.items())
+                for key, child in items:
+                    item[key] = final_fixup(child)
+
+            return item
+
         substitutions = find_substitutions(config)
 
         if len(substitutions) > 0:
-            _substitutions = set(substitutions)
-
-            i = len(substitutions)
             unresolved = True
-            while unresolved and i > 0:
+            _substitutions = []
+            while unresolved and len(substitutions) > 0 and set(substitutions) != set(_substitutions):
                 unresolved = False
-                for substitution in list(_substitutions):
+                _substitutions = substitutions[:]
+
+                for substitution in _substitutions:
                     is_optional_resolved, resolved_value = ConfigParser._resolve_variable(config, substitution)
+
                     # if the substitution is optional
                     if not is_optional_resolved and substitution.optional:
                         resolved_value = None
 
                     if isinstance(resolved_value, ConfigValues):
-                        unresolved = True
+                            resolved_value = resolved_value.transform()
+                    if isinstance(resolved_value, ConfigValues):
+                            unresolved = True
                     else:
                         # replace token by substitution
                         config_values = substitution.parent
@@ -330,7 +345,8 @@ class ConfigParser(object):
                             # if it does not override anything remove the key
                             # otherwise put back old value that it was overriding
                             if config_values.overriden_value is None:
-                                del config_values.parent[config_values.key]
+                                if config_values.key in config_values.parent:
+                                    del config_values.parent[config_values.key]
                             else:
                                 config_values.parent[config_values.key] = config_values.overriden_value
                         else:
@@ -338,18 +354,17 @@ class ConfigParser(object):
                             config_values.parent[config_values.key] = result
                             s = find_substitutions(result)
                             if s:
-                                _substitutions.update(s)
+                                substitutions.extend(s)
                                 unresolved = True
-                                i += 1
-                        _substitutions.remove(substitution)
-                i -= 1
+                        substitutions.remove(substitution)
 
+            final_fixup(config)
             if unresolved:
                 raise ConfigSubstitutionException("Cannot resolve {variables}. Check for cycles.".format(
                     variables=', '.join('${{{variable}}}: (line: {line}, col: {col})'.format(
                         variable=substitution.variable,
                         line=lineno(substitution.loc, substitution.instring),
-                        col=col(substitution.loc, substitution.instring)) for substitution in _substitutions)))
+                        col=col(substitution.loc, substitution.instring)) for substitution in substitutions)))
 
         return config
 

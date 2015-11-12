@@ -41,7 +41,7 @@ class ConfigTree(OrderedDict):
         """
         for key, value in b.items():
             # if key is in both a and b and both values are dictionary then merge it otherwise override it
-            if key in a and isinstance(a[key], ConfigTree) and isinstance(a[key], ConfigTree):
+            if key in a and isinstance(a[key], ConfigTree) and isinstance(b[key], ConfigTree):
                 ConfigTree.merge_configs(a[key], b[key])
             else:
                 if isinstance(value, ConfigValues):
@@ -75,6 +75,7 @@ class ConfigTree(OrderedDict):
                     l += value
                 elif l is None:
                     self[key_elt] = value
+
                 else:
                     raise ConfigWrongTypeException(
                         "Cannot concatenate the list {key}: {value} to {prev_value} of {type}".format(
