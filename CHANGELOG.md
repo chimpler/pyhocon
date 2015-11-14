@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.17
+
+* Bugfix for nested substitution failure. PR[#64]
+
 # Version 0.3.16
 
 * Support \r and no eol on last line. PR[#61]

@@ -327,6 +327,7 @@ Java properties mapping                                    | :x:
   - Varun Madiath ([@vamega](https://github.com/vamega))
   - Andrey Proskurnev ([@ariloulaleelay](https://github.com/ariloulaleelay))
   - Michael Overmeyer ([@movermeyer](https://github.com/movermeyer))
+  - Virgil Palanciuc ([@virgil-palanciuc](https://github.com/virgil-palanciuc))
 
 ### Thanks
 
