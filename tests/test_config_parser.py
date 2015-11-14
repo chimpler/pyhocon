@@ -1261,6 +1261,26 @@ class TestConfigParser(object):
             'large-jvm-opts': ['-XX:+UseParNewGC', '-Xm16g']
         }
 
+    def test_object_field_substitution(self):
+        config = ConfigFactory.parse_string(
+            """
+            A = ${Test}
+
+            Test {
+                field1 = 1
+                field2 = ${Test.field1}"2"
+                field3 = ${Test.field2}"3"
+            }
+            """
+        )
+
+        assert config.get_string("A.field1") == "1"
+        assert config.get_string("A.field2") == "12"
+        assert config.get_string("A.field3") == "123"
+        assert config.get_string("Test.field1") == "1"
+        assert config.get_string("Test.field2") == "12"
+        assert config.get_string("Test.field3") == "123"
+
     def test_one_line_quote_escape(self):
         config = ConfigFactory.parse_string(
             """
