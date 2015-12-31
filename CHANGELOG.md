@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.18
+
+* Bumped pyparsing from 2.0.3 to 2.0.6. PR[#68]
+
 # Version 0.3.17
 
 * Bugfix for nested substitution failure. PR[#64]
