@@ -349,6 +349,10 @@ class ConfigParser(object):
                                     del config_values.parent[config_values.key]
                             else:
                                 config_values.parent[config_values.key] = config_values.overriden_value
+                                s = find_substitutions(config_values.overriden_value)
+                                if s:
+                                    substitutions.extend(s)
+                                    unresolved = True
                         else:
                             result = transformation[0] if isinstance(transformation, list) else transformation
                             config_values.parent[config_values.key] = result

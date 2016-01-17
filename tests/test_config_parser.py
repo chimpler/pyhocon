@@ -1006,6 +1006,18 @@ class TestConfigParser(object):
         assert 'g' not in config
         assert config['h'] == 1
 
+    def test_cascade_optional_substitution(self):
+        config = ConfigFactory.parse_string(
+            """
+              num = 3
+              retries_msg = You have ${num} retries
+              retries_msg = ${?CUSTOM_MSG}
+            """)
+        assert config == {
+            'num': 3,
+            'retries_msg': 'You have 3 retries'
+        }
+
     def test_substitution_cycle(self):
         with pytest.raises(ConfigSubstitutionException):
             ConfigFactory.parse_string(
