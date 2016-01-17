@@ -1,5 +1,10 @@
 # Changelog
 
+
+# Version 0.3.19
+
+* Fixed unresolved optional substitution logic. PR[#69]
+
 # Version 0.3.18
 
 * Bumped pyparsing from 2.0.3 to 2.0.6. PR[#68]
