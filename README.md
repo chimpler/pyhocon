@@ -27,7 +27,7 @@ It is available on pypi so you can install it as follows:
 The parsed config can be seen as a nested dictionary (with types automatically inferred) where values can be accessed using normal
 dictionary getter (e.g., `conf['a']['b']` or using paths like `conf['a.b']`) or via the methods `get`, `get_int` (throws an exception
 if it is not an int), `get_string`, `get_list`, `get_float`, `get_bool`, `get_config`.
-
+```python
     from pyhocon import ConfigFactory
 
     conf = ConfigFactory.parse_file('samples/database.conf')
@@ -39,6 +39,7 @@ if it is not an int), `get_string`, `get_list`, `get_float`, `get_bool`, `get_co
     username = conf['databases']['mysql']['username']
     password = conf.get_config('databases')['mysql.password']
     password = conf.get('databases.mysql.password', 'default_password') #  use default value if key not found
+```
 
 ## Example of HOCON file
 
@@ -99,11 +100,10 @@ We provide a conversion tool to convert from HOCON to the JSON, .properties and 
     pyhocon tool
 
     optional arguments:
-      -h, --help            show this help message and exit
+      -h, --help                        show this help message and exit
       -i INPUT, --input INPUT FILE
       -o OUTPUT, --output OUTPUT FILE
-      -f FORMAT, --format FORMAT
-                            output format: json, properties or yaml
+      -f FORMAT, --format FORMAT output format: json, properties or yaml
 
 If `-i` is omitted, the tool will read from the standard input. If `-o` is omitted, the result will be written to the standard output.
 
