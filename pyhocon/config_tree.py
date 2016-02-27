@@ -11,10 +11,14 @@ except NameError:
     basestring = str
 
 import re
-from .exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
+from pyhocon.exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
 
 
 class UndefinedKey(object):
+    pass
+
+
+class NoneValue(object):
     pass
 
 
@@ -110,7 +114,10 @@ class ConfigTree(OrderedDict):
                 return default
 
         if key_index == len(key_path) - 1:
-            return elt
+            if isinstance(elt, NoneValue):
+                return None
+            else:
+                return elt
         elif isinstance(elt, ConfigTree):
             return elt._get(key_path, key_index + 1, default)
         else:
