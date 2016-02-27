@@ -98,9 +98,6 @@ class TestHOCONConverter(object):
 
     def test_to_json(self):
         converted = HOCONConverter.to_json(TestHOCONConverter.CONFIG)
-        print "=============="
-        print TestHOCONConverter.CONFIG
-        print "=============="
         assert [line.strip() for line in TestHOCONConverter.EXPECTED_JSON.split('\n') if line.strip()]\
             == [line.strip() for line in converted.split('\n') if line.strip()]
 
