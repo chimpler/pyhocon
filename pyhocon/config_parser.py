@@ -4,11 +4,10 @@ import socket
 from pyparsing import Forward, Keyword, QuotedString, Word, Literal, Suppress, Regex, Optional, SkipTo, ZeroOrMore, \
     Group, lineno, col, TokenConverter, replaceWith, alphanums
 from pyparsing import ParserElement
-from .config_tree import ConfigTree, ConfigSubstitution, ConfigList, ConfigValues, ConfigUnquotedString, \
-    ConfigInclude
-from .exceptions import ConfigSubstitutionException, ConfigMissingException
+from pyhocon.config_tree import ConfigTree, ConfigSubstitution, ConfigList, ConfigValues, ConfigUnquotedString, \
+    ConfigInclude, NoneValue
+from pyhocon.exceptions import ConfigSubstitutionException, ConfigMissingException
 import logging
-
 
 use_urllib2 = False
 try:
@@ -24,7 +23,6 @@ try:
     basestring
 except NameError:
     basestring = str
-
 
 logger = logging.getLogger(__name__)
 
@@ -186,7 +184,7 @@ class ConfigParser(object):
         assign_expr = Forward()
         true_expr = Keyword("true", caseless=True).setParseAction(replaceWith(True))
         false_expr = Keyword("false", caseless=True).setParseAction(replaceWith(False))
-        null_expr = Keyword("null", caseless=True).setParseAction(replaceWith(None))
+        null_expr = Keyword("null", caseless=True).setParseAction(replaceWith(NoneValue()))
         key = QuotedString('"', escChar='\\', unquoteResults=False) | Word(alphanums + '._- ')
 
         eol = Word('\n\r').suppress()
@@ -215,7 +213,8 @@ class ConfigParser(object):
         value_expr = number_expr | true_expr | false_expr | null_expr | string_expr
 
         include_expr = (Keyword("include", caseless=True).suppress() - (
-            quoted_string | ((Keyword('url') | Keyword('file')) - Literal('(').suppress() - quoted_string - Literal(')').suppress()))) \
+            quoted_string | (
+                (Keyword('url') | Keyword('file')) - Literal('(').suppress() - quoted_string - Literal(')').suppress()))) \
             .setParseAction(include_config)
 
         dict_expr = Forward()
@@ -233,11 +232,13 @@ class ConfigParser(object):
         assign_expr << Group(
             key -
             ZeroOrMore(comment_no_comma_eol) -
-            (dict_expr | Suppress(Literal('=') | Literal(':')) - ZeroOrMore(comment_no_comma_eol) - ConcatenatedValueParser(multi_value_expr))
+            (dict_expr | Suppress(Literal('=') | Literal(':')) - ZeroOrMore(
+                comment_no_comma_eol) - ConcatenatedValueParser(multi_value_expr))
         )
 
         # the file can be { ... } where {} can be omitted or []
-        config_expr = ZeroOrMore(comment_eol | eol) + (list_expr | dict_expr | inside_dict_expr) + ZeroOrMore(comment_eol | eol_comma)
+        config_expr = ZeroOrMore(comment_eol | eol) + (list_expr | dict_expr | inside_dict_expr) + ZeroOrMore(
+            comment_eol | eol_comma)
         config = config_expr.parseString(content, parseAll=True)[0]
         if resolve:
             ConfigParser.resolve_substitutions(config)
@@ -290,8 +291,8 @@ class ConfigParser(object):
 
             substitutions = []
             if isinstance(item, ConfigTree):
-                    for key, child in item.items():
-                        substitutions += find_substitutions(child)
+                for key, child in item.items():
+                    substitutions += find_substitutions(child)
             elif isinstance(item, list):
                 for child in item:
                     substitutions += find_substitutions(child)
@@ -327,9 +328,9 @@ class ConfigParser(object):
                         resolved_value = None
 
                     if isinstance(resolved_value, ConfigValues):
-                            resolved_value = resolved_value.transform()
+                        resolved_value = resolved_value.transform()
                     if isinstance(resolved_value, ConfigValues):
-                            unresolved = True
+                        unresolved = True
                     else:
                         # replace token by substitution
                         config_values = substitution.parent
