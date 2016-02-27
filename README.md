@@ -28,17 +28,17 @@ The parsed config can be seen as a nested dictionary (with types automatically i
 dictionary getter (e.g., `conf['a']['b']` or using paths like `conf['a.b']`) or via the methods `get`, `get_int` (throws an exception
 if it is not an int), `get_string`, `get_list`, `get_float`, `get_bool`, `get_config`.
 ```python
-    from pyhocon import ConfigFactory
+from pyhocon import ConfigFactory
 
-    conf = ConfigFactory.parse_file('samples/database.conf')
-    host = conf.get_string('databases.mysql.host')
-    same_host = conf.get('databases.mysql.host')
-    same_host = conf['databases.mysql.host']
-    same_host = conf['databases']['mysql.host']
-    port = conf['databases.mysql.port']
-    username = conf['databases']['mysql']['username']
-    password = conf.get_config('databases')['mysql.password']
-    password = conf.get('databases.mysql.password', 'default_password') #  use default value if key not found
+conf = ConfigFactory.parse_file('samples/database.conf')
+host = conf.get_string('databases.mysql.host')
+same_host = conf.get('databases.mysql.host')
+same_host = conf['databases.mysql.host']
+same_host = conf['databases']['mysql.host']
+port = conf['databases.mysql.port']
+username = conf['databases']['mysql']['username']
+password = conf.get_config('databases')['mysql.password']
+password = conf.get('databases.mysql.password', 'default_password') #  use default value if key not found
 ```
 
 ## Example of HOCON file
@@ -95,15 +95,19 @@ if it is not an int), `get_string`, `get_list`, `get_float`, `get_bool`, `get_co
 
 We provide a conversion tool to convert from HOCON to the JSON, .properties and YAML formats.
 
-    usage: pyhocon [-h] [-i INPUT] [-o OUTPUT] [-f FORMAT]
+```
+usage: tool.py [-h] [-i INPUT] [-o OUTPUT] [-f FORMAT] [-n INDENT] [-v]
 
-    pyhocon tool
+pyhocon tool
 
-    optional arguments:
-      -h, --help                        show this help message and exit
-      -i INPUT, --input INPUT FILE
-      -o OUTPUT, --output OUTPUT FILE
-      -f FORMAT, --format FORMAT output format: json, properties or yaml
+optional arguments:
+  -h, --help                 show this help message and exit
+  -i INPUT, --input INPUT    input file
+  -o OUTPUT, --output OUTPUT output file
+  -f FORMAT, --format FORMAT output format: json, properties, yaml or hocon
+  -n INDENT, --indent INDENT indentation step (default is 2)
+  -v, --verbosity            increase output verbosity
+```
 
 If `-i` is omitted, the tool will read from the standard input. If `-o` is omitted, the result will be written to the standard output.
 
