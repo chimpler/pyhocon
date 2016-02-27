@@ -1,6 +1,10 @@
 # Changelog
 
 
+# Version 0.3.20
+
+* Updated pycparsing to 2.1.0. PR [#70]
+
 # Version 0.3.19
 
 * Fixed unresolved optional substitution logic. PR[#69]
