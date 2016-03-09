@@ -8,6 +8,7 @@ pyhocon
 [![Codacy Badge](https://www.codacy.com/project/badge/684cdd4d82734702ac612bf8b25fc5a0)](https://www.codacy.com/app/francois-dangngoc/pyhocon)
 [![License](https://img.shields.io/pypi/l/Pyhocon.svg)](https://pypi.python.org/pypi/pyhocon/)
 [![Coverage Status](https://coveralls.io/repos/chimpler/pyhocon/badge.svg)](https://coveralls.io/r/chimpler/pyhocon)
+[![Requirements Status](https://requires.io/github/chimpler/pyhocon/requirements.svg?branch=master)](https://requires.io/github/chimpler/pyhocon/requirements/?branch=master)
 [![Join the chat at https://gitter.im/chimpler/pyhocon](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/chimpler/pyhocon?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 HOCON parser for Python
