@@ -3,6 +3,7 @@ from pyparsing import ParseSyntaxException, ParseException
 import pytest
 from pyhocon import ConfigFactory, ConfigSubstitutionException
 from pyhocon.exceptions import ConfigMissingException, ConfigWrongTypeException
+
 try:  # pragma: no cover
     from collections import OrderedDict
 except ImportError:  # pragma: no cover
@@ -1339,5 +1340,17 @@ with-escaped-newline-escape-sequence: \"\"\"
         d['apple'] = 4
         d['pear'] = 1
         d['orange'] = 2
+        config = ConfigFactory.from_dict(d)
+        assert config == d
+
+    def test_from_dict_with_nested_dict(self):
+        d = OrderedDict()
+        d['banana'] = 3
+        d['apple'] = 4
+        d['pear'] = 1
+        d['tree'] = {
+            'a': 'abc\ntest\n',
+            'b': [1, 2, 3]
+        }
         config = ConfigFactory.from_dict(d)
         assert config == d
