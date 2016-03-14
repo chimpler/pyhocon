@@ -1,5 +1,8 @@
 # Changelog
 
+# Version 0.3.21
+
+* Fixed from_dict. PR [#71]
 
 # Version 0.3.20
 
