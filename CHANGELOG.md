@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.22
+
+* Bumped pycparsing to 2.1.1. PR [#7w]
+
 # Version 0.3.21
 
 * Fixed from_dict. PR [#71]
