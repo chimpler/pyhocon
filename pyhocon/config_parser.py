@@ -1,6 +1,7 @@
 import re
 import os
 import socket
+import contextlib
 from pyparsing import Forward, Keyword, QuotedString, Word, Literal, Suppress, Regex, Optional, SkipTo, ZeroOrMore, \
     Group, lineno, col, TokenConverter, replaceWith, alphanums
 from pyparsing import ParserElement
@@ -63,14 +64,14 @@ class ConfigFactory(object):
         :type return: Config
         """
         socket_timeout = socket._GLOBAL_DEFAULT_TIMEOUT if timeout is None else timeout
+
         try:
-            fd = urlopen(url, timeout=socket_timeout)
-            content = fd.read() if use_urllib2 else fd.read().decode('utf-8')
-            return ConfigFactory.parse_string(content, os.path.dirname(url), resolve)
+            with contextlib.closing(urlopen(url, timeout=socket_timeout)) as fd:
+                content = fd.read() if use_urllib2 else fd.read().decode('utf-8')
+                return ConfigFactory.parse_string(content, os.path.dirname(url), resolve)
         except HTTPError:
             logger.warn('Cannot include url %s. Resource is inaccessible.', url)
-        finally:
-            fd.close()
+            return []
 
     @staticmethod
     def parse_string(content, basedir=None, resolve=True):
