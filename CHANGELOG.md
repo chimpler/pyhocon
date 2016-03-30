@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.24
+
+* Use recursive merging when concatenating objects. PR [#74]
+
 # Version 0.3.23
 
 * Handle unreachable URL include. PR [#73]

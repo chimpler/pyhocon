@@ -334,6 +334,7 @@ Java properties mapping                                    | :x:
   - Michael Overmeyer ([@movermeyer](https://github.com/movermeyer))
   - Virgil Palanciuc ([@virgil-palanciuc](https://github.com/virgil-palanciuc))
   - Douglas Simon ([@dougxc](https://github.com/dougxc))
+  - Gilles Duboscq ([@gilles-duboscq](https://github.com/gilles-duboscq))
 
 ### Thanks
 
