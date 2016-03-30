@@ -333,6 +333,7 @@ Java properties mapping                                    | :x:
   - Andrey Proskurnev ([@ariloulaleelay](https://github.com/ariloulaleelay))
   - Michael Overmeyer ([@movermeyer](https://github.com/movermeyer))
   - Virgil Palanciuc ([@virgil-palanciuc](https://github.com/virgil-palanciuc))
+  - Douglas Simon ([@dougxc](https://github.com/dougxc))
 
 ### Thanks
 

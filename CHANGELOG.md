@@ -1,8 +1,12 @@
 # Changelog
 
+# Version 0.3.23
+
+* Handle unreachable URL include. PR [#73]
+
 # Version 0.3.22
 
-* Bumped pycparsing to 2.1.1. PR [#7w]
+* Bumped pycparsing to 2.1.1. PR [#72]
 
 # Version 0.3.21
 
