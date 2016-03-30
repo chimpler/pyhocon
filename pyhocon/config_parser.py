@@ -14,10 +14,10 @@ use_urllib2 = False
 try:
     # For Python 3.0 and later
     from urllib.request import urlopen
-    from urllib.error import HTTPError
+    from urllib.error import HTTPError, URLError
 except ImportError:
     # Fall back to Python 2's urllib2
-    from urllib2 import urlopen, HTTPError
+    from urllib2 import urlopen, HTTPError, URLError
 
     use_urllib2 = True
 try:
@@ -69,7 +69,7 @@ class ConfigFactory(object):
             with contextlib.closing(urlopen(url, timeout=socket_timeout)) as fd:
                 content = fd.read() if use_urllib2 else fd.read().decode('utf-8')
                 return ConfigFactory.parse_string(content, os.path.dirname(url), resolve)
-        except HTTPError:
+        except (HTTPError, URLError):
             logger.warn('Cannot include url %s. Resource is inaccessible.', url)
             return []
 
