@@ -1358,3 +1358,28 @@ with-escaped-newline-escape-sequence: \"\"\"
         }
         config = ConfigFactory.from_dict(d)
         assert config == d
+
+    def test_object_concat(self):
+        config = ConfigFactory.parse_string(
+            """o1 = {
+                foo : {
+                    a : 1
+                    b : 2
+                }
+            }
+            o2 = {
+                foo : {
+                    b : 3
+                    c : 4
+                }
+            }
+            o3 = ${o1} ${o2}
+            """
+        )
+
+        assert config.get_int('o1.foo.b') == 2
+        assert config.get_int('o2.foo.b') == 3
+        assert config.get_int('o3.foo.b') == 3
+        assert config.get_int('o1.foo.c', default=42) == 42
+        assert config.get_int('o3.foo.a') == 1
+        assert config.get_int('o3.foo.c') == 4
