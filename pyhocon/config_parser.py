@@ -1,6 +1,7 @@
 import re
 import os
 import socket
+import contextlib
 from pyparsing import Forward, Keyword, QuotedString, Word, Literal, Suppress, Regex, Optional, SkipTo, ZeroOrMore, \
     Group, lineno, col, TokenConverter, replaceWith, alphanums
 from pyparsing import ParserElement
@@ -13,10 +14,10 @@ use_urllib2 = False
 try:
     # For Python 3.0 and later
     from urllib.request import urlopen
-    from urllib.error import HTTPError
+    from urllib.error import HTTPError, URLError
 except ImportError:
     # Fall back to Python 2's urllib2
-    from urllib2 import urlopen, HTTPError
+    from urllib2 import urlopen, HTTPError, URLError
 
     use_urllib2 = True
 try:
@@ -59,18 +60,18 @@ class ConfigFactory(object):
         :type url: basestring
         :param resolve: If true, resolve substitutions
         :type resolve: boolean
-        :return: Config object
-        :type return: Config
+        :return: Config object or []
+        :type return: Config or list
         """
         socket_timeout = socket._GLOBAL_DEFAULT_TIMEOUT if timeout is None else timeout
+
         try:
-            fd = urlopen(url, timeout=socket_timeout)
-            content = fd.read() if use_urllib2 else fd.read().decode('utf-8')
-            return ConfigFactory.parse_string(content, os.path.dirname(url), resolve)
-        except HTTPError:
+            with contextlib.closing(urlopen(url, timeout=socket_timeout)) as fd:
+                content = fd.read() if use_urllib2 else fd.read().decode('utf-8')
+                return ConfigFactory.parse_string(content, os.path.dirname(url), resolve)
+        except (HTTPError, URLError):
             logger.warn('Cannot include url %s. Resource is inaccessible.', url)
-        finally:
-            fd.close()
+            return []
 
     @staticmethod
     def parse_string(content, basedir=None, resolve=True):

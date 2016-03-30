@@ -744,6 +744,10 @@ class TestConfigParser(object):
         assert config.get('data-center-generic.cluster-size') == 6
         assert config.get('large-jvm-opts') == ['-XX:+UseParNewGC', '-Xm16g']
 
+    def test_parse_URL_from_invalid(self):
+        config = ConfigFactory.parse_URL("https://nosuchurl")
+        assert config == []
+
     def test_include_dict_from_samples(self):
         config = ConfigFactory.parse_file("samples/animals.conf")
         assert config.get('cat.garfield.say') == 'meow'
