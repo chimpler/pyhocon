@@ -60,8 +60,8 @@ class ConfigFactory(object):
         :type url: basestring
         :param resolve: If true, resolve substitutions
         :type resolve: boolean
-        :return: Config object
-        :type return: Config
+        :return: Config object or []
+        :type return: Config or list
         """
         socket_timeout = socket._GLOBAL_DEFAULT_TIMEOUT if timeout is None else timeout
 
