@@ -34,7 +34,7 @@ class ConfigTree(OrderedDict):
                 value.index = key
 
     @staticmethod
-    def merge_configs(a, b):
+    def merge_configs(a, b, copy_trees=False):
         """Merge config b into a
 
         :param a: target config
@@ -46,7 +46,9 @@ class ConfigTree(OrderedDict):
         for key, value in b.items():
             # if key is in both a and b and both values are dictionary then merge it otherwise override it
             if key in a and isinstance(a[key], ConfigTree) and isinstance(b[key], ConfigTree):
-                ConfigTree.merge_configs(a[key], b[key])
+                if copy_trees:
+                    a[key] = a[key].copy()
+                ConfigTree.merge_configs(a[key], b[key], copy_trees=copy_trees)
             else:
                 if isinstance(value, ConfigValues):
                     value.parent = a
@@ -344,12 +346,7 @@ class ConfigValues(object):
         if first_tok_type is ConfigTree:
             result = ConfigTree()
             for token in tokens:
-                for key, val in token.items():
-                    # update references for substituted contents
-                    if isinstance(val, ConfigValues):
-                        val.parent = result
-                        val.key = key
-                    result[key] = val
+                ConfigTree.merge_configs(result, token, copy_trees=True)
             return result
         elif first_tok_type is ConfigList:
             result = []
