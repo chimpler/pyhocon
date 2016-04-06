@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.xx (TBA)
+
+* Implemented self-referential subsitutions
+
 # Version 0.3.24
 
 * Use recursive merging when concatenating objects. PR [#74]
