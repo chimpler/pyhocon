@@ -1447,6 +1447,51 @@ class TestConfigParser(object):
             'large-jvm-opts': ['-XX:+UseParNewGC', '-Xm16g']
         }
 
+    def test_fallback_self_ref_substitutions_append(self):
+        config1 = ConfigFactory.parse_string(
+            """
+            list = [ 1, 2, 3 ]
+            """
+        )
+        config2 = ConfigFactory.parse_string(
+            """
+            list = ${list} [ 4, 5, 6 ]
+            """,
+            resolve = False
+        )
+        config2 = config2.with_fallback(config1)
+        assert config2.get("list") == [1, 2, 3, 4, 5, 6]
+
+    def test_fallback_self_ref_substitutions_merge(self):
+        config1 = ConfigFactory.parse_string(
+            """
+            dict = { x: 1 }
+            """
+        )
+        config2 = ConfigFactory.parse_string(
+            """
+            dict = ${dict} { y: 2 }
+            """,
+            resolve = False
+        )
+        config2 = config2.with_fallback(config1)
+        assert config2.get("dict") == {'x': 1, 'y': 2}
+
+    def test_fallback_self_ref_substitutions_concat_string(self):
+        config1 = ConfigFactory.parse_string(
+            """
+            string = abc
+            """
+        )
+        config2 = ConfigFactory.parse_string(
+            """
+            string = ${string}def
+            """,
+            resolve = False
+        )
+        config2 = config2.with_fallback(config1)
+        assert config2.get("string") == 'abcdef'
+
     def test_object_field_substitution(self):
         config = ConfigFactory.parse_string(
             """
