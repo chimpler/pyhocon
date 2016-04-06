@@ -26,8 +26,10 @@ class ConfigTree(OrderedDict):
     KEY_SEP = '.'
 
     def __init__(self, *args, **kwds):
+        self.root = kwds.pop('root') if 'root' in kwds else False
+        if self.root:
+            self.history = {}
         super(ConfigTree, self).__init__(*args, **kwds)
-
         for key, value in self.items():
             if isinstance(value, ConfigValues):
                 value.parent = self
@@ -55,6 +57,8 @@ class ConfigTree(OrderedDict):
                     value.key = key
                     value.overriden_value = a.get(key, None)
                 a[key] = value
+                if a.root:
+                    a.history[key] = (a.history.get(key) or []) + b.history.get(key)
 
         return a
 
@@ -65,7 +69,13 @@ class ConfigTree(OrderedDict):
             # if they are both configs then merge
             # if not then override
             if key_elt in self and isinstance(self[key_elt], ConfigTree) and isinstance(value, ConfigTree):
-                ConfigTree.merge_configs(self[key_elt], value)
+                if self.root:
+                    new_value = ConfigTree.merge_configs(ConfigTree(), self[key_elt], copy_trees=True)
+                    new_value = ConfigTree.merge_configs(new_value, value, copy_trees=True)
+                    self._push_history(key_elt, new_value)
+                    self[key_elt] = new_value
+                else:
+                    ConfigTree.merge_configs(self[key_elt], value)
             elif append:
                 # If we have t=1
                 # and we try to put t.a=5 then t is replaced by {a: 5}
@@ -76,10 +86,16 @@ class ConfigTree(OrderedDict):
                 elif isinstance(l, ConfigTree) and isinstance(value, ConfigValues):
                     value.tokens.append(l)
                     value.recompute()
+                    self._push_history(key_elt, value)
+                    self[key_elt] = value
+                elif isinstance(l, list) and isinstance(value, ConfigValues):
+                    self._push_history(key_elt, value)
                     self[key_elt] = value
                 elif isinstance(l, list):
                     l += value
+                    self._push_history(key_elt, l)
                 elif l is None:
+                    self._push_history(key_elt, value)
                     self[key_elt] = value
 
                 else:
@@ -96,14 +112,23 @@ class ConfigTree(OrderedDict):
                     value.parent = self
                     value.key = key_elt
                     value.overriden_value = self.get(key_elt, None)
-                super(ConfigTree, self).__setitem__(key_elt, value)
+                self._push_history(key_elt, value)
+                self[key_elt] = value
         else:
             next_config_tree = super(ConfigTree, self).get(key_elt)
             if not isinstance(next_config_tree, ConfigTree):
                 # create a new dictionary or overwrite a previous value
                 next_config_tree = ConfigTree()
+                self._push_history(key_elt, value)
                 self[key_elt] = next_config_tree
             next_config_tree._put(key_path[1:], value, append)
+
+    def _push_history(self, key, value):
+        if self.root:
+            hist = self.history.get(key)
+            if hist is None:
+                hist = self.history[key] = []
+            hist.append(value)
 
     def _get(self, key_path, key_index=0, default=UndefinedKey):
         key_elt = key_path[key_index]
@@ -130,7 +155,8 @@ class ConfigTree(OrderedDict):
             else:
                 return default
 
-    def _parse_key(self, str):
+    @staticmethod
+    def parse_key(str):
         """
         Split a key into path elements:
         - a.b.c => a, b, c
@@ -150,7 +176,7 @@ class ConfigTree(OrderedDict):
         :type key: basestring
         :param value: value to put
         """
-        self._put(self._parse_key(key), value, append)
+        self._put(ConfigTree.parse_key(key), value, append)
 
     def get(self, key, default=UndefinedKey):
         """Get a value from the tree
@@ -161,7 +187,7 @@ class ConfigTree(OrderedDict):
         :type default: object
         :return: value in the tree located at key
         """
-        return self._get(self._parse_key(key), 0, default)
+        return self._get(ConfigTree.parse_key(key), 0, default)
 
     def get_string(self, key, default=UndefinedKey):
         """Return string representation of value found at key

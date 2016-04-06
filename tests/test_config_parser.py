@@ -706,6 +706,175 @@ class TestConfigParser(object):
                 """
             )
 
+    def test_self_ref_substitution_array(self):
+        config = ConfigFactory.parse_string(
+            """
+            x = [1,2]
+            x = ${x} [3,4]
+            x = [-1, 0] ${x} [5, 6]
+            x = [-3, -2] ${x}
+            """
+        )
+        assert config.get("x") == [-3, -2, -1, 0, 1, 2, 3, 4, 5, 6]
+
+    def test_self_ref_substitution_array_to_dict(self):
+        config = ConfigFactory.parse_string(
+            """
+            x = [1,2]
+            x = {x: [3,4]}
+            x = {y: [5,6]}
+            x = {z: ${x}}
+            """
+        )
+        assert config.get("x.x") == [3,4]
+        assert config.get("x.y") == [5,6]
+        assert config.get("x.z") == {'x': [3,4], 'y': [5,6]}
+
+    def test_self_ref_substitiotion_dict_in_array(self):
+        config = ConfigFactory.parse_string(
+            """
+            x = {x: [3,4]}
+            x = [${x}, 2, 3]
+            """
+        )
+        (one, two, three) = config.get("x")
+        assert one == {'x': [3,4]}
+        assert two == 2
+        assert three == 3
+
+    def test_self_ref_substitution_dict_path(self):
+        config = ConfigFactory.parse_string(
+            """
+            x = {y: {z: 1}}
+            x = ${x.y}
+            """
+        )
+        assert config.get("x.y") == {'z': 1}
+        assert config.get("x.z") == 1
+        assert set(config.get("x").keys()) == set(['y', 'z'])
+
+    def test_self_ref_substitution_dict_path_hide(self):
+        config = ConfigFactory.parse_string(
+            """
+            x = {y: {y: 1}}
+            x = ${x.y}
+            """
+        )
+        assert config.get("x.y") == {'y': 1}
+        assert set(config.get("x").keys()) == set(['y'])
+
+    def test_self_ref_substitution_dict_recurse(self):
+        with pytest.raises(ConfigSubstitutionException):
+            config = ConfigFactory.parse_string(
+                """
+                x = ${x}
+                """
+            )
+
+    def test_self_ref_substitution_dict_recurse2(self):
+        with pytest.raises(ConfigSubstitutionException):
+            config = ConfigFactory.parse_string(
+                """
+                x = ${x}
+                x = ${x}
+                """
+            )
+
+    def test_self_ref_substitution_dict_merge(self):
+        '''
+        Example from HOCON spec
+        '''
+        config = ConfigFactory.parse_string(
+            """
+            foo : { a : { c : 1 } }
+            foo : ${foo.a}
+            foo : { a : 2 }
+            """
+        )
+        assert config.get('foo') == {'a': 2, 'c': 1}
+        assert set(config.keys()) == set(['foo'])
+
+    def test_self_ref_substitution_dict_otherfield(self):
+        '''
+        Example from HOCON spec
+        '''
+        config = ConfigFactory.parse_string(
+            """
+            bar : {
+              foo : 42,
+              baz : ${bar.foo}
+            }
+            """
+        )
+        assert config.get("bar") == {'foo': 42, 'baz': 42}
+        assert set(config.keys()) == set(['bar'])
+
+    def test_self_ref_substitution_dict_otherfield_merged_in(self):
+        '''
+        Example from HOCON spec
+        '''
+        config = ConfigFactory.parse_string(
+            """
+            bar : {
+                foo : 42,
+                baz : ${bar.foo}
+            }
+            bar : { foo : 43 }
+            """
+        )
+        assert config.get("bar") == {'foo': 43, 'baz': 43}
+        assert set(config.keys()) == set(['bar'])
+
+    def test_self_ref_substitution_dict_otherfield_merged_in_mutual(self):
+        '''
+        Example from HOCON spec
+        '''
+        config = ConfigFactory.parse_string(
+            """
+            // bar.a should end up as 4
+            bar : { a : ${foo.d}, b : 1 }
+            bar.b = 3
+            // foo.c should end up as 3
+            foo : { c : ${bar.b}, d : 2 }
+            foo.d = 4
+            """
+        )
+        assert config.get("bar") == {'a': 4, 'b': 3}
+        assert config.get("foo") == {'c': 3, 'd': 4}
+        assert set(config.keys()) == set(['bar', 'foo'])
+
+    def test_self_ref_substitution_string_opt_concat(self):
+        '''
+        Example from HOCON spec
+        '''
+        config = ConfigFactory.parse_string(
+            """
+            a = ${?a}foo
+            """
+        )
+        assert config.get("a") == 'foo'
+        assert set(config.keys()) == set(['a'])
+
+    def test_self_ref_substitution_dict_recurse_part(self):
+        with pytest.raises(ConfigSubstitutionException):
+            config = ConfigFactory.parse_string(
+                """
+                x = ${x} {y: 1}
+                x = ${x.y}
+                """
+            )
+
+    def test_self_ref_substitution_object(self):
+        config = ConfigFactory.parse_string(
+            """
+            x = {a: 1, b: 2}
+            x = ${x} {c: 3}
+            x = {z: 0} ${x}
+            x = {y: -1} ${x} {d: 4}
+            """
+        )
+        assert config.get("x") == {'a': 1, 'b': 2, 'c': 3, 'z': 0, 'y': -1, 'd': 4}
+
     def test_concat_multi_line_string(self):
         config = ConfigFactory.parse_string(
             """

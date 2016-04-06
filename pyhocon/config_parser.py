@@ -230,6 +230,7 @@ class ConfigParser(object):
                 (Keyword('url') | Keyword('file')) - Literal('(').suppress() - quoted_string - Literal(')').suppress()))) \
             .setParseAction(include_config)
 
+        root_dict_expr = Forward()
         dict_expr = Forward()
         list_expr = Forward()
         multi_value_expr = ZeroOrMore((Literal(
@@ -237,7 +238,9 @@ class ConfigParser(object):
         # for a dictionary : or = is optional
         # last zeroOrMore is because we can have t = {a:4} {b: 6} {c: 7} which is dictionary concatenation
         inside_dict_expr = ConfigTreeParser(ZeroOrMore(comment_eol | include_expr | assign_expr | eol_comma))
+        inside_root_dict_expr = ConfigTreeParser(ZeroOrMore(comment_eol | include_expr | assign_expr | eol_comma), root=True)
         dict_expr << Suppress('{') - inside_dict_expr - Suppress('}')
+        root_dict_expr << Suppress('{') - inside_root_dict_expr - Suppress('}')
         list_entry = ConcatenatedValueParser(multi_value_expr)
         list_expr << Suppress('[') - ListParser(list_entry - ZeroOrMore(eol_comma - list_entry)) - Suppress(']')
 
@@ -250,7 +253,7 @@ class ConfigParser(object):
         )
 
         # the file can be { ... } where {} can be omitted or []
-        config_expr = ZeroOrMore(comment_eol | eol) + (list_expr | dict_expr | inside_dict_expr) + ZeroOrMore(
+        config_expr = ZeroOrMore(comment_eol | eol) + (list_expr | root_dict_expr | inside_root_dict_expr) + ZeroOrMore(
             comment_eol | eol_comma)
         config = config_expr.parseString(content, parseAll=True)[0]
         if resolve:
@@ -291,40 +294,104 @@ class ConfigParser(object):
             return True, value
 
     @staticmethod
+    def _fixup_self_references(config):
+        if isinstance(config, ConfigTree) and config.root:
+            for key in config: # Traverse history of element
+                history = config.history[key]
+                previous_item = history[0]
+                for current_item in history[1:]:
+                    for substitution in ConfigParser._find_substitutions(current_item):
+                        prop_path = ConfigTree.parse_key(substitution.variable)
+                        if len(prop_path) > 1 and config.get(substitution.variable, None) is not None:
+                            continue # If value is present in latest version, don't do anything
+                        if prop_path[0] == key:
+                            if isinstance(previous_item, ConfigValues): # We hit a dead end, we cannot evaluate
+                                raise ConfigSubstitutionException("Property {} cannot be substituted. Check for cycles.".format(substitution.variable))
+                            value = previous_item if len(prop_path) == 1 else previous_item.get(".".join(prop_path[1:]))
+                            (_,_,current_item) = ConfigParser._do_substitute(substitution, value)
+                    previous_item = current_item
+
+                if len(history) == 1: # special case, when self optional referencing without existing 
+                    for substitution in ConfigParser._find_substitutions(previous_item):
+                        prop_path = ConfigTree.parse_key(substitution.variable)
+                        if len(prop_path) > 1 and config.get(substitution.variable, None) is not None:
+                            continue # If value is present in latest version, don't do anything
+                        if prop_path[0] == key and substitution.optional:
+                            ConfigParser._do_substitute(substitution, None)
+
+    # traverse config to find all the substitutions
+    @staticmethod
+    def _find_substitutions(item):
+        """Convert HOCON input into a JSON output
+
+        :return: JSON string representation
+        :type return: basestring
+        """
+        if isinstance(item, ConfigValues):
+            return item.get_substitutions()
+
+        substitutions = []
+        if isinstance(item, ConfigTree):
+            for key, child in item.items():
+                substitutions += ConfigParser._find_substitutions(child)
+        elif isinstance(item, list):
+            for child in item:
+                substitutions += ConfigParser._find_substitutions(child)
+        return substitutions
+
+    @staticmethod
+    def _do_substitute(substitution, resolved_value, is_optional_resolved=True):
+        unresolved = False
+        new_substitutions = []
+        if isinstance(resolved_value, ConfigValues):
+            resolved_value = resolved_value.transform()
+        if isinstance(resolved_value, ConfigValues):
+            unresolved = True
+            result = None
+        else:
+            # replace token by substitution
+            config_values = substitution.parent
+            # if it is a string, then add the extra ws that was present in the original string after the substitution
+            formatted_resolved_value = resolved_value \
+                if resolved_value is None \
+                or isinstance(resolved_value, (dict, list)) \
+                or substitution.index == len(config_values.tokens) - 1 \
+                else (str(resolved_value) + substitution.ws)
+            config_values.put(substitution.index, formatted_resolved_value)
+            transformation = config_values.transform()
+            result = None
+            if transformation is None and not is_optional_resolved:
+                result = config_values.overriden_value
+            else:
+                result = transformation[0] if isinstance(transformation, list) else transformation
+
+            if result is None:
+                del config_values.parent[config_values.key]
+            else:
+                config_values.parent[config_values.key] = result
+                s = ConfigParser._find_substitutions(result)
+                if s:
+                    new_substitutions = s
+                    unresolved = True
+
+        return (unresolved, new_substitutions, result)
+
+    @staticmethod
+    def _final_fixup(item):
+        if isinstance(item, ConfigValues):
+            return item.transform()
+        elif isinstance(item, list):
+            return list([ConfigParser._final_fixup(child) for child in item])
+        elif isinstance(item, ConfigTree):
+            items = list(item.items())
+            for key, child in items:
+                item[key] = ConfigParser._final_fixup(child)
+        return item
+
+    @staticmethod
     def resolve_substitutions(config):
-        # traverse config to find all the substitutions
-        def find_substitutions(item):
-            """Convert HOCON input into a JSON output
-
-            :return: JSON string representation
-            :type return: basestring
-            """
-            if isinstance(item, ConfigValues):
-                return item.get_substitutions()
-
-            substitutions = []
-            if isinstance(item, ConfigTree):
-                for key, child in item.items():
-                    substitutions += find_substitutions(child)
-            elif isinstance(item, list):
-                for child in item:
-                    substitutions += find_substitutions(child)
-
-            return substitutions
-
-        def final_fixup(item):
-            if isinstance(item, ConfigValues):
-                return item.transform()
-            elif isinstance(item, list):
-                return list([final_fixup(child) for child in item])
-            elif isinstance(item, ConfigTree):
-                items = list(item.items())
-                for key, child in items:
-                    item[key] = final_fixup(child)
-
-            return item
-
-        substitutions = find_substitutions(config)
+        ConfigParser._fixup_self_references(config)
+        substitutions = ConfigParser._find_substitutions(config)
 
         if len(substitutions) > 0:
             unresolved = True
@@ -340,43 +407,11 @@ class ConfigParser(object):
                     if not is_optional_resolved and substitution.optional:
                         resolved_value = None
 
-                    if isinstance(resolved_value, ConfigValues):
-                        resolved_value = resolved_value.transform()
-                    if isinstance(resolved_value, ConfigValues):
-                        unresolved = True
-                    else:
-                        # replace token by substitution
-                        config_values = substitution.parent
-                        # if it is a string, then add the extra ws that was present in the original string after the substitution
-                        formatted_resolved_value = resolved_value \
-                            if resolved_value is None \
-                            or isinstance(resolved_value, (dict, list)) \
-                            or substitution.index == len(config_values.tokens) - 1 \
-                            else (str(resolved_value) + substitution.ws)
-                        config_values.put(substitution.index, formatted_resolved_value)
-                        transformation = config_values.transform()
-                        if transformation is None and not is_optional_resolved:
-                            # if it does not override anything remove the key
-                            # otherwise put back old value that it was overriding
-                            if config_values.overriden_value is None:
-                                if config_values.key in config_values.parent:
-                                    del config_values.parent[config_values.key]
-                            else:
-                                config_values.parent[config_values.key] = config_values.overriden_value
-                                s = find_substitutions(config_values.overriden_value)
-                                if s:
-                                    substitutions.extend(s)
-                                    unresolved = True
-                        else:
-                            result = transformation[0] if isinstance(transformation, list) else transformation
-                            config_values.parent[config_values.key] = result
-                            s = find_substitutions(result)
-                            if s:
-                                substitutions.extend(s)
-                                unresolved = True
-                        substitutions.remove(substitution)
+                    unresolved, new_subsitutions, _ = ConfigParser._do_substitute(substitution, resolved_value, is_optional_resolved)
+                    substitutions.extend(new_subsitutions)
+                    substitutions.remove(substitution)
 
-            final_fixup(config)
+            ConfigParser._final_fixup(config)
             if unresolved:
                 raise ConfigSubstitutionException("Cannot resolve {variables}. Check for cycles.".format(
                     variables=', '.join('${{{variable}}}: (line: {line}, col: {col})'.format(
@@ -426,8 +461,9 @@ class ConfigTreeParser(TokenConverter):
     Parse a config tree from tokens
     """
 
-    def __init__(self, expr=None):
+    def __init__(self, expr=None, root=False):
         super(ConfigTreeParser, self).__init__(expr)
+        self.root = root
         self.saveAsList = True
 
     def postParse(self, instring, loc, token_list):
@@ -438,7 +474,7 @@ class ConfigTreeParser(TokenConverter):
         :param token_list:
         :return:
         """
-        config_tree = ConfigTree()
+        config_tree = ConfigTree(root=self.root)
         for element in token_list:
             expanded_tokens = element.tokens if isinstance(element, ConfigInclude) else [element]
 
@@ -455,13 +491,14 @@ class ConfigTreeParser(TokenConverter):
                     if isinstance(value, list):
                         config_tree.put(key, value, False)
                     else:
-                        if isinstance(value, ConfigTree):
+                        existing_value = config_tree.get(key, None)
+                        if isinstance(value, ConfigTree) and not isinstance(existing_value, list):
+                            # Only Tree has to be merged with tree
                             config_tree.put(key, value, True)
                         elif isinstance(value, ConfigValues):
                             conf_value = value
                             value.parent = config_tree
                             value.key = key
-                            existing_value = config_tree.get(key, None)
                             if isinstance(existing_value, list) or isinstance(existing_value, ConfigTree):
                                 config_tree.put(key, conf_value, True)
                             else:
