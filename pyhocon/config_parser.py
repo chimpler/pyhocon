@@ -296,26 +296,26 @@ class ConfigParser(object):
     @staticmethod
     def _fixup_self_references(config):
         if isinstance(config, ConfigTree) and config.root:
-            for key in config: # Traverse history of element
+            for key in config:  # Traverse history of element
                 history = config.history[key]
                 previous_item = history[0]
                 for current_item in history[1:]:
                     for substitution in ConfigParser._find_substitutions(current_item):
                         prop_path = ConfigTree.parse_key(substitution.variable)
                         if len(prop_path) > 1 and config.get(substitution.variable, None) is not None:
-                            continue # If value is present in latest version, don't do anything
+                            continue  # If value is present in latest version, don't do anything
                         if prop_path[0] == key:
-                            if isinstance(previous_item, ConfigValues): # We hit a dead end, we cannot evaluate
+                            if isinstance(previous_item, ConfigValues):  # We hit a dead end, we cannot evaluate
                                 raise ConfigSubstitutionException("Property {} cannot be substituted. Check for cycles.".format(substitution.variable))
                             value = previous_item if len(prop_path) == 1 else previous_item.get(".".join(prop_path[1:]))
-                            (_,_,current_item) = ConfigParser._do_substitute(substitution, value)
+                            (_, _, current_item) = ConfigParser._do_substitute(substitution, value)
                     previous_item = current_item
 
-                if len(history) == 1: # special case, when self optional referencing without existing 
+                if len(history) == 1:  # special case, when self optional referencing without existing
                     for substitution in ConfigParser._find_substitutions(previous_item):
                         prop_path = ConfigTree.parse_key(substitution.variable)
                         if len(prop_path) > 1 and config.get(substitution.variable, None) is not None:
-                            continue # If value is present in latest version, don't do anything
+                            continue  # If value is present in latest version, don't do anything
                         if prop_path[0] == key and substitution.optional:
                             ConfigParser._do_substitute(substitution, None)
 

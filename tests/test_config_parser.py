@@ -726,9 +726,9 @@ class TestConfigParser(object):
             x = {z: ${x}}
             """
         )
-        assert config.get("x.x") == [3,4]
-        assert config.get("x.y") == [5,6]
-        assert config.get("x.z") == {'x': [3,4], 'y': [5,6]}
+        assert config.get("x.x") == [3, 4]
+        assert config.get("x.y") == [5, 6]
+        assert config.get("x.z") == {'x': [3, 4], 'y': [5, 6]}
 
     def test_self_ref_substitiotion_dict_in_array(self):
         config = ConfigFactory.parse_string(
@@ -738,7 +738,7 @@ class TestConfigParser(object):
             """
         )
         (one, two, three) = config.get("x")
-        assert one == {'x': [3,4]}
+        assert one == {'x': [3, 4]}
         assert two == 2
         assert three == 3
 
@@ -765,7 +765,7 @@ class TestConfigParser(object):
 
     def test_self_ref_substitution_dict_recurse(self):
         with pytest.raises(ConfigSubstitutionException):
-            config = ConfigFactory.parse_string(
+            ConfigFactory.parse_string(
                 """
                 x = ${x}
                 """
@@ -773,7 +773,7 @@ class TestConfigParser(object):
 
     def test_self_ref_substitution_dict_recurse2(self):
         with pytest.raises(ConfigSubstitutionException):
-            config = ConfigFactory.parse_string(
+            ConfigFactory.parse_string(
                 """
                 x = ${x}
                 x = ${x}
@@ -857,7 +857,7 @@ class TestConfigParser(object):
 
     def test_self_ref_substitution_dict_recurse_part(self):
         with pytest.raises(ConfigSubstitutionException):
-            config = ConfigFactory.parse_string(
+            ConfigFactory.parse_string(
                 """
                 x = ${x} {y: 1}
                 x = ${x.y}
@@ -1457,7 +1457,7 @@ class TestConfigParser(object):
             """
             list = ${list} [ 4, 5, 6 ]
             """,
-            resolve = False
+            resolve=False
         )
         config2 = config2.with_fallback(config1)
         assert config2.get("list") == [1, 2, 3, 4, 5, 6]
@@ -1472,7 +1472,7 @@ class TestConfigParser(object):
             """
             dict = ${dict} { y: 2 }
             """,
-            resolve = False
+            resolve=False
         )
         config2 = config2.with_fallback(config1)
         assert config2.get("dict") == {'x': 1, 'y': 2}
@@ -1487,7 +1487,7 @@ class TestConfigParser(object):
             """
             string = ${string}def
             """,
-            resolve = False
+            resolve=False
         )
         config2 = config2.with_fallback(config1)
         assert config2.get("string") == 'abcdef'
