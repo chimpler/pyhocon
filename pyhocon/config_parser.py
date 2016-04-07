@@ -494,8 +494,14 @@ class ConfigTreeParser(TokenConverter):
                     config_tree.put(key, '')
                 else:
                     value = values[0]
-                    if isinstance(value, list):
-                        config_tree.put(key, value, operator == '+=')
+                    if isinstance(value, list) and operator == "+=":
+                        value = ConfigValues([ConfigSubstitution(key, True, '', False, loc), value], False, loc)
+                        config_tree.put(key, value, False)
+                    elif isinstance(value, str) and operator == "+=":
+                        value = ConfigValues([ConfigSubstitution(key, True, '', True, loc), ' ' + value], True, loc)
+                        config_tree.put(key, value, False)
+                    elif isinstance(value, list):
+                        config_tree.put(key, value, False)
                     else:
                         existing_value = config_tree.get(key, None)
                         if isinstance(value, ConfigTree) and not isinstance(existing_value, list):

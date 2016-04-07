@@ -726,6 +726,31 @@ class TestConfigParser(object):
         )
         assert config.get("x") == [1, 2, 3, 4]
 
+    def test_self_append_string(self):
+        '''
+        Should be equivalent to
+        x = abc
+        x = ${?x} def
+        '''
+        config = ConfigFactory.parse_string(
+            """
+            x = abc
+            x += def
+            """
+        )
+        assert config.get("x") == "abc def"
+
+    def test_self_append_non_existent_string(self):
+        '''
+        Should be equivalent to x = ${?x} def
+        '''
+        config = ConfigFactory.parse_string(
+            """
+            x += def
+            """
+        )
+        assert config.get("x") == " def"
+
     def test_self_append_nonexistent_array(self):
         config = ConfigFactory.parse_string(
             """
@@ -1490,6 +1515,21 @@ class TestConfigParser(object):
         config2 = ConfigFactory.parse_string(
             """
             list = ${list} [ 4, 5, 6 ]
+            """,
+            resolve=False
+        )
+        config2 = config2.with_fallback(config1)
+        assert config2.get("list") == [1, 2, 3, 4, 5, 6]
+
+    def test_fallback_self_ref_substitutions_append_plus_equals(self):
+        config1 = ConfigFactory.parse_string(
+            """
+            list = [ 1, 2, 3 ]
+            """
+        )
+        config2 = ConfigFactory.parse_string(
+            """
+            list += [ 4, 5, 6 ]
             """,
             resolve=False
         )
