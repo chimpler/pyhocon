@@ -717,6 +717,40 @@ class TestConfigParser(object):
         )
         assert config.get("x") == [-3, -2, -1, 0, 1, 2, 3, 4, 5, 6]
 
+    def test_self_append_array(self):
+        config = ConfigFactory.parse_string(
+            """
+            x = [1,2]
+            x += [3,4]
+            """
+        )
+        assert config.get("x") == [1, 2, 3, 4]
+
+    def test_self_append_nonexistent_array(self):
+        config = ConfigFactory.parse_string(
+            """
+            x += [1,2]
+            """
+        )
+        assert config.get("x") == [1, 2]
+
+    def test_self_append_object(self):
+        config = ConfigFactory.parse_string(
+            """
+            x = {a: 1}
+            x += {b: 2}
+            """
+        )
+        assert config.get("x") == {'a': 1, 'b': 2}
+
+    def test_self_append_nonexistent_object(self):
+        config = ConfigFactory.parse_string(
+            """
+            x += {a: 1}
+            """
+        )
+        assert config.get("x") == {'a': 1}
+
     def test_self_ref_substitution_array_to_dict(self):
         config = ConfigFactory.parse_string(
             """

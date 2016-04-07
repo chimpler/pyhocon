@@ -301,7 +301,7 @@ Path expressions                       | :white_check_mark:
 Paths as keys                          | :white_check_mark:
 Substitutions                          | :white_check_mark:
 Self-referential substitutions         | :white_check_mark:
-The `+=` separator                     | :x:
+The `+=` separator                     | :white_check_mark:
 Includes                               | :white_check_mark:
 Include semantics: merging             | :white_check_mark:
 Include semantics: substitution        | :white_check_mark:

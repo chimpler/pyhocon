@@ -3,7 +3,7 @@ import os
 import socket
 import contextlib
 from pyparsing import Forward, Keyword, QuotedString, Word, Literal, Suppress, Regex, Optional, SkipTo, ZeroOrMore, \
-    Group, lineno, col, TokenConverter, replaceWith, alphanums
+    Group, lineno, col, TokenConverter, replaceWith, alphanums, ParseSyntaxException
 from pyparsing import ParserElement
 from pyhocon.config_tree import ConfigTree, ConfigSubstitution, ConfigList, ConfigValues, ConfigUnquotedString, \
     ConfigInclude, NoneValue
@@ -248,7 +248,7 @@ class ConfigParser(object):
         assign_expr << Group(
             key -
             ZeroOrMore(comment_no_comma_eol) -
-            (dict_expr | Suppress(Literal('=') | Literal(':')) - ZeroOrMore(
+            (dict_expr | (Literal('=') | Literal(':') | Literal('+=')) - ZeroOrMore(
                 comment_no_comma_eol) - ConcatenatedValueParser(multi_value_expr))
         )
 
@@ -481,15 +481,21 @@ class ConfigTreeParser(TokenConverter):
             for tokens in expanded_tokens:
                 # key, value1 (optional), ...
                 key = tokens[0].strip()
-                values = tokens[1:]
-
+                operator = '='
+                if len(tokens) == 3 and tokens[1].strip() in [':', '=', '+=']:
+                    operator = tokens[1].strip()
+                    values = tokens[2:]
+                elif len(tokens) == 2:
+                    values = tokens[1:]
+                else:
+                    raise ParseSyntaxException("Unknown tokens {} received".format(tokens))
                 # empty string
                 if len(values) == 0:
                     config_tree.put(key, '')
                 else:
                     value = values[0]
                     if isinstance(value, list):
-                        config_tree.put(key, value, False)
+                        config_tree.put(key, value, operator == '+=')
                     else:
                         existing_value = config_tree.get(key, None)
                         if isinstance(value, ConfigTree) and not isinstance(existing_value, list):
@@ -504,6 +510,5 @@ class ConfigTreeParser(TokenConverter):
                             else:
                                 config_tree.put(key, conf_value, False)
                         else:
-                            conf_value = value
-                            config_tree.put(key, conf_value, False)
+                            config_tree.put(key, value, False)
         return config_tree
