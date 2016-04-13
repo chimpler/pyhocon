@@ -368,9 +368,8 @@ class ConfigParser(object):
                                     substitutions.extend(s)
                                     unresolved = True
                         else:
-                            result = transformation[0] if isinstance(transformation, list) else transformation
-                            config_values.parent[config_values.key] = result
-                            s = find_substitutions(result)
+                            config_values.parent[config_values.key] = transformation
+                            s = find_substitutions(transformation)
                             if s:
                                 substitutions.extend(s)
                                 unresolved = True
@@ -418,7 +417,7 @@ class ConcatenatedValueParser(TokenConverter):
 
     def postParse(self, instring, loc, token_list):
         config_values = ConfigValues(token_list, instring, loc)
-        return config_values.transform()
+        return [config_values.transform()]
 
 
 class ConfigTreeParser(TokenConverter):
