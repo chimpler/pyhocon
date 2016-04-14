@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.25
+
+* ConfigValue.transform: do not wrap lists. PR [#76]
+
 # Version 0.3.24
 
 * Use recursive merging when concatenating objects. PR [#74]
