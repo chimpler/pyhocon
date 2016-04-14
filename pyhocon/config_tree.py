@@ -360,7 +360,7 @@ class ConfigValues(object):
                     main_index += 1
                     sublist_result.append(token)
                 result.extend(sublist_result)
-            return [result]
+            return result
         else:
             if len(tokens) == 1:
                 return tokens[0]
