@@ -80,7 +80,7 @@ class HOCONConverter(object):
                 for key, item in config.items():
                     bet_lines.append('{indent}{key}{assign_sign} {value}'.format(
                         indent=''.rjust(level * indent, ' '),
-                        key=key.strip('"'),  # for dotted keys enclosed with "" to not be interpreted as nested key,
+                        key=key,
                         assign_sign='' if isinstance(item, dict) else ' =',
                         value=HOCONConverter.to_hocon(item, indent, level + 1))
                     )

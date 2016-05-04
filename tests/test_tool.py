@@ -18,6 +18,7 @@ class TestHOCONConverter(object):
             g = []
             h = null
             i = {}
+            "a.b" = 2
         """
 
     CONFIG = ConfigFactory.parse_string(CONFIG_STRING)
@@ -39,7 +40,8 @@ class TestHOCONConverter(object):
               "f2": false,
               "g": [],
               "h": null,
-              "i": {}
+              "i": {},
+              "a.b": 2
             }
         """
 
@@ -60,6 +62,7 @@ class TestHOCONConverter(object):
               g = []
               h = null
               i {}
+              "a.b" = 2
         """
 
     EXPECTED_YAML = \
@@ -80,6 +83,7 @@ class TestHOCONConverter(object):
             g: []
             h: None
             i:
+            a.b: 2
         """
 
     EXPECTED_PROPERTIES = \
@@ -94,6 +98,7 @@ class TestHOCONConverter(object):
                         3
             f1 = true
             f2 = false
+            a.b = 2
         """
 
     def test_to_json(self):
