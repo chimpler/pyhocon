@@ -2,7 +2,7 @@ import tempfile
 from pyparsing import ParseSyntaxException, ParseException
 import pytest
 from pyhocon import ConfigFactory, ConfigSubstitutionException, ConfigTree, ConfigParser
-from pyhocon.exceptions import ConfigMissingException, ConfigWrongTypeException
+from pyhocon.exceptions import ConfigMissingException, ConfigWrongTypeException, ConfigException
 
 try:  # pragma: no cover
     from collections import OrderedDict
@@ -1753,3 +1753,14 @@ with-escaped-newline-escape-sequence: \"\"\"
         assert config.get_list('base.bar') == ["a"]
         assert config.get_list('sub.baz') == ["a", "b"]
         assert config.get_list('sub2.baz') == ["a", "b"]
+
+    def test_plain_ordered_dict(self):
+        config = ConfigFactory.parse_string(
+            """
+            e : ${a} {
+            }
+            """,
+            resolve=False
+        )
+        with pytest.raises(ConfigException):
+            config.as_plain_ordered_dict()

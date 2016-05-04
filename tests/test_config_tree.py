@@ -2,6 +2,11 @@ import pytest
 from pyhocon.config_tree import ConfigTree
 from pyhocon.exceptions import ConfigMissingException, ConfigWrongTypeException
 
+try:  # pragma: no cover
+    from collections import OrderedDict
+except ImportError:  # pragma: no cover
+    from ordereddict import OrderedDict
+
 
 class TestConfigParser(object):
 
@@ -140,3 +145,15 @@ class TestConfigParser(object):
         config_tree.put("int", 5, True)
         config_tree.put("int.config", 1, True)
         assert config_tree == {'int': {'config': 1}}
+
+    def test_plain_ordered_dict(self):
+        config_tree = ConfigTree()
+        config_tree.put('"a.b"', 5)
+        config_tree.put('a."b.c"', [ConfigTree(), 2])
+        config_tree.get('a."b.c"')[0].put('"c.d"', 1)
+        d = OrderedDict()
+        d['a.b'] = 5
+        d['a'] = OrderedDict()
+        d['a']['b.c'] = [OrderedDict(), 2]
+        d['a']['b.c'][0]['c.d'] = 1
+        assert config_tree.as_plain_ordered_dict() == d

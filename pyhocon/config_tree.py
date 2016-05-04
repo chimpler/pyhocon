@@ -293,6 +293,32 @@ class ConfigTree(OrderedDict):
         ConfigParser.resolve_substitutions(result)
         return result
 
+    def as_plain_ordered_dict(self):
+        """return a deep copy of this config as a plain OrderedDict
+
+        The config tree should be fully resolved.
+
+        This is useful to get an object with no special semantics such as path expansion for the keys.
+        In particular this means that keys that contain dots are not surrounded with '"' in the plain OrderedDict.
+
+        :return: this config as an OrderedDict
+        :type return: OrderedDict
+        """
+        def plain_value(v):
+            if isinstance(v, list):
+                return [plain_value(e) for e in v]
+            elif isinstance(v, ConfigTree):
+                return v.as_plain_ordered_dict()
+            else:
+                if isinstance(v, ConfigValues):
+                    raise ConfigException("The config tree contains unresolved elements")
+                return v
+
+        plain = OrderedDict()
+        for key, value in self.items():
+            plain[key.strip('"')] = plain_value(value)
+        return plain
+
 
 class ConfigList(list):
     def __init__(self, iterable=[]):
