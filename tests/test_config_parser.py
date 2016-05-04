@@ -1671,3 +1671,21 @@ with-escaped-newline-escape-sequence: \"\"\"
         assert config.get_int('o1.foo.c', default=42) == 42
         assert config.get_int('o3.foo.a') == 1
         assert config.get_int('o3.foo.c') == 4
+
+    def test_issue_75(self):
+        config = ConfigFactory.parse_string(
+            """base : {
+              bar: ["a"]
+            }
+
+            sub : ${base} {
+              baz: ${base.bar} ["b"]
+            }
+
+            sub2: ${sub}
+            """
+        )
+
+        assert config.get_list('base.bar') == ["a"]
+        assert config.get_list('sub.baz') == ["a", "b"]
+        assert config.get_list('sub2.baz') == ["a", "b"]

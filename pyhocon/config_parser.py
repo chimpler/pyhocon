@@ -363,7 +363,7 @@ class ConfigParser(object):
             if transformation is None and not is_optional_resolved:
                 result = config_values.overriden_value
             else:
-                result = transformation[0] if isinstance(transformation, list) else transformation
+                result = transformation
 
             if result is None:
                 del config_values.parent[config_values.key]
@@ -453,7 +453,7 @@ class ConcatenatedValueParser(TokenConverter):
 
     def postParse(self, instring, loc, token_list):
         config_values = ConfigValues(token_list, instring, loc)
-        return config_values.transform()
+        return [config_values.transform()]
 
 
 class ConfigTreeParser(TokenConverter):
