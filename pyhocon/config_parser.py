@@ -306,7 +306,8 @@ class ConfigParser(object):
                             continue  # If value is present in latest version, don't do anything
                         if prop_path[0] == key:
                             if isinstance(previous_item, ConfigValues):  # We hit a dead end, we cannot evaluate
-                                raise ConfigSubstitutionException("Property {} cannot be substituted. Check for cycles.".format(substitution.variable))
+                                raise ConfigSubstitutionException("Property {variable} cannot be substituted. Check for cycles.".format(
+                                    variable=substitution.variable))
                             value = previous_item if len(prop_path) == 1 else previous_item.get(".".join(prop_path[1:]))
                             (_, _, current_item) = ConfigParser._do_substitute(substitution, value)
                     previous_item = current_item
