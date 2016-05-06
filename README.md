@@ -300,8 +300,8 @@ Arrays without commas                  | :white_check_mark:
 Path expressions                       | :white_check_mark:
 Paths as keys                          | :white_check_mark:
 Substitutions                          | :white_check_mark:
-Self-referential substitutions         | :x:
-The `+=` separator                     | :x:
+Self-referential substitutions         | :white_check_mark:
+The `+=` separator                     | :white_check_mark:
 Includes                               | :white_check_mark:
 Include semantics: merging             | :white_check_mark:
 Include semantics: substitution        | :white_check_mark:
@@ -335,6 +335,7 @@ Java properties mapping                                    | :x:
   - Virgil Palanciuc ([@virgil-palanciuc](https://github.com/virgil-palanciuc))
   - Douglas Simon ([@dougxc](https://github.com/dougxc))
   - Gilles Duboscq ([@gilles-duboscq](https://github.com/gilles-duboscq))
+  - Stefan Anzinger ([@sanzinger](https://github.com/sanzinger))
 
 ### Thanks
 

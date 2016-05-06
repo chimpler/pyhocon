@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.xx (TBA)
+
+* Implemented self-referential subsitutions
+
 # Version 0.3.25
 
 * ConfigValue.transform: do not wrap lists. PR [#76]
