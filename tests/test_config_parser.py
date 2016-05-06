@@ -1,7 +1,7 @@
 import tempfile
 from pyparsing import ParseSyntaxException, ParseException
 import pytest
-from pyhocon import ConfigFactory, ConfigSubstitutionException
+from pyhocon import ConfigFactory, ConfigSubstitutionException, ConfigTree, ConfigParser
 from pyhocon.exceptions import ConfigMissingException, ConfigWrongTypeException
 
 try:  # pragma: no cover
@@ -1535,6 +1535,70 @@ class TestConfigParser(object):
         )
         config2 = config2.with_fallback(config1)
         assert config2.get("list") == [1, 2, 3, 4, 5, 6]
+
+    def test_self_merge_ref_substitutions_object(self):
+        config1 = ConfigFactory.parse_string(
+            """
+            a : { }
+            b : 1
+            c : ${a} { d : [ ${b} ] }
+            """,
+            resolve=False
+        )
+        config2 = ConfigFactory.parse_string(
+            """
+            e : ${a} {
+            }
+            """,
+            resolve=False
+        )
+        merged = ConfigTree.merge_configs(config1, config2)
+        resolved = ConfigParser.resolve_substitutions(merged)
+        assert resolved.get("c.d") == [1]
+
+    def test_self_merge_ref_substitutions_object2(self):
+        config1 = ConfigFactory.parse_string(
+            """
+            x : { v1: 1 }
+            b1 : {v2: 2 }
+            b = [${b1}]
+            """,
+            resolve=False
+        )
+        config2 = ConfigFactory.parse_string(
+            """
+            b2 : ${x} {v2: 3}
+            b += [${b2}]
+            """,
+            resolve=False
+        )
+        merged = ConfigTree.merge_configs(config1, config2)
+        resolved = ConfigParser.resolve_substitutions(merged)
+        b = resolved.get("b")
+        assert len(b) == 2
+        assert b[0] == {'v2': 2}
+        assert b[1] == {'v1': 1, 'v2': 3}
+
+    def test_self_merge_ref_substitutions_object3(self):
+        config1 = ConfigFactory.parse_string(
+            """
+            b1 : { v1: 1 }
+            b = [${b1}]
+            """,
+            resolve=False
+        )
+        config2 = ConfigFactory.parse_string(
+            """
+            b1 : { v1: 2, v2: 3 }
+            """,
+            resolve=False
+        )
+        merged = ConfigTree.merge_configs(config1, config2)
+        resolved = ConfigParser.resolve_substitutions(merged)
+        assert resolved.get("b1") == {"v1": 2, "v2": 3}
+        b = resolved.get("b")
+        assert len(b) == 1
+        assert b[0] == {"v1": 2, "v2": 3}
 
     def test_fallback_self_ref_substitutions_merge(self):
         config1 = ConfigFactory.parse_string(
