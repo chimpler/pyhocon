@@ -1,8 +1,8 @@
 # Changelog
 
-# Version 0.3.xx (TBA)
+# Version 0.3.26 
 
-* Implemented self-referential subsitutions
+* Implemented self-referential substitutions and +=. PR [#81]
 
 # Version 0.3.25
 

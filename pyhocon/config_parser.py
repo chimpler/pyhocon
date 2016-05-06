@@ -309,7 +309,7 @@ class ConfigParser(object):
                                 raise ConfigSubstitutionException("Property {variable} cannot be substituted. Check for cycles.".format(
                                     variable=substitution.variable))
                             value = previous_item if len(prop_path) == 1 else previous_item.get(".".join(prop_path[1:]))
-                            (_, _, current_item) = ConfigParser._do_substitute(substitution, value)
+                            _, _, current_item = ConfigParser._do_substitute(substitution, value)
                     previous_item = current_item
 
                 if len(history) == 1:  # special case, when self optional referencing without existing
@@ -408,8 +408,8 @@ class ConfigParser(object):
                     if not is_optional_resolved and substitution.optional:
                         resolved_value = None
 
-                    unresolved, new_subsitutions, _ = ConfigParser._do_substitute(substitution, resolved_value, is_optional_resolved)
-                    substitutions.extend(new_subsitutions)
+                    unresolved, new_substitutions, _ = ConfigParser._do_substitute(substitution, resolved_value, is_optional_resolved)
+                    substitutions.extend(new_substitutions)
                     substitutions.remove(substitution)
 
             ConfigParser._final_fixup(config)
