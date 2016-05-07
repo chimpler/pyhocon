@@ -1,5 +1,10 @@
 # Changelog
 
+# Version 0.3.27 
+
+* Fixes for self-reference resolution after merging configs. PR [#82]
+* Key with dots. PR [#83]
+
 # Version 0.3.26 
 
 * Implemented self-referential substitutions and +=. PR [#81]
