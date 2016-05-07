@@ -348,7 +348,7 @@ class ConfigParser(object):
             resolved_value = resolved_value.transform()
         if isinstance(resolved_value, ConfigValues):
             unresolved = True
-            result = None
+            result = resolved_value
         else:
             # replace token by substitution
             config_values = substitution.parent
@@ -366,7 +366,7 @@ class ConfigParser(object):
             else:
                 result = transformation
 
-            if result is None:
+            if result is None and config_values.key in config_values.parent:
                 del config_values.parent[config_values.key]
             else:
                 config_values.parent[config_values.key] = result
@@ -393,12 +393,13 @@ class ConfigParser(object):
     def resolve_substitutions(config):
         ConfigParser._fixup_self_references(config)
         substitutions = ConfigParser._find_substitutions(config)
-
         if len(substitutions) > 0:
             unresolved = True
+            any_unresolved = True
             _substitutions = []
-            while unresolved and len(substitutions) > 0 and set(substitutions) != set(_substitutions):
+            while any_unresolved and len(substitutions) > 0 and set(substitutions) != set(_substitutions):
                 unresolved = False
+                any_unresolved = True
                 _substitutions = substitutions[:]
 
                 for substitution in _substitutions:
@@ -408,9 +409,11 @@ class ConfigParser(object):
                     if not is_optional_resolved and substitution.optional:
                         resolved_value = None
 
-                    unresolved, new_substitutions, _ = ConfigParser._do_substitute(substitution, resolved_value, is_optional_resolved)
+                    unresolved, new_substitutions, result = ConfigParser._do_substitute(substitution, resolved_value, is_optional_resolved)
+                    any_unresolved = unresolved or any_unresolved
                     substitutions.extend(new_substitutions)
-                    substitutions.remove(substitution)
+                    if not isinstance(result, ConfigValues):
+                        substitutions.remove(substitution)
 
             ConfigParser._final_fixup(config)
             if unresolved:
