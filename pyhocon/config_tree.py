@@ -314,10 +314,7 @@ class ConfigTree(OrderedDict):
                     raise ConfigException("The config tree contains unresolved elements")
                 return v
 
-        plain = OrderedDict()
-        for key, value in self.items():
-            plain[key.strip('"')] = plain_value(value)
-        return plain
+        return OrderedDict((key.strip('"'), plain_value(value)) for key, value in self.items())
 
 
 class ConfigList(list):
