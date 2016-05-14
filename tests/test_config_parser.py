@@ -1770,13 +1770,15 @@ test2 = test
     def test_quoted_strings_with_ws(self):
         config = ConfigFactory.parse_string(
             """
-            no_trailing_ws = "foo"  "bar "
-            trailing_ws = "foo"  "bar "
-            """)
+            no_trailing_ws = "foo"  "bar  "
+            trailing_ws = "foo"  "bar  "{ws}
+            trailing_ws_with_comment = "foo"  "bar  "{ws}// comment
+            """.format(ws='   '))
 
         assert config == {
-            'no_trailing_ws': "foo  bar ",
-            'trailing_ws': "foo  bar "
+            'no_trailing_ws': "foo  bar  ",
+            'trailing_ws': "foo  bar  ",
+            'trailing_ws_with_comment': "foo  bar  "
         }
 
     def test_unquoted_strings_with_ws(self):
