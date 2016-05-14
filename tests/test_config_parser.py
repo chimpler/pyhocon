@@ -205,21 +205,6 @@ class TestConfigParser(object):
         )
         assert config.get('a') is None
 
-    def test_parse_empty(self):
-        config = ConfigFactory.parse_string(
-            """
-            a =
-            b =   // test
-            c =   # test
-            d =   ,
-            e =  ,  // test
-            f =    , # test
-            """
-        )
-        assert config.get('a') == ''
-        assert config.get('b') == ''
-        assert config.get('c') == ''
-
     def test_parse_override(self):
         config = ConfigFactory.parse_string(
             """
@@ -1653,11 +1638,15 @@ class TestConfigParser(object):
     def test_one_line_quote_escape(self):
         config = ConfigFactory.parse_string(
             """
-            test: "abc\n\n"
+            test_no_quotes: abc\\n\\n
+            test_quotes: "abc\\n\\n"
             """
         )
 
-        assert config['test'] == 'abc\n\n'
+        assert config == {
+            'test_no_quotes': 'abc\n\n',
+            'test_quotes': 'abc\n\n'
+        }
 
     def test_multi_line_escape(self):
         config = ConfigFactory.parse_string(
@@ -1679,6 +1668,19 @@ with-escaped-newline-escape-sequence: \"\"\"
         assert config['with-escaped-backslash'] == '\n\\\\\n'
         assert config['with-newline-escape-sequence'] == '\n\\n\n'
         assert config['with-escaped-newline-escape-sequence'] == '\n\\\\n\n'
+
+    def test_multiline_with_backslash(self):
+        config = ConfigFactory.parse_string(
+            """
+            test = line1 \
+line2
+test2 = test
+            """)
+
+        assert config == {
+            'test': 'line1 line2',
+            'test2': 'test'
+        }
 
     def test_from_dict_with_dict(self):
         d = {
@@ -1764,3 +1766,68 @@ with-escaped-newline-escape-sequence: \"\"\"
         )
         with pytest.raises(ConfigException):
             config.as_plain_ordered_dict()
+
+    def test_quoted_strings_with_ws(self):
+        config = ConfigFactory.parse_string(
+            """
+            no_trailing_ws = "foo"  "bar "
+            trailing_ws = "foo"  "bar "
+            """)
+
+        assert config == {
+            'no_trailing_ws': "foo  bar ",
+            'trailing_ws': "foo  bar "
+        }
+
+    def test_unquoted_strings_with_ws(self):
+        config = ConfigFactory.parse_string(
+            """
+            a = foo  bar
+            """)
+
+        assert config == {
+            'a': 'foo  bar'
+        }
+
+    def test_quoted_unquoted_strings_with_ws(self):
+        config = ConfigFactory.parse_string(
+            """
+            a = foo  "bar"   dummy
+            """)
+
+        assert config == {
+            'a': 'foo  bar   dummy'
+        }
+
+    def test_quoted_unquoted_strings_with_ws_substitutions(self):
+        config = ConfigFactory.parse_string(
+            """
+            x = 5
+            b = test
+            a = foo  "bar"  ${b} dummy
+            c = foo          ${x}        bv
+            d = foo          ${x}        43
+            """)
+
+        assert config == {
+            'x': 5,
+            'b': 'test',
+            'a': 'foo  bar  test dummy',
+            'c': 'foo          5        bv',
+            'd': 'foo          5        43'
+        }
+
+    def test_assign_next_line(self):
+        config = ConfigFactory.parse_string(
+            """
+            a = // abc
+            abc
+
+            c =
+            5
+            """)
+
+        assert config == {
+            'a': 'abc',
+            'c': 5
+        }

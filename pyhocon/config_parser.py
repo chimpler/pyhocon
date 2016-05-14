@@ -6,7 +6,7 @@ from pyparsing import Forward, Keyword, QuotedString, Word, Literal, Suppress, R
     Group, lineno, col, TokenConverter, replaceWith, alphanums, ParseSyntaxException
 from pyparsing import ParserElement
 from pyhocon.config_tree import ConfigTree, ConfigSubstitution, ConfigList, ConfigValues, ConfigUnquotedString, \
-    ConfigInclude, NoneValue
+    ConfigInclude, NoneValue, ConfigQuotedString
 from pyhocon.exceptions import ConfigSubstitutionException, ConfigMissingException
 import logging
 
@@ -156,30 +156,42 @@ class ConfigParser(object):
                 return float(n)
 
         # ${path} or ${?path} for optional substitution
-        SUBSTITUTION = "\$\{(?P<optional>\?)?(?P<variable>[^}]+)\}(?P<ws>\s*)"
+        SUBSTITUTION_PATTERN = "\$\{(?P<optional>\?)?(?P<variable>[^}]+)\}(?P<ws>[ \t]*)"
 
         def create_substitution(instring, loc, token):
             # remove the ${ and }
-            match = re.match(SUBSTITUTION, token[0])
+            match = re.match(SUBSTITUTION_PATTERN, token[0])
             variable = match.group('variable')
             ws = match.group('ws')
             optional = match.group('optional') == '?'
             substitution = ConfigSubstitution(variable, optional, ws, instring, loc)
             return substitution
 
+        # ${path} or ${?path} for optional substitution
+        STRING_PATTERN = '(")(?P<value>[^"]*)\\1(?P<ws>[ \t]*)'
+
+        def create_quoted_string(instring, loc, token):
+            # remove the ${ and }
+            match = re.match(STRING_PATTERN, token[0])
+            value = norm_string(match.group('value'))
+            ws = match.group('ws')
+            return ConfigQuotedString(value, ws, instring, loc)
+
         def include_config(token):
             url = None
             file = None
             if len(token) == 1:  # include "test"
-                if token[0].startswith("http://") or token[0].startswith("https://") or token[0].startswith("file://"):
-                    url = token[0]
+                value = token[0].value if isinstance(token[0], ConfigQuotedString) else token[0]
+                if value.startswith("http://") or value.startswith("https://") or value.startswith("file://"):
+                    url = value
                 else:
-                    file = token[0]
+                    file = value
             elif len(token) == 2:  # include url("test") or file("test")
+                value = token[1].value if isinstance(token[0], ConfigQuotedString) else token[1]
                 if token[0] == 'url':
-                    url = token[1]
+                    url = value
                 else:
-                    file = token[1]
+                    file = value
 
             if url is not None:
                 logger.debug('Loading config from url %s', url)
@@ -212,14 +224,13 @@ class ConfigParser(object):
         # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
         multiline_string = Regex('""".*?"""', re.DOTALL | re.UNICODE).setParseAction(parse_multi_string)
         # single quoted line string
-        quoted_string = QuotedString(quoteChar='"', escChar='\\', multiline=True)
+        quoted_string = Regex('".*?"[ \t]*', re.UNICODE).setParseAction(create_quoted_string)
         # unquoted string that takes the rest of the line until an optional comment
         # we support .properties multiline support which is like this:
         # line1  \
         # line2 \
         # so a backslash precedes the \n
-        unquoted_string = Regex(r'(\\[ \t]*[\r\n]|[^\[\{\n\r\]\}#,=\$])+?(?=($|\$|[ \t]*(//|[\}\],#\n\r])))',
-                                re.DOTALL).setParseAction(unescape_string)
+        unquoted_string = Regex('(?:\\\\|[^\[\{\s\]\}#,=\$])+[ \t]*').setParseAction(unescape_string)
         substitution_expr = Regex('[ \t]*\$\{[^\}]+\}[ \t]*').setParseAction(create_substitution)
         string_expr = multiline_string | quoted_string | unquoted_string
 
@@ -233,8 +244,8 @@ class ConfigParser(object):
         root_dict_expr = Forward()
         dict_expr = Forward()
         list_expr = Forward()
-        multi_value_expr = ZeroOrMore((Literal(
-            '\\') - eol).suppress() | comment_eol | include_expr | substitution_expr | dict_expr | list_expr | value_expr)
+        multi_value_expr = ZeroOrMore(comment_eol | include_expr | substitution_expr | dict_expr | list_expr | value_expr | (Literal(
+            '\\') - eol).suppress())
         # for a dictionary : or = is optional
         # last zeroOrMore is because we can have t = {a:4} {b: 6} {c: 7} which is dictionary concatenation
         inside_dict_expr = ConfigTreeParser(ZeroOrMore(comment_eol | include_expr | assign_expr | eol_comma))

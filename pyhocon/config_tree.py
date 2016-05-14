@@ -354,7 +354,8 @@ class ConfigValues(object):
 
         # if the last token is an unquoted string then right strip it
         if isinstance(self.tokens[-1], ConfigUnquotedString):
-            self.tokens[-1] = self.tokens[-1].rstrip()
+            # rstrip only whitespaces, not \n\r because they would have been used escaped
+            self.tokens[-1] = self.tokens[-1].rstrip(' \t')
 
     def has_substitution(self):
         return len(self.get_substitutions()) > 0
@@ -366,8 +367,11 @@ class ConfigValues(object):
         def determine_type(token):
             return ConfigTree if isinstance(token, ConfigTree) else ConfigList if isinstance(token, list) else str
 
-        def format_str(v):
-            return '' if v is None else str(v)
+        def format_str(v, last=False):
+            if isinstance(v, ConfigQuotedString):
+                return v.value + ('' if last else v.ws)
+            else:
+                return '' if v is None else str(v)
 
         if self.has_substitution():
             return self
@@ -412,10 +416,11 @@ class ConfigValues(object):
             return result
         else:
             if len(tokens) == 1:
+                if isinstance(tokens[0], ConfigQuotedString):
+                    return tokens[0].value
                 return tokens[0]
             else:
-                return ''.join(
-                    format_str(token) for token in tokens[:-1]) + format_str(tokens[-1])
+                return ''.join(format_str(token) for token in tokens[:-1]) + format_str(tokens[-1], True)
 
     def put(self, index, value):
         self.tokens[index] = value
@@ -441,3 +446,14 @@ class ConfigSubstitution(object):
 class ConfigUnquotedString(str):
     def __new__(cls, value):
         return super(ConfigUnquotedString, cls).__new__(cls, value)
+
+
+class ConfigQuotedString(object):
+    def __init__(self, value, ws, instring, loc):
+        self.value = value
+        self.ws = ws
+        self.instring = instring
+        self.loc = loc
+
+    def __repr__(self):  # pragma: no cover
+        return '[ConfigQuotedString: ' + self.value + ']'
