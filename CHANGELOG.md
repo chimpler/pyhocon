@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.28 
+
+* Quoted str ws fix. PR [#85]
+
 # Version 0.3.27 
 
 * Fixes for self-reference resolution after merging configs. PR [#82]
