@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.29
+
+* Don't lock pyparsing to a specific version. PR [#86]
+
 # Version 0.3.28 
 
 * Quoted str ws fix. PR [#85]
