@@ -1,6 +1,7 @@
 import pytest
 from pyhocon.config_tree import ConfigTree
-from pyhocon.exceptions import ConfigMissingException, ConfigWrongTypeException
+from pyhocon.exceptions import (
+    ConfigMissingException, ConfigWrongTypeException, ConfigException)
 
 try:  # pragma: no cover
     from collections import OrderedDict
@@ -133,6 +134,46 @@ class TestConfigParser(object):
         assert config_tree.get("config-new", {'b': 1}) == {'b': 1}
         assert config_tree.get_config("config", {'b': 1}) == {'a': 5}
         assert config_tree.get_config("config-new", {'b': 1}) == {'b': 1}
+
+    def test_getter_type_conversion_string_to_bool(self):
+        config_tree = ConfigTree()
+        config_tree.put("bool-string-true", "true")
+        assert config_tree.get_bool("bool-string-true") is True
+
+        config_tree.put("bool-string-false", "false")
+        assert config_tree.get_bool("bool-string-false") is False
+
+        config_tree.put("bool-string-yes", "yes")
+        assert config_tree.get_bool("bool-string-yes") is True
+
+        config_tree.put("bool-string-no", "no")
+        assert config_tree.get_bool("bool-string-no") is False
+
+        config_tree.put("bool-string-on", "on")
+        assert config_tree.get_bool("bool-string-on") is True
+
+        config_tree.put("bool-string-off", "off")
+        assert config_tree.get_bool("bool-string-off") is False
+
+        config_tree.put("invalid-bool-string", "invalid")
+        with pytest.raises(ConfigException):
+            config_tree.get_bool("invalid-bool-string")
+
+    def test_getter_type_conversion_bool_to_string(self):
+        config_tree = ConfigTree()
+        config_tree.put("bool-true", True)
+        assert config_tree.get_string("bool-true") == "true"
+
+        config_tree.put("bool-false", False)
+        assert config_tree.get_string("bool-false") == "false"
+
+    def test_getter_type_conversion_number_to_string(self):
+        config_tree = ConfigTree()
+        config_tree.put("int", 5)
+        assert config_tree.get_string("int") == "5"
+
+        config_tree.put("float", 2.345)
+        assert config_tree.get_string("float") == "2.345"
 
     def test_overrides_int_with_config_no_append(self):
         config_tree = ConfigTree()

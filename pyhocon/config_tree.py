@@ -199,7 +199,10 @@ class ConfigTree(OrderedDict):
         :return: string value
         :type return: basestring
         """
-        return str(self.get(key, default))
+        string_value = str(self.get(key, default))
+        if string_value in ['True', 'False']:
+            return string_value.lower()
+        return string_value
 
     def get_int(self, key, default=UndefinedKey):
         """Return int representation of value found at key
@@ -235,7 +238,18 @@ class ConfigTree(OrderedDict):
         :return: boolean value
         :type return: bool
         """
-        return bool(self.get(key, default))
+
+        # String conversions as per API-recommendations:
+        # https://github.com/typesafehub/config/blob/master/HOCON.md#automatic-type-conversions
+        bool_conversions = {
+            'true': True, 'yes': True, 'on': True,
+            'false': False, 'no': False, 'off': False
+        }
+        try:
+            return bool_conversions[self.get_string(key, default)]
+        except KeyError:
+            raise ConfigException(
+                "{key} does not translate to a Boolean value".format(key=key))
 
     def get_list(self, key, default=UndefinedKey):
         """Return list representation of value found at key
