@@ -53,7 +53,7 @@ setup(
         'pyhocon',
     ],
     install_requires=required_packages,
-    tests_require=['pytest'],
+    tests_require=['pytest', 'mock'],
     entry_points={
         'console_scripts': [
             'pyhocon=pyhocon.tool:main'
