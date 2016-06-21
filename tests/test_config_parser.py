@@ -1855,10 +1855,10 @@ test2 = test
         assert config == {
             'bool_from_env': 'false'
         }
-        assert config.get_bool('bool_from_env') == False
+        assert config.get_bool('bool_from_env') is False
 
     @mock.patch.dict(os.environ, INT_VAR='5')
-    def test_bool_from_environment(self):
+    def test_int_from_environment(self):
         config = ConfigFactory.parse_string(
             """
             int_from_env = ${INT_VAR}
