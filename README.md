@@ -337,6 +337,7 @@ Java properties mapping                                    | :x:
   - Gilles Duboscq ([@gilles-duboscq](https://github.com/gilles-duboscq))
   - Stefan Anzinger ([@sanzinger](https://github.com/sanzinger))
   - Ryan Van Gilder ([@ryban](https://github.com/ryban))
+  - Martin Kristiansen ([@lillekemiker](https://github.com/lillekemiker))
 
 ### Thanks
 

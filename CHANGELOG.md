@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.30
+
+* Bug fix for ConfigTree.get_bool(). PR [#90]
+
 # Version 0.3.29
 
 * Don't lock pyparsing to a specific version. PR [#86]
