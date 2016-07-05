@@ -3,7 +3,6 @@ pyhocon
 
 [![pypi](http://img.shields.io/pypi/v/pyhocon.png)](https://pypi.python.org/pypi/pyhocon)
 [![Supported Python Versions](https://img.shields.io/pypi/pyversions/Pyhocon.svg)](https://pypi.python.org/pypi/pyhocon/)
-[![pypi downloads](http://img.shields.io/pypi/dm/pyhocon.png)](https://pypi.python.org/pypi/pyhocon)
 [![Build Status](https://travis-ci.org/chimpler/pyhocon.svg)](https://travis-ci.org/chimpler/pyhocon)
 [![Codacy Badge](https://www.codacy.com/project/badge/684cdd4d82734702ac612bf8b25fc5a0)](https://www.codacy.com/app/francois-dangngoc/pyhocon)
 [![License](https://img.shields.io/pypi/l/Pyhocon.svg)](https://pypi.python.org/pypi/pyhocon/)
