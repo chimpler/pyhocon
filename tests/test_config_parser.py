@@ -1,3 +1,5 @@
+import os
+import mock
 import tempfile
 from pyparsing import ParseSyntaxException, ParseException
 import pytest
@@ -1833,3 +1835,35 @@ test2 = test
             'a': 'abc',
             'c': 5
         }
+
+    @mock.patch.dict(os.environ, STRING_VAR='value_from_environment')
+    def test_string_from_environment(self):
+        config = ConfigFactory.parse_string(
+            """
+            string_from_env = ${STRING_VAR}
+            """)
+        assert config == {
+            'string_from_env': 'value_from_environment'
+        }
+
+    @mock.patch.dict(os.environ, TRUE_OR_FALSE='false')
+    def test_bool_from_environment(self):
+        config = ConfigFactory.parse_string(
+            """
+            bool_from_env = ${TRUE_OR_FALSE}
+            """)
+        assert config == {
+            'bool_from_env': 'false'
+        }
+        assert config.get_bool('bool_from_env') is False
+
+    @mock.patch.dict(os.environ, INT_VAR='5')
+    def test_int_from_environment(self):
+        config = ConfigFactory.parse_string(
+            """
+            int_from_env = ${INT_VAR}
+            """)
+        assert config == {
+            'int_from_env': '5'
+        }
+        assert config.get_int('int_from_env') == 5
