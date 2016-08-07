@@ -236,7 +236,7 @@ class ConfigParser(object):
 
         value_expr = number_expr | true_expr | false_expr | null_expr | string_expr
 
-        include_expr = (Keyword("include", caseless=True).suppress() - (
+        include_expr = (Keyword("include", caseless=True).suppress() + (
             quoted_string | (
                 (Keyword('url') | Keyword('file')) - Literal('(').suppress() - quoted_string - Literal(')').suppress()))) \
             .setParseAction(include_config)
