@@ -1163,7 +1163,6 @@ class TestConfigParser(object):
             'include-database': True
         }
 
-
     def test_substitution_override(self):
         config = ConfigFactory.parse_string(
             """
