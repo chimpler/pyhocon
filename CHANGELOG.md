@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.31
+
+* Bug fix for variables that start with include-blabla. PR [#92]
+
 # Version 0.3.30
 
 * Bug fix for ConfigTree.get_bool(). PR [#90]
