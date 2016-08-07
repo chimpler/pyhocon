@@ -1153,6 +1153,16 @@ class TestConfigParser(object):
             assert config['x'] == 42
             assert config['y'] == 42
 
+    def test_var_with_include_keyword(self):
+        config = ConfigFactory.parse_string(
+            """
+            include-database=true
+            """)
+
+        assert config == {
+            'include-database': True
+        }
+
     def test_substitution_override(self):
         config = ConfigFactory.parse_string(
             """
