@@ -187,7 +187,7 @@ class ConfigParser(object):
                 else:
                     file = value
             elif len(token) == 2:  # include url("test") or file("test")
-                value = token[1].value if isinstance(token[0], ConfigQuotedString) else token[1]
+                value = token[1].value if isinstance(token[1], ConfigQuotedString) else token[1]
                 if token[0] == 'url':
                     url = value
                 else:
