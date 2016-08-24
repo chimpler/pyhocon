@@ -1066,7 +1066,7 @@ class TestConfigParser(object):
                 """
                 a: [
                     include "{tmp_file}"
-		        ]
+                ]
                 """.format(tmp_file=fdin.name)
             )
             assert config1['a'] == [1, 2]
@@ -1075,7 +1075,7 @@ class TestConfigParser(object):
                 """
                 a: [
                     include file("{tmp_file}")
-		        ]
+                ]
                 """.format(tmp_file=fdin.name)
             )
             assert config2['a'] == [1, 2]
@@ -1084,7 +1084,7 @@ class TestConfigParser(object):
                 """
                 a: [
                     include url("file://{tmp_file}")
-		    ]
+                ]
                 """.format(tmp_file=fdin.name)
             )
             assert config3['a'] == [1, 2]
