@@ -1057,6 +1057,38 @@ class TestConfigParser(object):
         with pytest.raises(ParseSyntaxException):
             ConfigFactory.parse_string('a = {g}')
 
+    def test_include_file(self):
+        with tempfile.NamedTemporaryFile('w') as fdin:
+            fdin.write('[1, 2]')
+            fdin.flush()
+
+            config1 = ConfigFactory.parse_string(
+                """
+                a: [
+                    include "{tmp_file}"
+		        ]
+                """.format(tmp_file=fdin.name)
+            )
+            assert config1['a'] == [1, 2]
+
+            config2 = ConfigFactory.parse_string(
+                """
+                a: [
+                    include file("{tmp_file}")
+		        ]
+                """.format(tmp_file=fdin.name)
+            )
+            assert config2['a'] == [1, 2]
+
+            config3 = ConfigFactory.parse_string(
+                """
+                a: [
+                    include url("file://{tmp_file}")
+		    ]
+                """.format(tmp_file=fdin.name)
+            )
+            assert config3['a'] == [1, 2]
+
     def test_include_list(self):
         with tempfile.NamedTemporaryFile('w') as fdin:
             fdin.write('[1, 2]')

@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.32
+
+* Bug fix for include file. PR [#93]
+
 # Version 0.3.31
 
 * Bug fix for variables that start with include-blabla. PR [#92]
