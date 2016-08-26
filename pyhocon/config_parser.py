@@ -2,8 +2,9 @@ import re
 import os
 import socket
 import contextlib
+import codecs
 from pyparsing import Forward, Keyword, QuotedString, Word, Literal, Suppress, Regex, Optional, SkipTo, ZeroOrMore, \
-    Group, lineno, col, TokenConverter, replaceWith, alphanums, ParseSyntaxException
+    Group, lineno, col, TokenConverter, replaceWith, alphanums, alphas8bit, ParseSyntaxException
 from pyparsing import ParserElement
 from pyhocon.config_tree import ConfigTree, ConfigSubstitution, ConfigList, ConfigValues, ConfigUnquotedString, \
     ConfigInclude, NoneValue, ConfigQuotedString
@@ -30,11 +31,13 @@ logger = logging.getLogger(__name__)
 
 class ConfigFactory(object):
     @staticmethod
-    def parse_file(filename, required=True, resolve=True):
+    def parse_file(filename, encoding='utf-8', required=True, resolve=True):
         """Parse file
 
         :param filename: filename
         :type filename: basestring
+        :param encoding: file encoding
+        :type encoding: basestring
         :param required: If true, raises an exception if can't load file
         :type required: boolean
         :param resolve: If true, resolve substitutions
@@ -43,7 +46,7 @@ class ConfigFactory(object):
         :type return: Config
         """
         try:
-            with open(filename, 'r') as fd:
+            with codecs.open(filename, 'r', encoding=encoding) as fd:
                 content = fd.read()
                 return ConfigFactory.parse_string(content, os.path.dirname(filename), resolve)
         except IOError as e:
@@ -210,7 +213,7 @@ class ConfigParser(object):
         true_expr = Keyword("true", caseless=True).setParseAction(replaceWith(True))
         false_expr = Keyword("false", caseless=True).setParseAction(replaceWith(False))
         null_expr = Keyword("null", caseless=True).setParseAction(replaceWith(NoneValue()))
-        key = QuotedString('"', escChar='\\', unquoteResults=False) | Word(alphanums + '._- ')
+        key = QuotedString('"', escChar='\\', unquoteResults=False) | Word(alphanums + alphas8bit + '._- ')
 
         eol = Word('\n\r').suppress()
         eol_comma = Word('\n\r,').suppress()
