@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.33
+
+* Fix unicode dict key. PR [#94]
+
 # Version 0.3.32
 
 * Bug fix for include file. PR [#93]

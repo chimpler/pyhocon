@@ -338,6 +338,7 @@ Java properties mapping                                    | :x:
   - Ryan Van Gilder ([@ryban](https://github.com/ryban))
   - Martin Kristiansen ([@lillekemiker](https://github.com/lillekemiker))
   - yzliao ([@yzliao](https://github.com/yzliao))
+  - atomerju ([@atomerju](https://github.com/atomerju))
 
 ### Thanks
 
