@@ -1,3 +1,5 @@
+# -*- encoding: utf-8 -*-
+
 import os
 import mock
 import tempfile
@@ -1909,3 +1911,22 @@ test2 = test
             'int_from_env': '5'
         }
         assert config.get_int('int_from_env') == 5
+
+    def test_unicode_dict_key(self):
+        input_string = u"""
+www.sample.com {
+    us {
+        name = "first domain"
+    }
+}
+www.example-ö.com {
+    us {
+        name = "second domain"
+    }
+}
+        """
+
+        config = ConfigFactory.parse_string(input_string)
+
+        assert config.get_string(u'www.sample.com.us.name') == 'first domain'
+        assert config.get_string(u'www.example-ö.com.us.name') == 'second domain'
