@@ -100,7 +100,7 @@ class ConfigTree(OrderedDict):
 
                 else:
                     raise ConfigWrongTypeException(
-                        "Cannot concatenate the list {key}: {value} to {prev_value} of {type}".format(
+                        u"Cannot concatenate the list {key}: {value} to {prev_value} of {type}".format(
                             key='.'.join(key_path),
                             value=value,
                             prev_value=l,
@@ -136,7 +136,7 @@ class ConfigTree(OrderedDict):
 
         if elt is UndefinedKey:
             if default is UndefinedKey:
-                raise ConfigMissingException("No configuration setting found for key {key}".format(key='.'.join(key_path[:key_index + 1])))
+                raise ConfigMissingException(u"No configuration setting found for key {key}".format(key='.'.join(key_path[:key_index + 1])))
             else:
                 return default
 
@@ -150,7 +150,7 @@ class ConfigTree(OrderedDict):
         else:
             if default is UndefinedKey:
                 raise ConfigWrongTypeException(
-                    "{key} has type {type} rather than dict".format(key='.'.join(key_path[:key_index + 1]),
+                    u"{key} has type {type} rather than dict".format(key='.'.join(key_path[:key_index + 1]),
                                                                     type=type(elt).__name__))
             else:
                 return default
@@ -249,7 +249,7 @@ class ConfigTree(OrderedDict):
             return bool_conversions[self.get_string(key, default)]
         except KeyError:
             raise ConfigException(
-                "{key} does not translate to a Boolean value".format(key=key))
+                u"{key} does not translate to a Boolean value".format(key=key))
 
     def get_list(self, key, default=UndefinedKey):
         """Return list representation of value found at key
@@ -266,7 +266,7 @@ class ConfigTree(OrderedDict):
             return value
         else:
             raise ConfigException(
-                "{key} has type '{type}' rather than 'list'".format(key=key, type=type(value).__name__))
+                u"{key} has type '{type}' rather than 'list'".format(key=key, type=type(value).__name__))
 
     def get_config(self, key, default=UndefinedKey):
         """Return tree config representation of value found at key

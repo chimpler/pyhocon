@@ -1930,3 +1930,17 @@ www.example-ö.com {
 
         assert config.get_string(u'www.sample.com.us.name') == 'first domain'
         assert config.get_string(u'www.example-ö.com.us.name') == 'second domain'
+        with pytest.raises(ConfigWrongTypeException):
+            config.put(u'www.example-ö', 'append_failure', append=True)
+        with pytest.raises(ConfigMissingException):
+            config.get_string(u'missing_unicode_key_ö')
+        with pytest.raises(ConfigException):
+            config.get_bool(u'www.example-ö.com.us.name')
+        with pytest.raises(ConfigException):
+            config.get_list(u'www.example-ö.com.us.name')
+        with pytest.raises(ConfigException):
+            config.get_config(u'www.example-ö.com.us.name')
+        with pytest.raises(ConfigWrongTypeException):
+            config.get_string(u'www.example-ö.com.us.name.missing')
+        
+        
