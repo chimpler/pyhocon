@@ -151,7 +151,7 @@ class ConfigTree(OrderedDict):
             if default is UndefinedKey:
                 raise ConfigWrongTypeException(
                     u"{key} has type {type} rather than dict".format(key='.'.join(key_path[:key_index + 1]),
-                                                                    type=type(elt).__name__))
+                                                                     type=type(elt).__name__))
             else:
                 return default
 
@@ -283,7 +283,7 @@ class ConfigTree(OrderedDict):
             return value
         else:
             raise ConfigException(
-                "{key} has type '{type}' rather than 'config'".format(key=key, type=type(value).__name__))
+                u"{key} has type '{type}' rather than 'config'".format(key=key, type=type(value).__name__))
 
     def __getitem__(self, item):
         val = self.get(item)

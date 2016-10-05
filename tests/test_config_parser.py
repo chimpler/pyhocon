@@ -1942,5 +1942,3 @@ www.example-ö.com {
             config.get_config(u'www.example-ö.com.us.name')
         with pytest.raises(ConfigWrongTypeException):
             config.get_string(u'www.example-ö.com.us.name.missing')
-        
-        
