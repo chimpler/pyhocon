@@ -297,14 +297,6 @@ class ConfigParser(object):
                             variable=variable,
                             line=lineno(substitution.loc, substitution.instring),
                             col=col(substitution.loc, substitution.instring)))
-            elif isinstance(value, ConfigList) or isinstance(value, ConfigTree):
-                raise ConfigSubstitutionException(
-                    "Cannot substitute variable ${{{variable}}} because it does not point to a "
-                    "string, int, float, boolean or null {type} (line:{line}, col: {col})".format(
-                        variable=variable,
-                        type=value.__class__.__name__,
-                        line=lineno(substitution.loc, substitution.instring),
-                        col=col(substitution.loc, substitution.instring)))
             return True, value
 
     @staticmethod
