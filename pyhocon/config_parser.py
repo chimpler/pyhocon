@@ -506,7 +506,7 @@ class ConfigTreeParser(TokenConverter):
                 elif len(tokens) == 2:
                     values = tokens[1:]
                 else:
-                    raise ParseSyntaxException("Unknown tokens {} received".format(tokens))
+                    raise ParseSyntaxException("Unknown tokens {tokens} received".format(tokens=tokens))
                 # empty string
                 if len(values) == 0:
                     config_tree.put(key, '')
