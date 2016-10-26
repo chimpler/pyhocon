@@ -339,6 +339,7 @@ Java properties mapping                                    | :x:
   - Martin Kristiansen ([@lillekemiker](https://github.com/lillekemiker))
   - yzliao ([@yzliao](https://github.com/yzliao))
   - atomerju ([@atomerju](https://github.com/atomerju))
+  - Nick Gerow ([@NickG123](https://github.com/NickG123))
 
 ### Thanks
 

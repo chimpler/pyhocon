@@ -1,5 +1,10 @@
 # Changelog
 
+# Version 0.3.34
+
+* Fixed some error handling that was unable to deal with unicode keys. PR [#99]
+* Fixed Python 2.6 incompatible format string. PR [#100]
+
 # Version 0.3.33
 
 * Fix unicode dict key. PR [#94]
