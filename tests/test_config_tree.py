@@ -198,3 +198,21 @@ class TestConfigParser(object):
         d['a']['b.c'] = [OrderedDict(), 2]
         d['a']['b.c'][0]['c.d'] = 1
         assert config_tree.as_plain_ordered_dict() == d
+
+    def test_contains(self):
+        config_tree = ConfigTree()
+        config_tree.put('a.b', 5)
+        config_tree.put('a.c', None)
+        assert 'a' in config_tree
+        assert 'a.b' in config_tree
+        assert 'a.c' in config_tree
+        assert 'a.b.c' not in config_tree
+
+    def test_contains_with_quoted_keys(self):
+        config_tree = ConfigTree()
+        config_tree.put('a.b."c.d"', 5)
+        assert 'a' in config_tree
+        assert 'a.b' in config_tree
+        assert 'a.c' not in config_tree
+        assert 'a.b."c.d"' in config_tree
+        assert 'a.b.c.d' not in config_tree

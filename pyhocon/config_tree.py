@@ -291,6 +291,9 @@ class ConfigTree(OrderedDict):
             raise KeyError(item)
         return val
 
+    def __contains__(self, item):
+        return self._get(self.parse_key(item), default=NoneValue) is not NoneValue
+
     def with_fallback(self, config):
         """
         return a new config with fallback on config
