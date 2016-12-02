@@ -27,6 +27,7 @@ class PyTestCommand(TestCommand):
         errno = pytest.main(self.pytest_args)
         sys.exit(errno)
 
+
 setup(
     name='pyhocon',
     version='0.3.34',
