@@ -4,7 +4,7 @@ import socket
 import contextlib
 import codecs
 from pyparsing import Forward, Keyword, QuotedString, Word, Literal, Suppress, Regex, Optional, SkipTo, ZeroOrMore, \
-    Group, lineno, col, TokenConverter, replaceWith, alphanums, alphas8bit, ParseSyntaxException
+    Group, lineno, col, TokenConverter, replaceWith, alphanums, alphas8bit, ParseSyntaxException, StringEnd
 from pyparsing import ParserElement
 from pyhocon.config_tree import ConfigTree, ConfigSubstitution, ConfigList, ConfigValues, ConfigUnquotedString, \
     ConfigInclude, NoneValue, ConfigQuotedString
@@ -217,7 +217,7 @@ class ConfigParser(object):
 
         eol = Word('\n\r').suppress()
         eol_comma = Word('\n\r,').suppress()
-        comment = (Literal('#') | Literal('//')) - SkipTo(eol)
+        comment = (Literal('#') | Literal('//')) - SkipTo(eol | StringEnd())
         comment_eol = Suppress(Optional(eol_comma) + comment)
         comment_no_comma_eol = (comment | eol).suppress()
         number_expr = Regex('[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE]\d+)?(?=$|[ \t]*([\$\}\],#\n\r]|//))',

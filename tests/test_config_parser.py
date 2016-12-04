@@ -1942,3 +1942,14 @@ www.example-ö.com {
             config.get_config(u'www.example-ö.com.us.name')
         with pytest.raises(ConfigWrongTypeException):
             config.get_string(u'www.example-ö.com.us.name.missing')
+
+    def test_with_comment_on_last_line(self):
+        # Adress issue #102
+        config_tree = ConfigFactory.parse_string("""
+        foo: "1"
+        bar: "2"
+        # DO NOT CHANGE ANY OF THE ABOVE SETTINGS!""")
+        assert config_tree == {
+            'foo': '1',
+            'bar': '2'
+        }
