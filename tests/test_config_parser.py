@@ -1949,7 +1949,6 @@ www.example-ö.com {
         foo: "1"
         bar: "2"
         # DO NOT CHANGE ANY OF THE ABOVE SETTINGS!""")
-        print config_tree
         assert config_tree == {
             'foo': '1',
             'bar': '2'
