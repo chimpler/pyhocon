@@ -1,5 +1,10 @@
 # Changelog
 
+# Version 0.3.35
+
+* Implemented contains method . PR [#108]
+* Fixed bug where last line is a comment. PR [#109]
+
 # Version 0.3.34
 
 * Fixed some error handling that was unable to deal with unicode keys. PR [#99]
