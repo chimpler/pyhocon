@@ -5,10 +5,10 @@ import contextlib
 import codecs
 from pyparsing import Forward, Keyword, QuotedString, Word, Literal, Suppress, Regex, Optional, SkipTo, ZeroOrMore, \
     Group, lineno, col, TokenConverter, replaceWith, alphanums, alphas8bit, ParseSyntaxException, StringEnd
-from pyparsing import ParserElement
+from pyparsing import ParserElement, ParseBaseException
 from pyhocon.config_tree import ConfigTree, ConfigSubstitution, ConfigList, ConfigValues, ConfigUnquotedString, \
     ConfigInclude, NoneValue, ConfigQuotedString
-from pyhocon.exceptions import ConfigSubstitutionException, ConfigMissingException
+from pyhocon.exceptions import ConfigException, ConfigSubstitutionException, ConfigMissingException
 import logging
 
 use_urllib2 = False
@@ -269,7 +269,10 @@ class ConfigParser(object):
         # the file can be { ... } where {} can be omitted or []
         config_expr = ZeroOrMore(comment_eol | eol) + (list_expr | root_dict_expr | inside_root_dict_expr) + ZeroOrMore(
             comment_eol | eol_comma)
-        config = config_expr.parseString(content, parseAll=True)[0]
+        try:
+            config = config_expr.parseString(content, parseAll=True)[0]
+        except ParseBaseException as e:
+            raise ConfigException(str(e))
         if resolve:
             ConfigParser.resolve_substitutions(config)
         return config
