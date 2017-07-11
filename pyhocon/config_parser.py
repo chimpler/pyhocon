@@ -225,7 +225,7 @@ class ConfigParser(object):
 
         # multi line string using """
         # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
-        multiline_string = Regex('""".*?"""', re.DOTALL | re.UNICODE).setParseAction(parse_multi_string)
+        multiline_string = Regex('""".*?"*"""', re.DOTALL | re.UNICODE).setParseAction(parse_multi_string)
         # single quoted line string
         quoted_string = Regex('".*?"[ \t]*', re.UNICODE).setParseAction(create_quoted_string)
         # unquoted string that takes the rest of the line until an optional comment

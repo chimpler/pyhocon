@@ -2,7 +2,7 @@
 
 # Version 0.3.35
 
-* Implemented contains method . PR [#108]
+* Implemented contains method. PR [#108]
 * Fixed bug where last line is a comment. PR [#109]
 
 # Version 0.3.34
