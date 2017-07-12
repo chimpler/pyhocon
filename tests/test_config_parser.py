@@ -1959,4 +1959,3 @@ www.example-ö.com {
         assert config_tree == {
             'a': ['foo"', "bar"]
         }
-
