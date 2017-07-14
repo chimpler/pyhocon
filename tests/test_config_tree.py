@@ -254,7 +254,7 @@ class TestConfigParser(object):
         exp['f.k']['g']['three'] = 3
 
         assert config_tree.pop('a.b.c').as_plain_ordered_dict() == exp['a']['b']['c']
-        assert config_tree.pop('a.b.c', None) == None
+        assert config_tree.pop('a.b.c', None) is None
 
         with pytest.raises(ConfigMissingException):
             assert config_tree.pop('a.b.c')
