@@ -216,3 +216,58 @@ class TestConfigParser(object):
         assert 'a.c' not in config_tree
         assert 'a.b."c.d"' in config_tree
         assert 'a.b.c.d' not in config_tree
+
+    def test_configtree_pop(self):
+        config_tree = ConfigTree()
+        config_tree.put("string", "string")
+        assert config_tree.pop("string", "default") == "string"
+        assert config_tree.pop("string-new", "default") == "default"
+        assert config_tree == ConfigTree()
+
+        with pytest.raises(ConfigMissingException):
+            assert config_tree.pop("string-new")
+
+        config_tree.put("list", [1, 2, 3])
+        assert config_tree.pop("list", [4]) == [1, 2, 3]
+        assert config_tree.pop("list-new", [4]) == [4]
+        assert config_tree == ConfigTree()
+
+        config_tree.put("config", {'a': 5})
+        assert config_tree.pop("config", {'b': 1}) == {'a': 5}
+        assert config_tree.pop("config-new", {'b': 1}) == {'b': 1}
+        assert config_tree == ConfigTree()
+
+        config_tree = ConfigTree()
+        config_tree.put('a.b.c.one', 1)
+        config_tree.put('a.b.c.two', 2)
+        config_tree.put('"f.k".g.three', 3)
+
+        exp = OrderedDict()
+        exp['a'] = OrderedDict()
+        exp['a']['b'] = OrderedDict()
+        exp['a']['b']['c'] = OrderedDict()
+        exp['a']['b']['c']['one'] = 1
+        exp['a']['b']['c']['two'] = 2
+
+        exp['f.k'] = OrderedDict()
+        exp['f.k']['g'] = OrderedDict()
+        exp['f.k']['g']['three'] = 3
+
+        assert config_tree.pop('a.b.c').as_plain_ordered_dict() == exp['a']['b']['c']
+        assert config_tree.pop('a.b.c', None) == None
+
+        with pytest.raises(ConfigMissingException):
+            assert config_tree.pop('a.b.c')
+        with pytest.raises(ConfigMissingException):
+            assert config_tree['a']['b'].pop('c')
+
+        assert config_tree.pop('a').as_plain_ordered_dict() == OrderedDict(b=OrderedDict())
+        assert config_tree.pop('"f.k"').as_plain_ordered_dict() == OrderedDict(g=OrderedDict(three=3))
+        assert config_tree.as_plain_ordered_dict() == OrderedDict()
+
+    def test_keyerror_raised(self):
+        config_tree = ConfigTree()
+        config_tree.put("a", {'b': 5})
+
+        with pytest.raises(KeyError):
+            assert config_tree['c']

@@ -5,7 +5,7 @@ class ConfigException(Exception):
         self._exception = ex
 
 
-class ConfigMissingException(ConfigException):
+class ConfigMissingException(ConfigException, KeyError):
     pass
 
 
