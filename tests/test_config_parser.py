@@ -1953,3 +1953,9 @@ www.example-ö.com {
             'foo': '1',
             'bar': '2'
         }
+
+    def test_triple_quotes_same_line(self):
+        config_tree = ConfigFactory.parse_string('a:["""foo"""", "bar"]')
+        assert config_tree == {
+            'a': ['foo"', "bar"]
+        }
