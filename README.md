@@ -340,6 +340,7 @@ Java properties mapping                                    | :x:
   - yzliao ([@yzliao](https://github.com/yzliao))
   - atomerju ([@atomerju](https://github.com/atomerju))
   - Nick Gerow ([@NickG123](https://github.com/NickG123))
+  - jjtk88 ([@jjtk88](https://github.com/jjtk88))
 
 ### Thanks
 
@@ -348,3 +349,4 @@ Java properties mapping                                    | :x:
   - Alexey Terentiev ([@alexey-terentiev](https://github.com/alexey-terentiev))
   - Prashant Shewale ([@pvshewale](https://github.com/pvshewale))
   - mh312 ([@mh321](https://github.com/mh321))
+  - farquet ([@farquet](https://github.com/farquet))

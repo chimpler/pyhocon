@@ -1,5 +1,10 @@
 # Changelog
 
+# Version 0.3.36
+
+* Fixed tripled quoted string parsing bug. PR [#119]
+* Added pop() method to ConfigTree and added KeyError to ConfigMissingException. PR [#120]
+
 # Version 0.3.35
 
 * Implemented contains method. PR [#108]
