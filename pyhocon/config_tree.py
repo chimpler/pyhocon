@@ -204,6 +204,34 @@ class ConfigTree(OrderedDict):
             return string_value.lower()
         return string_value
 
+    def pop(self, key, default=UndefinedKey):
+        """Remove specified key and return the corresponding value.
+        If key is not found, default is returned if given, otherwise ConfigMissingException is raised
+
+        This method assumes the user wants to remove the last value in the chain so it parses via parse_key
+        and pops the last value out of the dict.
+
+        :param key: key to use (dot separated). E.g., a.b.c
+        :type key: basestring
+        :param default: default value if key not found
+        :type default: object
+        :param default: default value if key not found
+        :return: value in the tree located at key
+        """
+        value = self.get(key, default)
+        if value == default:
+            return default
+
+        lst = ConfigTree.parse_key(key)
+        parent = self.KEY_SEP.join(lst[0:-1])
+        child = lst[-1]
+
+        if parent:
+            self.get(parent).__delitem__(child)
+        else:
+            self.__delitem__(child)
+        return value
+
     def get_int(self, key, default=UndefinedKey):
         """Return int representation of value found at key
 
