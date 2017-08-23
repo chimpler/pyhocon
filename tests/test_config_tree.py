@@ -238,6 +238,11 @@ class TestConfigParser(object):
         assert config_tree == ConfigTree()
 
         config_tree = ConfigTree()
+        config_tree.put('key', 'value')
+        assert config_tree.pop('key', 'value') == 'value'
+        assert 'key' not in config_tree
+
+        config_tree = ConfigTree()
         config_tree.put('a.b.c.one', 1)
         config_tree.put('a.b.c.two', 2)
         config_tree.put('"f.k".g.three', 3)
