@@ -8,7 +8,7 @@ from pyparsing import Forward, Keyword, QuotedString, Word, Literal, Suppress, R
 from pyparsing import ParserElement
 from pyhocon.config_tree import ConfigTree, ConfigSubstitution, ConfigList, ConfigValues, ConfigUnquotedString, \
     ConfigInclude, NoneValue, ConfigQuotedString
-from pyhocon.exceptions import ConfigSubstitutionException, ConfigMissingException
+from pyhocon.exceptions import ConfigSubstitutionException, ConfigMissingException, ConfigException
 import logging
 
 use_urllib2 = False
@@ -56,7 +56,7 @@ class ConfigFactory(object):
             return []
 
     @staticmethod
-    def parse_URL(url, timeout=None, resolve=True):
+    def parse_URL(url, timeout=None, resolve=True, required=False):
         """Parse URL
 
         :param url: url to parse
@@ -72,9 +72,12 @@ class ConfigFactory(object):
             with contextlib.closing(urlopen(url, timeout=socket_timeout)) as fd:
                 content = fd.read() if use_urllib2 else fd.read().decode('utf-8')
                 return ConfigFactory.parse_string(content, os.path.dirname(url), resolve)
-        except (HTTPError, URLError):
+        except (HTTPError, URLError) as e:
             logger.warn('Cannot include url %s. Resource is inaccessible.', url)
-            return []
+            if required:
+                raise e
+            else:
+                return []
 
     @staticmethod
     def parse_string(content, basedir=None, resolve=True):
@@ -180,30 +183,39 @@ class ConfigParser(object):
             ws = match.group('ws')
             return ConfigQuotedString(value, ws, instring, loc)
 
-        def include_config(token):
+        def include_config(instring, loc, token):
             url = None
             file = None
-            if len(token) == 1:  # include "test"
-                value = token[0].value if isinstance(token[0], ConfigQuotedString) else token[0]
+            required = False
+
+            if token[0] == 'required':
+                required = True
+                final_tokens = token[1:]
+            else:
+                final_tokens = token
+
+            if len(final_tokens) == 1:  # include "test"
+                value = final_tokens[0].value if isinstance(final_tokens[0], ConfigQuotedString) else final_tokens[0]
                 if value.startswith("http://") or value.startswith("https://") or value.startswith("file://"):
                     url = value
                 else:
                     file = value
-            elif len(token) == 2:  # include url("test") or file("test")
-                value = token[1].value if isinstance(token[1], ConfigQuotedString) else token[1]
-                if token[0] == 'url':
+            elif len(final_tokens) == 2:  # include url("test") or file("test")
+                value = final_tokens[1].value if isinstance(token[1], ConfigQuotedString) else final_tokens[1]
+                if final_tokens[0] == 'url':
                     url = value
                 else:
                     file = value
 
             if url is not None:
                 logger.debug('Loading config from url %s', url)
-                obj = ConfigFactory.parse_URL(url, resolve=False)
-
-            if file is not None:
+                obj = ConfigFactory.parse_URL(url, resolve=False, required=required)
+            elif file is not None:
                 path = file if basedir is None else os.path.join(basedir, file)
                 logger.debug('Loading config from file %s', path)
-                obj = ConfigFactory.parse_file(path, required=False, resolve=False)
+                obj = ConfigFactory.parse_file(path, resolve=False, required=required)
+            else:
+                raise ConfigException('No file or URL specified at: {loc}: {instring}', loc=loc, instring=instring)
 
             return ConfigInclude(obj if isinstance(obj, list) else obj.items())
 
@@ -239,10 +251,16 @@ class ConfigParser(object):
 
         value_expr = number_expr | true_expr | false_expr | null_expr | string_expr
 
-        include_expr = (Keyword("include", caseless=True).suppress() + (
-            quoted_string | (
-                (Keyword('url') | Keyword('file')) - Literal('(').suppress() - quoted_string - Literal(')').suppress()))) \
-            .setParseAction(include_config)
+        include_content = (quoted_string | ((Keyword('url') | Keyword('file')) - Literal('(').suppress() - quoted_string - Literal(')').suppress()))
+        include_expr = (
+            Keyword("include", caseless=True).suppress() +
+            (
+                include_content |
+                (
+                    Keyword("required") - Literal('(').suppress() - include_content - Literal(')').suppress()
+                )
+            )
+        ).setParseAction(include_config)
 
         root_dict_expr = Forward()
         dict_expr = Forward()
