@@ -4,8 +4,7 @@ python:
   - 3.3
   - 3.4
   - 3.6
-before_install: pip install pip==6.0.7
-install: pip install tox tox-travis coveralls
+install: pip install pip==6.0.7 tox tox-travis coveralls
 before_script: if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then tox -e flake8; fi
 script: tox -r
 after_success: coveralls
