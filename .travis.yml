@@ -1,10 +1,11 @@
 language: python
 python:
+  - 2.6
   - 2.7
   - 3.3
   - 3.4
   - 3.6
-before_install: pip install --upgrade setuptools
+before_install: pip install pip==6.0.6 --upgrade setuptools
 install: pip install tox tox-travis coveralls
 before_script: if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then tox -e flake8; fi
 script: tox -r
