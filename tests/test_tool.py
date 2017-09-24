@@ -81,7 +81,7 @@ class TestHOCONConverter(object):
             f1: true
             f2: false
             g: []
-            h: None
+            h: null
             i:
             a.b: 2
         """
