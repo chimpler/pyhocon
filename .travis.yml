@@ -5,7 +5,7 @@ python:
   - 3.3
   - 3.4
   - 3.6
-before_install: pip install setuptools==36.2.7
+before_install: pip install setuptools==35.0.1
 install: pip install tox tox-travis coveralls
 before_script: if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then tox -e flake8; fi
 script: tox -r
