@@ -220,6 +220,8 @@ class ConfigTree(OrderedDict):
         """
         value = self.get(key, default)
         if value == default:
+            if key in self:
+                del self[key]
             return default
 
         lst = ConfigTree.parse_key(key)
