@@ -1091,43 +1091,47 @@ class TestConfigParser(object):
             )
             assert config3['a'] == [1, 2]
 
-    def test_include_list(self):
-        with tempfile.NamedTemporaryFile('w') as fdin:
-            fdin.write('[1, 2]')
-            fdin.flush()
+    def test_include_missing_file(self):
+        config1 = ConfigFactory.parse_string(
+            """
+            a: [
+                include "dummy.txt"
+                3
+                4
+            ]
+            """
+        )
+        assert config1['a'] == [3, 4]
 
-            config1 = ConfigFactory.parse_string(
+    def test_include_required_file(self):
+        config = ConfigFactory.parse_string(
+            """
+            a {
+                include required("samples/cat.conf")
+                t = 2
+            }
+            """
+        )
+        assert {
+            'a': {
+                'garfield': {
+                    'say': 'meow'
+                },
+                't': 2
+            }
+        } == config
+
+    def test_include_missing_required_file(self):
+        with pytest.raises(IOError):
+            ConfigFactory.parse_string(
                 """
                 a: [
-                    include "{tmp_file}"
+                    include required("dummy.txt")
                     3
                     4
                 ]
-                """.format(tmp_file=fdin.name)
-            )
-            assert config1['a'] == [1, 2, 3, 4]
-
-            config2 = ConfigFactory.parse_string(
                 """
-                a: [
-                    3
-                    4
-                    include "{tmp_file}"
-                ]
-                """.format(tmp_file=fdin.name)
             )
-            assert config2['a'] == [3, 4, 1, 2]
-
-            config3 = ConfigFactory.parse_string(
-                """
-                a: [
-                    3
-                    include "{tmp_file}"
-                    4
-                ]
-                """.format(tmp_file=fdin.name)
-            )
-            assert config3['a'] == [3, 1, 2, 4]
 
     def test_include_dict(self):
         expected_res = {

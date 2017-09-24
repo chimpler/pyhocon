@@ -194,6 +194,7 @@ We support the include semantics using one of the followings:
     include "https://abc.com/test.conf"
     include "file://abc.com/test.conf"
     include file("test.conf")
+    include required(file("test.conf"))
     include url("http://abc.com/test.conf")
     include url("https://abc.com/test.conf")
     include url("file://abc.com/test.conf")
