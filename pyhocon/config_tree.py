@@ -218,12 +218,10 @@ class ConfigTree(OrderedDict):
         :param default: default value if key not found
         :return: value in the tree located at key
         """
-        value = self.get(key, default)
-        if value == default:
-            if key in self:
-                del self[key]
+        if default != UndefinedKey and key not in self:
             return default
 
+        value = self.get(key, UndefinedKey)
         lst = ConfigTree.parse_key(key)
         parent = self.KEY_SEP.join(lst[0:-1])
         child = lst[-1]
