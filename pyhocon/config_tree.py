@@ -199,7 +199,11 @@ class ConfigTree(OrderedDict):
         :return: string value
         :type return: basestring
         """
-        string_value = str(self.get(key, default))
+        value = self.get(key, default)
+        if value is None:
+            return None
+
+        string_value = str(value)
         if string_value in ['True', 'False']:
             return string_value.lower()
         return string_value
@@ -242,7 +246,8 @@ class ConfigTree(OrderedDict):
         :return: int value
         :type return: int
         """
-        return int(self.get(key, default))
+        value = self.get(key, default)
+        return int(value) if value is not None else None
 
     def get_float(self, key, default=UndefinedKey):
         """Return float representation of value found at key
@@ -254,7 +259,8 @@ class ConfigTree(OrderedDict):
         :return: float value
         :type return: float
         """
-        return float(self.get(key, default))
+        value = self.get(key, default)
+        return float(value) if value is not None else None
 
     def get_bool(self, key, default=UndefinedKey):
         """Return boolean representation of value found at key
@@ -270,6 +276,7 @@ class ConfigTree(OrderedDict):
         # String conversions as per API-recommendations:
         # https://github.com/typesafehub/config/blob/master/HOCON.md#automatic-type-conversions
         bool_conversions = {
+            None: None,
             'true': True, 'yes': True, 'on': True,
             'false': False, 'no': False, 'off': False
         }
@@ -292,6 +299,8 @@ class ConfigTree(OrderedDict):
         value = self.get(key, default)
         if isinstance(value, list):
             return value
+        elif value is None:
+            return None
         else:
             raise ConfigException(
                 u"{key} has type '{type}' rather than 'list'".format(key=key, type=type(value).__name__))
@@ -309,6 +318,8 @@ class ConfigTree(OrderedDict):
         value = self.get(key, default)
         if isinstance(value, dict):
             return value
+        elif value is None:
+            return None
         else:
             raise ConfigException(
                 u"{key} has type '{type}' rather than 'config'".format(key=key, type=type(value).__name__))
