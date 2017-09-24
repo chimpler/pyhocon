@@ -255,8 +255,7 @@ class ConfigParser(object):
         include_expr = (
             Keyword("include", caseless=True).suppress() +
             (
-                include_content
-                |
+                include_content |
                 (
                     Keyword("required") - Literal('(').suppress() - include_content - Literal(')').suppress()
                 )
