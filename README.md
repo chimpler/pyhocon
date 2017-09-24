@@ -342,6 +342,8 @@ Java properties mapping                                    | :x:
   - atomerju ([@atomerju](https://github.com/atomerju))
   - Nick Gerow ([@NickG123](https://github.com/NickG123))
   - jjtk88 ([@jjtk88](https://github.com/jjtk88))
+  - Aki Ariga ([@chezou](https://github.com/chezou))
+  - Joel Grus ([@joelgrus](https://github.com/joelgrus))
 
 ### Thanks
 
@@ -350,4 +352,6 @@ Java properties mapping                                    | :x:
   - Alexey Terentiev ([@alexey-terentiev](https://github.com/alexey-terentiev))
   - Prashant Shewale ([@pvshewale](https://github.com/pvshewale))
   - mh312 ([@mh321](https://github.com/mh321))
-  - farquet ([@farquet](https://github.com/farquet))
+  - François Farquet ([@farquet](https://github.com/farquet))
+  - Gavin Bisesi ([@Daenyth](https://github.com/Daenyth))
+  - Cosmin Basca ([@cosminbasca](https://github.com/cosminbasca))

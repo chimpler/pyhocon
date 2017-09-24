@@ -1,5 +1,14 @@
 # Changelog
 
+# Version 0.3.37
+
+* Dropped support for Python 2.6 (wheel)
+* Fixed get_xxx() methods to return None if the value is None. PR [#128]
+* Added required includes. PR[#127]
+* Config tree fix for pop. PR[#126]
+* Handle None value for converting methods. PR[#124]
+* ConfigTree.pop() should delete key when value == default_value. PR[#123]
+
 # Version 0.3.36
 
 * Fixed tripled quoted string parsing bug. PR [#119]

@@ -1970,3 +1970,11 @@ www.example-ö.com {
         assert config_tree == {
             'a': ['foo"', "bar"]
         }
+
+    def test_pop(self):
+        config_tree = ConfigFactory.parse_string('a:{b: 3, d: 6}')
+        assert 3 == config_tree.pop('a.b', 5)
+        assert 5 == config_tree.pop('a.c', 5)
+        assert {
+            'a': {'d': 6}
+        } == config_tree
