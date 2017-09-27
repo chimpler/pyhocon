@@ -65,6 +65,24 @@ class TestHOCONConverter(object):
               "a.b" = 2
         """
 
+    EXPECTED_COMPACT_HOCON = \
+        """
+              a.b = 1
+              b = [
+                1
+                2
+              ]
+              c = 1
+              d = "a"
+              e = \"\"\"1\n                2\n                3\"\"\"
+              f1 = true
+              f2 = false
+              g = []
+              h = null
+              i {}
+              "a.b" = 2
+        """
+
     EXPECTED_YAML = \
         """
             a:
@@ -119,6 +137,11 @@ class TestHOCONConverter(object):
     def test_to_hocon(self):
         converted = HOCONConverter.to_hocon(TestHOCONConverter.CONFIG)
         assert [line.strip() for line in TestHOCONConverter.EXPECTED_HOCON.split('\n') if line.strip()]\
+            == [line.strip() for line in converted.split('\n') if line.strip()]
+
+    def test_to_compact_hocon(self):
+        converted = HOCONConverter.to_hocon(TestHOCONConverter.CONFIG, compact=True)
+        assert [line.strip() for line in TestHOCONConverter.EXPECTED_COMPACT_HOCON.split('\n') if line.strip()]\
             == [line.strip() for line in converted.split('\n') if line.strip()]
 
     def _test_convert_from_file(self, input, expected_output, format):
