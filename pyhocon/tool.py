@@ -84,7 +84,7 @@ class HOCONConverter(object):
                     if compact:
                         full_key = key
                         while isinstance(item, ConfigTree) and len(item) == 1:
-                            key, item = item.items()[0]
+                            key, item = next(item.iteritems())
                             full_key += '.' + key
                     else:
                         full_key = key
