@@ -357,3 +357,4 @@ Java properties mapping                                    | :x:
   - François Farquet ([@farquet](https://github.com/farquet))
   - Gavin Bisesi ([@Daenyth](https://github.com/Daenyth))
   - Cosmin Basca ([@cosminbasca](https://github.com/cosminbasca))
+  - cryptofred ([@cryptofred](https://github.com/cryptofred))

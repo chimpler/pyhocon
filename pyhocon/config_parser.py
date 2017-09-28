@@ -16,14 +16,14 @@ try:
     # For Python 3.0 and later
     from urllib.request import urlopen
     from urllib.error import HTTPError, URLError
-except ImportError:
+except ImportError:  # pragma: no cover
     # Fall back to Python 2's urllib2
     from urllib2 import urlopen, HTTPError, URLError
 
     use_urllib2 = True
 try:
     basestring
-except NameError:
+except NameError:  # pragma: no cover
     basestring = str
     unicode = str
 

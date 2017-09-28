@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.38
+* Added compact option for hocon output. #129
+* Unicode fix for unquoted strings. #130
+
 # Version 0.3.37
 
 * Dropped support for Python 2.6 (wheel)
