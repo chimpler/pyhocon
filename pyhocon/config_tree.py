@@ -499,8 +499,10 @@ class ConfigSubstitution(object):
     def __repr__(self):  # pragma: no cover
         return '[ConfigSubstitution: ' + self.variable + ']'
 
-
-__unquoted_parent_class = str if sys.version_info >= (3, 0) else unicode
+try:
+    __unquoted_parent_class = unicode
+except NameError:
+    __unquoted_parent_class = str
 
 
 class ConfigUnquotedString(__unquoted_parent_class):
