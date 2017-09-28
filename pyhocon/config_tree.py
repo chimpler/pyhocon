@@ -500,10 +500,10 @@ class ConfigSubstitution(object):
         return '[ConfigSubstitution: ' + self.variable + ']'
 
 
-unquoted_parent_class = str if sys.version_info >= (3, 0) else unicode
+__unquoted_parent_class = str if sys.version_info >= (3, 0) else unicode
 
 
-class ConfigUnquotedString(unicode):
+class ConfigUnquotedString(__unquoted_parent_class):
     def __new__(cls, value):
         return super(ConfigUnquotedString, cls).__new__(cls, value)
 
