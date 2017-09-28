@@ -358,3 +358,4 @@ Java properties mapping                                    | :x:
   - Gavin Bisesi ([@Daenyth](https://github.com/Daenyth))
   - Cosmin Basca ([@cosminbasca](https://github.com/cosminbasca))
   - cryptofred ([@cryptofred](https://github.com/cryptofred))
+  - Dominik1123 ([@Dominik1123](https://github.com/Dominik1123))
