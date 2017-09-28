@@ -9,6 +9,7 @@ try:
     basestring
 except NameError:
     basestring = str
+    unicode = str
 
 import re
 from pyhocon.exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
@@ -499,13 +500,7 @@ class ConfigSubstitution(object):
         return '[ConfigSubstitution: ' + self.variable + ']'
 
 
-try:
-    __unquoted_parent_class = unicode
-except NameError:
-    __unquoted_parent_class = str
-
-
-class ConfigUnquotedString(__unquoted_parent_class):
+class ConfigUnquotedString(unicode):
     def __new__(cls, value):
         return super(ConfigUnquotedString, cls).__new__(cls, value)
 
