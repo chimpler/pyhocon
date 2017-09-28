@@ -1,3 +1,4 @@
+import sys
 from pyparsing import lineno
 from pyparsing import col
 
@@ -497,6 +498,9 @@ class ConfigSubstitution(object):
 
     def __repr__(self):  # pragma: no cover
         return '[ConfigSubstitution: ' + self.variable + ']'
+
+
+unquoted_parent_class = str if sys.version_info >= (3, 0) else unicode
 
 
 class ConfigUnquotedString(unicode):
