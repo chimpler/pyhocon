@@ -17,8 +17,8 @@ LOG_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 
 class HOCONConverter(object):
 
-    @staticmethod
-    def to_json(config, indent=2, level=0):
+    @classmethod
+    def to_json(cls, config, compact=False, indent=2, level=0):
         """Convert HOCON input into a JSON output
 
         :return: JSON string representation
@@ -35,7 +35,7 @@ class HOCONConverter(object):
                     bet_lines.append('{indent}"{key}": {value}'.format(
                         indent=''.rjust((level + 1) * indent, ' '),
                         key=key.strip('"'),  # for dotted keys enclosed with "" to not be interpreted as nested key
-                        value=HOCONConverter.to_json(item, indent, level + 1))
+                        value=cls.to_json(item, compact, indent, level + 1))
                     )
                 lines += ',\n'.join(bet_lines)
                 lines += '\n{indent}}}'.format(indent=''.rjust(level * indent, ' '))
@@ -48,7 +48,7 @@ class HOCONConverter(object):
                 for item in config:
                     bet_lines.append('{indent}{value}'.format(
                         indent=''.rjust((level + 1) * indent, ' '),
-                        value=HOCONConverter.to_json(item, indent, level + 1))
+                        value=cls.to_json(item, compact, indent, level + 1))
                     )
                 lines += ',\n'.join(bet_lines)
                 lines += '\n{indent}]'.format(indent=''.rjust(level * indent, ' '))
@@ -64,8 +64,8 @@ class HOCONConverter(object):
             lines = str(config)
         return lines
 
-    @staticmethod
-    def to_hocon(config, indent=2, level=0):
+    @classmethod
+    def to_hocon(cls, config, compact=False, indent=2, level=0):
         """Convert HOCON input into a HOCON output
 
         :return: JSON string representation
@@ -79,12 +79,21 @@ class HOCONConverter(object):
                 if level > 0:  # don't display { at root level
                     lines += '{\n'
                 bet_lines = []
+
                 for key, item in config.items():
+                    if compact:
+                        full_key = key
+                        while isinstance(item, ConfigTree) and len(item) == 1:
+                            key, item = next(iter(item.items()))
+                            full_key += '.' + key
+                    else:
+                        full_key = key
+
                     bet_lines.append('{indent}{key}{assign_sign} {value}'.format(
                         indent=''.rjust(level * indent, ' '),
-                        key=key,
+                        key=full_key,
                         assign_sign='' if isinstance(item, dict) else ' =',
-                        value=HOCONConverter.to_hocon(item, indent, level + 1))
+                        value=cls.to_hocon(item, compact, indent, level + 1))
                     )
                 lines += '\n'.join(bet_lines)
 
@@ -97,7 +106,7 @@ class HOCONConverter(object):
                 lines += '[\n'
                 bet_lines = []
                 for item in config:
-                    bet_lines.append('{indent}{value}'.format(indent=''.rjust(level * indent, ' '), value=HOCONConverter.to_hocon(item, indent, level + 1)))
+                    bet_lines.append('{indent}{value}'.format(indent=''.rjust(level * indent, ' '), value=cls.to_hocon(item, compact, indent, level + 1)))
                 lines += '\n'.join(bet_lines)
                 lines += '\n{indent}]'.format(indent=''.rjust((level - 1) * indent, ' '))
         elif isinstance(config, basestring):
@@ -115,8 +124,8 @@ class HOCONConverter(object):
             lines = str(config)
         return lines
 
-    @staticmethod
-    def to_yaml(config, indent=2, level=0):
+    @classmethod
+    def to_yaml(cls, config, compact=False, indent=2, level=0):
         """Convert HOCON input into a YAML output
 
         :return: YAML string representation
@@ -132,7 +141,7 @@ class HOCONConverter(object):
                     bet_lines.append('{indent}{key}: {value}'.format(
                         indent=''.rjust(level * indent, ' '),
                         key=key.strip('"'),  # for dotted keys enclosed with "" to not be interpreted as nested key,
-                        value=HOCONConverter.to_yaml(item, indent, level + 1))
+                        value=cls.to_yaml(item, compact, indent, level + 1))
                     )
                 lines += '\n'.join(bet_lines)
         elif isinstance(config, list):
@@ -143,7 +152,7 @@ class HOCONConverter(object):
                 lines += '\n'
                 bet_lines = []
                 for item in config_list:
-                    bet_lines.append('{indent}- {value}'.format(indent=''.rjust(level * indent, ' '), value=HOCONConverter.to_yaml(item, indent, level + 1)))
+                    bet_lines.append('{indent}- {value}'.format(indent=''.rjust(level * indent, ' '), value=cls.to_yaml(item, compact, indent, level + 1)))
                 lines += '\n'.join(bet_lines)
         elif isinstance(config, basestring):
             # if it contains a \n then it's multiline
@@ -162,8 +171,8 @@ class HOCONConverter(object):
             lines = str(config)
         return lines
 
-    @staticmethod
-    def to_properties(config, indent=2, key_stack=[]):
+    @classmethod
+    def to_properties(cls, config, compact=False, indent=2, key_stack=[]):
         """Convert HOCON input into a .properties output
 
         :return: .properties string representation
@@ -178,11 +187,11 @@ class HOCONConverter(object):
         if isinstance(config, ConfigTree):
             for key, item in config.items():
                 if item is not None:
-                    lines.append(HOCONConverter.to_properties(item, indent, stripped_key_stack + [key]))
+                    lines.append(cls.to_properties(item, compact, indent, stripped_key_stack + [key]))
         elif isinstance(config, list):
             for index, item in enumerate(config):
                 if item is not None:
-                    lines.append(HOCONConverter.to_properties(item, indent, stripped_key_stack + [str(index)]))
+                    lines.append(cls.to_properties(item, compact, indent, stripped_key_stack + [str(index)]))
         elif isinstance(config, basestring):
             lines.append('.'.join(stripped_key_stack) + ' = ' + escape_value(config))
         elif config is True:
@@ -195,22 +204,22 @@ class HOCONConverter(object):
             lines.append('.'.join(stripped_key_stack) + ' = ' + str(config))
         return '\n'.join([line for line in lines if len(line) > 0])
 
-    @staticmethod
-    def convert(config, output_format='json', indent=2):
+    @classmethod
+    def convert(cls, config, output_format='json', indent=2, compact=False):
         converters = {
-            'json': HOCONConverter.to_json,
-            'properties': HOCONConverter.to_properties,
-            'yaml': HOCONConverter.to_yaml,
-            'hocon': HOCONConverter.to_hocon,
+            'json': cls.to_json,
+            'properties': cls.to_properties,
+            'yaml': cls.to_yaml,
+            'hocon': cls.to_hocon,
         }
 
         if output_format in converters:
-            return converters[output_format](config, indent)
+            return converters[output_format](config, compact, indent)
         else:
             raise Exception("Invalid format '{format}'. Format must be 'json', 'properties', 'yaml' or 'hocon'".format(format=output_format))
 
-    @staticmethod
-    def convert_from_file(input_file=None, output_file=None, output_format='json', indent=2):
+    @classmethod
+    def convert_from_file(cls, input_file=None, output_file=None, output_format='json', indent=2, compact=False):
         """Convert to json, properties or yaml
 
         :param input_file: input file, if not specified stdin
@@ -225,7 +234,7 @@ class HOCONConverter(object):
         else:
             config = ConfigFactory.parse_file(input_file)
 
-        res = HOCONConverter.convert(config, output_format, indent)
+        res = cls.convert(config, output_format, indent, compact)
         if output_file is None:
             print(res)
         else:
@@ -237,6 +246,7 @@ def main():  # pragma: no cover
     parser = argparse.ArgumentParser(description='pyhocon tool')
     parser.add_argument('-i', '--input', help='input file')
     parser.add_argument('-o', '--output', help='output file')
+    parser.add_argument('-c', '--compact', action='store_true', default=False, help='compact format')
     parser.add_argument('-f', '--format', help='output format: json, properties, yaml or hocon', default='json')
     parser.add_argument('-n', '--indent', help='indentation step (default is 2)', default=2, type=int)
     parser.add_argument('-v', '--verbosity', action='count', default=0, help='increase output verbosity')
@@ -255,8 +265,7 @@ def main():  # pragma: no cover
         logger.setLevel(logging.INFO)
     elif args.verbosity >= 3:
         logger.setLevel(logging.DEBUG)
-
-    HOCONConverter.convert_from_file(args.input, args.output, args.format.lower(), args.indent)
+    HOCONConverter.convert_from_file(args.input, args.output, args.format.lower(), args.indent, args.compact)
 
 
 if __name__ == '__main__':  # pragma: no cover

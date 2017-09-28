@@ -104,12 +104,14 @@ optional arguments:
   -h, --help                 show this help message and exit
   -i INPUT, --input INPUT    input file
   -o OUTPUT, --output OUTPUT output file
+  -c, --compact              compact format
   -f FORMAT, --format FORMAT output format: json, properties, yaml or hocon
   -n INDENT, --indent INDENT indentation step (default is 2)
   -v, --verbosity            increase output verbosity
 ```
 
 If `-i` is omitted, the tool will read from the standard input. If `-o` is omitted, the result will be written to the standard output.
+If `-c` is used, HOCON will use a compact representation for nested dictionaries of one element (e.g., `a.b.c = 1`)
 
 ####  JSON
 
