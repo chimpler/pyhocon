@@ -25,6 +25,7 @@ try:
     basestring
 except NameError:
     basestring = str
+    unicode = str
 
 logger = logging.getLogger(__name__)
 

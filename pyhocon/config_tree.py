@@ -7,7 +7,7 @@ except ImportError:  # pragma: no cover
     from ordereddict import OrderedDict
 try:
     basestring
-except NameError:
+except NameError:  # pragma: no cover
     basestring = str
     unicode = str
 
