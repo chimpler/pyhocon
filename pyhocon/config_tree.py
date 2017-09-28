@@ -1,4 +1,3 @@
-import sys
 from pyparsing import lineno
 from pyparsing import col
 
@@ -498,6 +497,7 @@ class ConfigSubstitution(object):
 
     def __repr__(self):  # pragma: no cover
         return '[ConfigSubstitution: ' + self.variable + ']'
+
 
 try:
     __unquoted_parent_class = unicode
