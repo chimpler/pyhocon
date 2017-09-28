@@ -25,6 +25,7 @@ try:
     basestring
 except NameError:
     basestring = str
+    unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -245,7 +246,7 @@ class ConfigParser(object):
         # line1  \
         # line2 \
         # so a backslash precedes the \n
-        unquoted_string = Regex('(?:\\\\|[^\[\{\s\]\}#,=\$])+[ \t]*').setParseAction(unescape_string)
+        unquoted_string = Regex('(?:\\\\|[^\[\{\s\]\}#,=\$])+[ \t]*', re.UNICODE).setParseAction(unescape_string)
         substitution_expr = Regex('[ \t]*\$\{[^\}]+\}[ \t]*').setParseAction(create_substitution)
         string_expr = multiline_string | quoted_string | unquoted_string
 
@@ -533,7 +534,7 @@ class ConfigTreeParser(TokenConverter):
                     if isinstance(value, list) and operator == "+=":
                         value = ConfigValues([ConfigSubstitution(key, True, '', False, loc), value], False, loc)
                         config_tree.put(key, value, False)
-                    elif isinstance(value, str) and operator == "+=":
+                    elif isinstance(value, unicode) and operator == "+=":
                         value = ConfigValues([ConfigSubstitution(key, True, '', True, loc), ' ' + value], True, loc)
                         config_tree.put(key, value, False)
                     elif isinstance(value, list):

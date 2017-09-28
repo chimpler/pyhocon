@@ -7,8 +7,9 @@ except ImportError:  # pragma: no cover
     from ordereddict import OrderedDict
 try:
     basestring
-except NameError:
+except NameError:  # pragma: no cover
     basestring = str
+    unicode = str
 
 import re
 from pyhocon.exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
@@ -156,7 +157,7 @@ class ConfigTree(OrderedDict):
                 return default
 
     @staticmethod
-    def parse_key(str):
+    def parse_key(string):
         """
         Split a key into path elements:
         - a.b.c => a, b, c
@@ -166,7 +167,7 @@ class ConfigTree(OrderedDict):
         :param str:
         :return:
         """
-        tokens = re.findall('"[^"]+"|[^\.]+', str)
+        tokens = re.findall('"[^"]+"|[^\.]+', string)
         return [token if '.' in token else token.strip('"') for token in tokens]
 
     def put(self, key, value, append=False):
@@ -203,7 +204,7 @@ class ConfigTree(OrderedDict):
         if value is None:
             return None
 
-        string_value = str(value)
+        string_value = unicode(value)
         if string_value in ['True', 'False']:
             return string_value.lower()
         return string_value
@@ -427,7 +428,7 @@ class ConfigValues(object):
             if isinstance(v, ConfigQuotedString):
                 return v.value + ('' if last else v.ws)
             else:
-                return '' if v is None else str(v)
+                return '' if v is None else unicode(v)
 
         if self.has_substitution():
             return self
@@ -499,7 +500,7 @@ class ConfigSubstitution(object):
         return '[ConfigSubstitution: ' + self.variable + ']'
 
 
-class ConfigUnquotedString(str):
+class ConfigUnquotedString(unicode):
     def __new__(cls, value):
         return super(ConfigUnquotedString, cls).__new__(cls, value)
 
