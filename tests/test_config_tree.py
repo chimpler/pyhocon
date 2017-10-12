@@ -280,12 +280,12 @@ class TestConfigParser(object):
     def test_configmissing_raised(self):
         config_tree = ConfigTree()
         for getter in [
-            config_tree.get, 
+            config_tree.get,
             config_tree.get_bool,
-            config_tree.get_config, 
-            config_tree.get_float, 
-            config_tree.get_int, 
-            config_tree.get_list, 
+            config_tree.get_config,
+            config_tree.get_float,
+            config_tree.get_int,
+            config_tree.get_list,
             config_tree.get_string
         ]:
             with pytest.raises(ConfigMissingException):
