@@ -212,9 +212,11 @@ class TestConfigParser(object):
         config = ConfigFactory.parse_string(
             """
             a = null
+            b = [null]
             """
         )
         assert config.get('a') is None
+        assert config.get('b')[0] is None
 
     def test_parse_override(self):
         config = ConfigFactory.parse_string(

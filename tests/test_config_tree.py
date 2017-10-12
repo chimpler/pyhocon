@@ -9,7 +9,7 @@ except ImportError:  # pragma: no cover
     from ordereddict import OrderedDict
 
 
-class TestConfigParser(object):
+class TestConfigTree(object):
 
     def test_config_tree_quoted_string(self):
         config_tree = ConfigTree()

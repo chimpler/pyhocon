@@ -93,7 +93,7 @@ class ConfigTree(OrderedDict):
                     self._push_history(key_elt, value)
                     self[key_elt] = value
                 elif isinstance(l, list):
-                    l += value
+                    self[key_elt] = l + value
                     self._push_history(key_elt, l)
                 elif l is None:
                     self._push_history(key_elt, value)
@@ -144,6 +144,8 @@ class ConfigTree(OrderedDict):
         if key_index == len(key_path) - 1:
             if isinstance(elt, NoneValue):
                 return None
+            elif isinstance(elt, list):
+                return [None if isinstance(x, NoneValue) else x for x in elt]
             else:
                 return elt
         elif isinstance(elt, ConfigTree):
