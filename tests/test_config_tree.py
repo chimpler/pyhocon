@@ -140,7 +140,13 @@ class TestConfigParser(object):
         config_tree.put("bool-string-true", "true")
         assert config_tree.get_bool("bool-string-true") is True
 
+        config_tree.put("bool-string-true", "True")
+        assert config_tree.get_bool("bool-string-true") is True
+
         config_tree.put("bool-string-false", "false")
+        assert config_tree.get_bool("bool-string-false") is False
+
+        config_tree.put("bool-string-false", "False")
         assert config_tree.get_bool("bool-string-false") is False
 
         config_tree.put("bool-string-yes", "yes")
