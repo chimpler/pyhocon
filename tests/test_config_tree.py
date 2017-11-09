@@ -140,7 +140,13 @@ class TestConfigTree(object):
         config_tree.put("bool-string-true", "true")
         assert config_tree.get_bool("bool-string-true") is True
 
+        config_tree.put("bool-string-true", "True")
+        assert config_tree.get_bool("bool-string-true") is True
+
         config_tree.put("bool-string-false", "false")
+        assert config_tree.get_bool("bool-string-false") is False
+
+        config_tree.put("bool-string-false", "False")
         assert config_tree.get_bool("bool-string-false") is False
 
         config_tree.put("bool-string-yes", "yes")
@@ -276,3 +282,17 @@ class TestConfigTree(object):
 
         with pytest.raises(KeyError):
             assert config_tree['c']
+
+    def test_configmissing_raised(self):
+        config_tree = ConfigTree()
+        for getter in [
+            config_tree.get,
+            config_tree.get_bool,
+            config_tree.get_config,
+            config_tree.get_float,
+            config_tree.get_int,
+            config_tree.get_list,
+            config_tree.get_string
+        ]:
+            with pytest.raises(ConfigMissingException):
+                assert getter('missing_key')

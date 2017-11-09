@@ -207,8 +207,8 @@ class ConfigTree(OrderedDict):
             return None
 
         string_value = unicode(value)
-        if string_value in ['True', 'False']:
-            return string_value.lower()
+        if isinstance(value, bool):
+            string_value = string_value.lower()
         return string_value
 
     def pop(self, key, default=UndefinedKey):
@@ -283,8 +283,11 @@ class ConfigTree(OrderedDict):
             'true': True, 'yes': True, 'on': True,
             'false': False, 'no': False, 'off': False
         }
+        string_value = self.get_string(key, default)
+        if string_value is not None:
+            string_value = string_value.lower()
         try:
-            return bool_conversions[self.get_string(key, default)]
+            return bool_conversions[string_value]
         except KeyError:
             raise ConfigException(
                 u"{key} does not translate to a Boolean value".format(key=key))
