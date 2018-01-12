@@ -1980,3 +1980,15 @@ www.example-ö.com {
         assert {
             'a': {'d': 6}
         } == config_tree
+
+    def test_merge_overriden(self):
+        # Adress issue #110
+        # ConfigValues must merge with its .overriden_value
+        # if both are ConfigTree
+        config_tree = ConfigFactory.parse_string("""
+        foo: ${bar}
+        foo: ${baz}
+        bar:  {r: 1, s: 2}
+        baz:  {s: 3, t: 4}
+        """)
+        assert 'r' in config_tree['foo'] and 't' in config_tree['foo'] and config_tree['foo']['s'] == 3
