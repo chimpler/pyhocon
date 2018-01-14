@@ -937,6 +937,7 @@ class TestConfigParser(object):
             """
                 a.b = 3
                 a.b = ${a.b}
+                a.b = ${a.b}
                 a.c = [1,2]
                 a.c = ${a.c}
                 a.d = {foo: bar}
