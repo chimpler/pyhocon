@@ -86,11 +86,17 @@ class ConfigTree(OrderedDict):
                     l.recompute()
                 elif isinstance(l, ConfigTree) and isinstance(value, ConfigValues):
                     value.tokens.append(l)
+                    value.overriden_value = l
                     value.recompute()
+                    value.parent = self
+                    value.key = key_elt
                     self._push_history(key_elt, value)
                     self[key_elt] = value
                 elif isinstance(l, list) and isinstance(value, ConfigValues):
                     self._push_history(key_elt, value)
+                    value.overriden_value = l
+                    value.parent = self
+                    value.key = key_elt
                     self[key_elt] = value
                 elif isinstance(l, list):
                     self[key_elt] = l + value
@@ -120,7 +126,7 @@ class ConfigTree(OrderedDict):
             if not isinstance(next_config_tree, ConfigTree):
                 # create a new dictionary or overwrite a previous value
                 next_config_tree = ConfigTree()
-                self._push_history(key_elt, value)
+                self._push_history(key_elt, next_config_tree)
                 self[key_elt] = next_config_tree
             next_config_tree._put(key_path[1:], value, append)
 
