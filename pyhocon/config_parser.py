@@ -442,6 +442,10 @@ class ConfigParser(object):
                     if not is_optional_resolved and substitution.optional:
                         resolved_value = None
 
+                    if isinstance(resolved_value, ConfigValues) and substitution.parent is resolved_value and hasattr(resolved_value, "overriden_value") and                        resolved_value.overriden_value:
+                        ## self resolution, backtrack
+                        resolved_value =  resolved_value.overriden_value
+
                     unresolved, new_substitutions, result = ConfigParser._do_substitute(substitution, resolved_value, is_optional_resolved)
                     any_unresolved = unresolved or any_unresolved
                     substitutions.extend(new_substitutions)
