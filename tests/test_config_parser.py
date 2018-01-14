@@ -1878,6 +1878,27 @@ test2 = test
             'd': 'foo          5        43'
         }
 
+    def test_complex_substitutions(self):
+        config = ConfigFactory.parse_string(
+            """
+            a: 1
+            b: ${c} {
+              pa: [${a}]
+              pb: ${b.pa}
+            }
+            c: { }
+            d: { pc: ${b.pa} }
+            e: ${b}
+            """, resolve=True)
+
+        assert config == {
+            'a': 1,
+            'b': {'pa': [1], 'pb': [1]},
+            'c': {},
+            'd': {'pc': [1]},
+            'e': {'pa': [1], 'pb': [1]}
+        }
+
     def test_assign_next_line(self):
         config = ConfigFactory.parse_string(
             """
