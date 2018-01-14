@@ -937,9 +937,14 @@ class TestConfigParser(object):
             """
                 a.b = 3
                 a.b = ${a.b}
+                a.c = [1,2]
+                a.c = ${a.c}
+                a.d = {foo: bar}
+                a.d = ${a.d}
+
             """
         )
-        assert config.get("a") == {'b': 3}
+        assert config.get("a") == {'b': 3, 'c': [1,2], 'd': {'foo': 'bar'}}
 
     def test_concat_multi_line_string(self):
         config = ConfigFactory.parse_string(
