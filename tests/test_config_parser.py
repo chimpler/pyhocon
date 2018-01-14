@@ -932,6 +932,15 @@ class TestConfigParser(object):
         )
         assert config.get("x") == {'a': 1, 'b': 2, 'c': 3, 'z': 0, 'y': -1, 'd': 4}
 
+    def test_self_ref_child(self):
+        config = ConfigFactory.parse_string(
+            """
+                a.b = 3
+                a.b = ${a.b}
+            """
+        )
+        assert config.get("a") == {'b': 3}
+
     def test_concat_multi_line_string(self):
         config = ConfigFactory.parse_string(
             """
