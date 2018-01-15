@@ -94,7 +94,7 @@ class ConfigFactory(object):
         return ConfigParser().parse(content, basedir, resolve)
 
     @classmethod
-    def from_dict(cls, dictionary):
+    def from_dict(cls, dictionary, root=False):
         """Convert dictionary (and ordered dictionary) into a ConfigTree
         :param dictionary: dictionary to convert
         :type dictionary: dict
@@ -104,7 +104,7 @@ class ConfigFactory(object):
 
         def create_tree(value):
             if isinstance(value, dict):
-                res = ConfigTree()
+                res = ConfigTree(root = root)
                 for key, child_value in value.items():
                     res.put(key, create_tree(child_value))
                 return res
