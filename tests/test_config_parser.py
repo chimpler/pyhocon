@@ -1674,10 +1674,10 @@ class TestConfigParser(object):
         result = config2.with_fallback(config1)
         assert result.get("string") == 'abcdef'
 
-        ## test no mutation on config1
-        assert not result is config1
-        ## test no mutation on config2
-        assert not "abc" in str(config2)
+        # test no mutation on config1
+        assert result is not config1
+        # test no mutation on config2
+        assert "abc" not in str(config2)
 
     def test_object_field_substitution(self):
         config = ConfigFactory.parse_string(
