@@ -104,7 +104,7 @@ class ConfigFactory(object):
 
         def create_tree(value):
             if isinstance(value, dict):
-                res = ConfigTree(root = root)
+                res = ConfigTree(root=root)
                 for key, child_value in value.items():
                     res.put(key, create_tree(child_value))
                 return res
