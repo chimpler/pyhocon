@@ -945,7 +945,7 @@ class TestConfigParser(object):
 
             """
         )
-        assert config.get("a") == {'b': 3, 'c': [1,2], 'd': {'foo': 'bar'}}
+        assert config.get("a") == {'b': 3, 'c': [1, 2], 'd': {'foo': 'bar'}}
 
     def test_concat_multi_line_string(self):
         config = ConfigFactory.parse_string(

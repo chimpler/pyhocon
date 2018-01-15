@@ -452,9 +452,13 @@ class ConfigParser(object):
                                 link = getattr(link, 'overriden_value')
                             cache[resolved_value] = parents
 
-                    if isinstance(resolved_value, ConfigValues) and substitution.parent in parents and hasattr(substitution.parent, "overriden_value") and substitution.parent.overriden_value:
-                        ## self resolution, backtrack
-                        resolved_value =  substitution.parent.overriden_value
+                    if (isinstance(resolved_value, ConfigValues) and
+                        substitution.parent in parents and
+                        hasattr(substitution.parent, "overriden_value") and
+                        substitution.parent.overriden_value):
+
+                        # self resolution, backtrack
+                        resolved_value = substitution.parent.overriden_value
 
                     unresolved, new_substitutions, result = ConfigParser._do_substitute(substitution, resolved_value, is_optional_resolved)
                     any_unresolved = unresolved or any_unresolved
