@@ -80,22 +80,22 @@ class ConfigTree(OrderedDict):
             elif append:
                 # If we have t=1
                 # and we try to put t.a=5 then t is replaced by {a: 5}
-                l = self.get(key_elt, None)
-                if isinstance(l, ConfigValues):
-                    l.tokens.append(value)
-                    l.recompute()
-                elif isinstance(l, ConfigTree) and isinstance(value, ConfigValues):
-                    value.tokens.append(l)
+                l_value = self.get(key_elt, None)
+                if isinstance(l_value, ConfigValues):
+                    l_value.tokens.append(value)
+                    l_value.recompute()
+                elif isinstance(l_value, ConfigTree) and isinstance(value, ConfigValues):
+                    value.tokens.append(l_value)
                     value.recompute()
                     self._push_history(key_elt, value)
                     self[key_elt] = value
-                elif isinstance(l, list) and isinstance(value, ConfigValues):
+                elif isinstance(l_value, list) and isinstance(value, ConfigValues):
                     self._push_history(key_elt, value)
                     self[key_elt] = value
-                elif isinstance(l, list):
-                    self[key_elt] = l + value
-                    self._push_history(key_elt, l)
-                elif l is None:
+                elif isinstance(l_value, list):
+                    self[key_elt] = l_value + value
+                    self._push_history(key_elt, l_value)
+                elif l_value is None:
                     self._push_history(key_elt, value)
                     self[key_elt] = value
 
@@ -104,8 +104,8 @@ class ConfigTree(OrderedDict):
                         u"Cannot concatenate the list {key}: {value} to {prev_value} of {type}".format(
                             key='.'.join(key_path),
                             value=value,
-                            prev_value=l,
-                            type=l.__class__.__name__)
+                            prev_value=l_value,
+                            type=l_value.__class__.__name__)
                     )
             else:
                 # if there was an override keep overide value
@@ -381,9 +381,9 @@ class ConfigTree(OrderedDict):
 
 class ConfigList(list):
     def __init__(self, iterable=[]):
-        l = list(iterable)
-        super(ConfigList, self).__init__(l)
-        for index, value in enumerate(l):
+        new_list = list(iterable)
+        super(ConfigList, self).__init__(new_list)
+        for index, value in enumerate(new_list):
             if isinstance(value, ConfigValues):
                 value.parent = self
                 value.key = index
