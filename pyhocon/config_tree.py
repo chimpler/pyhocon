@@ -1,10 +1,7 @@
+from collections import OrderedDict
 from pyparsing import lineno
 from pyparsing import col
 
-try:  # pragma: no cover
-    from collections import OrderedDict
-except ImportError:  # pragma: no cover
-    from ordereddict import OrderedDict
 try:
     basestring
 except NameError:  # pragma: no cover
