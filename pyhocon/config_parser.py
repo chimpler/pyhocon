@@ -430,6 +430,7 @@ class ConfigParser(object):
             unresolved = True
             any_unresolved = True
             _substitutions = []
+            cache = {}
             while any_unresolved and len(substitutions) > 0 and set(substitutions) != set(_substitutions):
                 unresolved = False
                 any_unresolved = True
@@ -441,6 +442,23 @@ class ConfigParser(object):
                     # if the substitution is optional
                     if not is_optional_resolved and substitution.optional:
                         resolved_value = None
+                    if isinstance(resolved_value, ConfigValues):
+                        parents = cache.get(resolved_value, None)
+                        if parents is None:
+                            parents = []
+                            link = resolved_value
+                            while isinstance(link, ConfigValues):
+                                parents.append(link)
+                                link = getattr(link, 'overriden_value')
+                            cache[resolved_value] = parents
+
+                    if (isinstance(resolved_value, ConfigValues) and
+                        substitution.parent in parents and
+                        hasattr(substitution.parent, "overriden_value") and
+                        substitution.parent.overriden_value):
+
+                        # self resolution, backtrack
+                        resolved_value = substitution.parent.overriden_value
 
                     unresolved, new_substitutions, result = ConfigParser._do_substitute(substitution, resolved_value, is_optional_resolved)
                     any_unresolved = unresolved or any_unresolved
