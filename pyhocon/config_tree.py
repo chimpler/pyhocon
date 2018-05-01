@@ -340,6 +340,13 @@ class ConfigTree(OrderedDict):
             raise KeyError(item)
         return val
 
+    def __getattr__(self, item):
+        class NotExsitedKey(object): pass
+        val = self.get(item, NotExsitedKey)
+        if val is NotExsitedKey:
+            return super(ConfigTree, self).__getattr__(item)
+        return val
+
     def __contains__(self, item):
         return self._get(self.parse_key(item), default=NoneValue) is not NoneValue
 
