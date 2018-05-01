@@ -85,7 +85,7 @@ class ConfigTree(OrderedDict):
                     l.tokens.append(value)
                     l.recompute()
                 elif isinstance(l, ConfigTree) and isinstance(value, ConfigValues):
-                    value.tokens.append(l)
+                    value.tokens.insert(0,l)
                     value.recompute()
                     self._push_history(key_elt, value)
                     self[key_elt] = value

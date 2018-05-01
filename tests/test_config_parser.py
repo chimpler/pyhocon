@@ -817,7 +817,7 @@ class TestConfigParser(object):
             x = ${x.y}
             """
         )
-        assert config.get("x.y") == {'y': 1}
+        assert config.get("x.y") == 1
         assert set(config.get("x").keys()) == set(['y'])
 
     def test_self_ref_substitution_dict_recurse(self):
