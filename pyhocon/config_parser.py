@@ -474,6 +474,7 @@ class ConfigParser(object):
                         line=lineno(substitution.loc, substitution.instring),
                         col=col(substitution.loc, substitution.instring)) for substitution in substitutions)))
 
+        ConfigParser._final_fixup(config)
         return config
 
 
