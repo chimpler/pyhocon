@@ -4,11 +4,6 @@ import sys
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
-required_packages = ['pyparsing>=2.0.3']
-if sys.version_info[:2] == (2, 6):
-    required_packages.append('argparse')
-    required_packages.append('ordereddict')
-
 
 class PyTestCommand(TestCommand):
     user_options = [('pytest-args=', 'a', "Arguments to pass to py.test")]
@@ -44,16 +39,16 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
     packages=[
         'pyhocon',
     ],
-    install_requires=required_packages,
+    install_requires=['pyparsing>=2.0.3'],
     tests_require=['pytest', 'mock'],
     entry_points={
         'console_scripts': [

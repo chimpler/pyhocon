@@ -1,12 +1,8 @@
 import pytest
+from collections import OrderedDict
 from pyhocon.config_tree import ConfigTree
 from pyhocon.exceptions import (
     ConfigMissingException, ConfigWrongTypeException, ConfigException)
-
-try:  # pragma: no cover
-    from collections import OrderedDict
-except ImportError:  # pragma: no cover
-    from ordereddict import OrderedDict
 
 
 class TestConfigTree(object):
