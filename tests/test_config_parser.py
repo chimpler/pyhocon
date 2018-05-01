@@ -813,7 +813,7 @@ class TestConfigParser(object):
             x = ${x.y}
             """
         )
-        assert config.get("x.y") == {'y': 1}
+        assert config.get("x.y") == 1
         assert set(config.get("x").keys()) == set(['y'])
 
     def test_self_ref_substitution_dict_recurse(self):
@@ -927,6 +927,21 @@ class TestConfigParser(object):
             """
         )
         assert config.get("x") == {'a': 1, 'b': 2, 'c': 3, 'z': 0, 'y': -1, 'd': 4}
+
+    def test_self_ref_child(self):
+        config = ConfigFactory.parse_string(
+            """
+                a.b = 3
+                a.b = ${a.b}
+                a.b = ${a.b}
+                a.c = [1,2]
+                a.c = ${a.c}
+                a.d = {foo: bar}
+                a.d = ${a.d}
+
+            """
+        )
+        assert config.get("a") == {'b': 3, 'c': [1, 2], 'd': {'foo': 'bar'}}
 
     def test_concat_multi_line_string(self):
         config = ConfigFactory.parse_string(
@@ -1667,8 +1682,13 @@ class TestConfigParser(object):
             """,
             resolve=False
         )
-        config2 = config2.with_fallback(config1)
-        assert config2.get("string") == 'abcdef'
+        result = config2.with_fallback(config1)
+        assert result.get("string") == 'abcdef'
+
+        # test no mutation on config1
+        assert result is not config1
+        # test no mutation on config2
+        assert "abc" not in str(config2)
 
     def test_object_field_substitution(self):
         config = ConfigFactory.parse_string(
@@ -1874,6 +1894,27 @@ test2 = test
             'd': 'foo          5        43'
         }
 
+    def test_complex_substitutions(self):
+        config = ConfigFactory.parse_string(
+            """
+            a: 1
+            b: ${c} {
+              pa: [${a}]
+              pb: ${b.pa}
+            }
+            c: { }
+            d: { pc: ${b.pa} }
+            e: ${b}
+            """, resolve=True)
+
+        assert config == {
+            'a': 1,
+            'b': {'pa': [1], 'pb': [1]},
+            'c': {},
+            'd': {'pc': [1]},
+            'e': {'pa': [1], 'pb': [1]}
+        }
+
     def test_assign_next_line(self):
         config = ConfigFactory.parse_string(
             """
@@ -1976,3 +2017,15 @@ www.example-ö.com {
         assert {
             'a': {'d': 6}
         } == config_tree
+
+    def test_merge_overriden(self):
+        # Adress issue #110
+        # ConfigValues must merge with its .overriden_value
+        # if both are ConfigTree
+        config_tree = ConfigFactory.parse_string("""
+        foo: ${bar}
+        foo: ${baz}
+        bar:  {r: 1, s: 2}
+        baz:  {s: 3, t: 4}
+        """)
+        assert 'r' in config_tree['foo'] and 't' in config_tree['foo'] and config_tree['foo']['s'] == 3

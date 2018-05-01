@@ -9,6 +9,7 @@ except NameError:  # pragma: no cover
     unicode = str
 
 import re
+import copy
 from pyhocon.exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
 
 
@@ -77,17 +78,23 @@ class ConfigTree(OrderedDict):
             elif append:
                 # If we have t=1
                 # and we try to put t.a=5 then t is replaced by {a: 5}
-                l_value = self.get(key_elt, None)
-                if isinstance(l_value, ConfigValues):
-                    l_value.tokens.append(value)
-                    l_value.recompute()
-                elif isinstance(l_value, ConfigTree) and isinstance(value, ConfigValues):
-                    value.tokens.append(l_value)
+                l = self.get(key_elt, None)
+                if isinstance(l, ConfigValues):
+                    l.tokens.append(value)
+                    l.recompute()
+                elif isinstance(l, ConfigTree) and isinstance(value, ConfigValues):
+                    value.overriden_value = l
+                    value.tokens.insert(0,l)
                     value.recompute()
+                    value.parent = self
+                    value.key = key_elt
                     self._push_history(key_elt, value)
                     self[key_elt] = value
                 elif isinstance(l_value, list) and isinstance(value, ConfigValues):
                     self._push_history(key_elt, value)
+                    value.overriden_value = l
+                    value.parent = self
+                    value.key = key_elt
                     self[key_elt] = value
                 elif isinstance(l_value, list):
                     self[key_elt] = l_value + value
@@ -117,7 +124,7 @@ class ConfigTree(OrderedDict):
             if not isinstance(next_config_tree, ConfigTree):
                 # create a new dictionary or overwrite a previous value
                 next_config_tree = ConfigTree()
-                self._push_history(key_elt, value)
+                self._push_history(key_elt, next_config_tree)
                 self[key_elt] = next_config_tree
             next_config_tree._put(key_path[1:], value, append)
 
@@ -343,10 +350,10 @@ class ConfigTree(OrderedDict):
         :return: new config with fallback on config
         """
         if isinstance(config, ConfigTree):
-            result = ConfigTree.merge_configs(config, self)
+            result = ConfigTree.merge_configs(copy.deepcopy(config), copy.deepcopy(self))
         else:
             from . import ConfigFactory
-            result = ConfigTree.merge_configs(ConfigFactory.parse_file(config, resolve=False), self)
+            result = ConfigTree.merge_configs(ConfigFactory.parse_file(config, resolve=False), copy.deepcopy(self))
 
         from . import ConfigParser
         ConfigParser.resolve_substitutions(result)
@@ -420,7 +427,17 @@ class ConfigValues(object):
         return len(self.get_substitutions()) > 0
 
     def get_substitutions(self):
-        return [token for token in self.tokens if isinstance(token, ConfigSubstitution)]
+        lst = []
+        node = self
+        while node:
+            lst = [token for token in node.tokens if isinstance(token, ConfigSubstitution)] + lst
+            if hasattr(node, 'overriden_value'):
+                node = node.overriden_value
+                if not isinstance(node, ConfigValues):
+                    break
+            else:
+                break
+        return lst
 
     def transform(self):
         def determine_type(token):
@@ -456,7 +473,28 @@ class ConfigValues(object):
                         col=col(self._loc, self._instring)))
 
         if first_tok_type is ConfigTree:
+            child = []
+            if hasattr(self, 'overriden_value'):
+                node = self.overriden_value
+                while node:
+                    if isinstance(node, ConfigValues):
+                        value = node.transform()
+                        if isinstance(value, ConfigTree):
+                            child.append(value)
+                        else:
+                            break
+                    elif isinstance(node, ConfigTree):
+                        child.append(node)
+                    else:
+                        break
+                    if hasattr(node, 'overriden_value'):
+                        node = node.overriden_value
+                    else:
+                        break
+
             result = ConfigTree()
+            for conf in reversed(child):
+                ConfigTree.merge_configs(result, conf, copy_trees=True)
             for token in tokens:
                 ConfigTree.merge_configs(result, token, copy_trees=True)
             return result
