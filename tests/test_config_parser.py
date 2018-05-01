@@ -817,7 +817,7 @@ class TestConfigParser(object):
             x = ${x.y}
             """
         )
-        assert config.get("x.y") == {'y': 1}
+        assert config.get("x.y") == 1
         assert set(config.get("x").keys()) == set(['y'])
 
     def test_self_ref_substitution_dict_recurse(self):
@@ -1686,8 +1686,13 @@ class TestConfigParser(object):
             """,
             resolve=False
         )
-        config2 = config2.with_fallback(config1)
-        assert config2.get("string") == 'abcdef'
+        result = config2.with_fallback(config1)
+        assert result.get("string") == 'abcdef'
+
+        # test no mutation on config1
+        assert result is not config1
+        # test no mutation on config2
+        assert "abc" not in str(config2)
 
     def test_object_field_substitution(self):
         config = ConfigFactory.parse_string(

@@ -12,6 +12,7 @@ except NameError:  # pragma: no cover
     unicode = str
 
 import re
+import copy
 from pyhocon.exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
 
 
@@ -85,8 +86,8 @@ class ConfigTree(OrderedDict):
                     l.tokens.append(value)
                     l.recompute()
                 elif isinstance(l, ConfigTree) and isinstance(value, ConfigValues):
-                    value.tokens.append(l)
                     value.overriden_value = l
+                    value.tokens.insert(0,l)
                     value.recompute()
                     value.parent = self
                     value.key = key_elt
@@ -352,10 +353,10 @@ class ConfigTree(OrderedDict):
         :return: new config with fallback on config
         """
         if isinstance(config, ConfigTree):
-            result = ConfigTree.merge_configs(config, self)
+            result = ConfigTree.merge_configs(copy.deepcopy(config), copy.deepcopy(self))
         else:
             from . import ConfigFactory
-            result = ConfigTree.merge_configs(ConfigFactory.parse_file(config, resolve=False), self)
+            result = ConfigTree.merge_configs(ConfigFactory.parse_file(config, resolve=False), copy.deepcopy(self))
 
         from . import ConfigParser
         ConfigParser.resolve_substitutions(result)
