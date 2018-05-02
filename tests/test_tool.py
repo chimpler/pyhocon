@@ -1,7 +1,7 @@
 import tempfile
 import pytest
 from pyhocon import ConfigFactory
-from pyhocon.tool import HOCONConverter
+from pyhocon.converter import HOCONConverter
 
 
 class TestHOCONConverter(object):

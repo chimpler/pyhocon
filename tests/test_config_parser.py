@@ -2029,3 +2029,13 @@ www.example-ö.com {
         baz:  {s: 3, t: 4}
         """)
         assert 'r' in config_tree['foo'] and 't' in config_tree['foo'] and config_tree['foo']['s'] == 3
+
+    def test_attr_syntax(self):
+        config = ConfigFactory.parse_string(
+            """
+            a: 1
+            b: {
+              pb: 5
+            }
+            """)
+        assert 5 == config.b.pb

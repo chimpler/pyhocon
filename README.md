@@ -346,6 +346,9 @@ Java properties mapping                                    | :x:
   - jjtk88 ([@jjtk88](https://github.com/jjtk88))
   - Aki Ariga ([@chezou](https://github.com/chezou))
   - Joel Grus ([@joelgrus](https://github.com/joelgrus))
+  - aalba6675 [@aalba6675](https://github.com/aalba6675)
+  - hugovk [@hugovk](https://github.com/hugovk)
+  - chunyang-wen [@chunyang-wen](https://github.com/chunyang-wen)
 
 ### Thanks
 

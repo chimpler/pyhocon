@@ -17,6 +17,10 @@ class UndefinedKey(object):
     pass
 
 
+class NonExistentKey(object):
+    pass
+
+
 class NoneValue(object):
     pass
 
@@ -78,13 +82,13 @@ class ConfigTree(OrderedDict):
             elif append:
                 # If we have t=1
                 # and we try to put t.a=5 then t is replaced by {a: 5}
-                l = self.get(key_elt, None)
-                if isinstance(l, ConfigValues):
-                    l.tokens.append(value)
-                    l.recompute()
-                elif isinstance(l, ConfigTree) and isinstance(value, ConfigValues):
-                    value.overriden_value = l
-                    value.tokens.insert(0,l)
+                l_value = self.get(key_elt, None)
+                if isinstance(l_value, ConfigValues):
+                    l_value.tokens.append(value)
+                    l_value.recompute()
+                elif isinstance(l_value, ConfigTree) and isinstance(value, ConfigValues):
+                    value.overriden_value = l_value
+                    value.tokens.insert(0, l_value)
                     value.recompute()
                     value.parent = self
                     value.key = key_elt
@@ -92,7 +96,7 @@ class ConfigTree(OrderedDict):
                     self[key_elt] = value
                 elif isinstance(l_value, list) and isinstance(value, ConfigValues):
                     self._push_history(key_elt, value)
-                    value.overriden_value = l
+                    value.overriden_value = l_value
                     value.parent = self
                     value.key = key_elt
                     self[key_elt] = value
@@ -341,9 +345,8 @@ class ConfigTree(OrderedDict):
         return val
 
     def __getattr__(self, item):
-        class NotExsitedKey(object): pass
-        val = self.get(item, NotExsitedKey)
-        if val is NotExsitedKey:
+        val = self.get(item, NonExistentKey)
+        if val is NonExistentKey:
             return super(ConfigTree, self).__getattr__(item)
         return val
 

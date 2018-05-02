@@ -1,5 +1,14 @@
 # Changelog
 
+# Version 0.3.39
+* Fixed self ref substitution (@aalba6675) [#142]
+* Fixed with_fallback to not mutate config (@aalba6675) [#143]
+* Fixed self reference (@aalba6675) [#146]
+* Fixed complex substitutions (@aalba6675) [#148]
+* Support attribute path a.b.c. (@chunyang-wen) [#150]
+* Updated python version (@hugovk) [#151]
+
+
 # Version 0.3.38
 * Added compact option for hocon output. #129
 * Unicode fix for unquoted strings. #130
