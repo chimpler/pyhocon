@@ -59,9 +59,13 @@ class ConfigTree(OrderedDict):
                     value.parent = a
                     value.key = key
                     value.overriden_value = a.get(key, None)
+
                 a[key] = value
                 if a.root:
-                    a.history[key] = (a.history.get(key) or []) + b.history.get(key)
+                    if b.root:
+                        a.history[key] = a.history.get(key, []) + b.history.get(key, [value])
+                    else:
+                        a.history[key] = a.history.get(key, []) + [value]
 
         return a
 
