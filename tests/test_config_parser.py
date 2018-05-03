@@ -1277,6 +1277,21 @@ class TestConfigParser(object):
         assert config['database.name'] == 'peopledb'
         assert config['database.pass'] == 'peoplepass'
 
+    def test_optional_with_merge(self):
+        unresolved = ConfigFactory.parse_string(
+            """
+            foo: 42
+            foo: ${?a}
+            """, resolve=False)
+        source = ConfigFactory.parse_string(
+            """
+            b: 14
+            """)
+        config = unresolved.with_fallback(source)
+        assert config['foo'] == 42
+        config = source.with_fallback(unresolved)
+        assert config['foo'] == 42
+
     def test_optional_substitution(self):
         config = ConfigFactory.parse_string(
             """
