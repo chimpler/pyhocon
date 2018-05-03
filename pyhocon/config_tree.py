@@ -59,7 +59,6 @@ class ConfigTree(OrderedDict):
                     value.parent = a
                     value.key = key
                     value.overriden_value = a.get(key, None)
-
                 a[key] = value
                 if a.root:
                     if b.root:
