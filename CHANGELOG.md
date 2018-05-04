@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.40
+* Fix non-root ConfigTree merge onto root ConfigTree (@aalba6675) [#156]
+* Unresolved optional substitutions work with config merging (@aalba6675) [#153]
+
 # Version 0.3.39
 * Fixed self ref substitution (@aalba6675) [#142]
 * Fixed with_fallback to not mutate config (@aalba6675) [#143]
