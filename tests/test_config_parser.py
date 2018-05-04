@@ -1705,6 +1705,17 @@ class TestConfigParser(object):
         # test no mutation on config2
         assert "abc" not in str(config2)
 
+    def test_fallback_non_root(self):
+        root = ConfigFactory.parse_string(
+            """
+            a = 1
+            mid.b = 1
+            """
+        )
+
+        config = root.get_config("mid").with_fallback(root)
+        assert config['a'] == 1 and config['b'] == 1
+
     def test_object_field_substitution(self):
         config = ConfigFactory.parse_string(
             """
