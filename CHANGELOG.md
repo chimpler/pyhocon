@@ -1,5 +1,8 @@
 # Changelog
 
+# Version 0.3.41
+* Fixed escaped quotes inside quoted and unquoted string (@darthbear) [#158]
+
 # Version 0.3.40
 * Fix non-root ConfigTree merge onto root ConfigTree (@aalba6675) [#156]
 * Unresolved optional substitutions work with config merging (@aalba6675) [#153]
