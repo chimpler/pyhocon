@@ -175,7 +175,7 @@ class ConfigParser(object):
             return substitution
 
         # ${path} or ${?path} for optional substitution
-        STRING_PATTERN = '(")(?P<value>[^"]*)\\1(?P<ws>[ \t]*)'
+        STRING_PATTERN = '"(?P<value>(?:[^"\\\\]|\\\\.)*)"(?P<ws>[ \t]*)'
 
         def create_quoted_string(instring, loc, token):
             # remove the ${ and }
@@ -240,13 +240,13 @@ class ConfigParser(object):
         # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
         multiline_string = Regex('""".*?"*"""', re.DOTALL | re.UNICODE).setParseAction(parse_multi_string)
         # single quoted line string
-        quoted_string = Regex('".*?"[ \t]*', re.UNICODE).setParseAction(create_quoted_string)
+        quoted_string = Regex('"(?:[^"\\\\\n]|\\\\.)*"[ \t]*', re.UNICODE).setParseAction(create_quoted_string)
         # unquoted string that takes the rest of the line until an optional comment
         # we support .properties multiline support which is like this:
         # line1  \
         # line2 \
         # so a backslash precedes the \n
-        unquoted_string = Regex('(?:\\\\|[^\[\{\s\]\}#,=\$])+[ \t]*', re.UNICODE).setParseAction(unescape_string)
+        unquoted_string = Regex('(?:[^"\[\{\s\]\}#,=\$\\\\]|\\\\.)+[ \t]*', re.UNICODE).setParseAction(unescape_string)
         substitution_expr = Regex('[ \t]*\$\{[^\}]+\}[ \t]*').setParseAction(create_substitution)
         string_expr = multiline_string | quoted_string | unquoted_string
 

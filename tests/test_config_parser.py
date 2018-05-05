@@ -1132,14 +1132,15 @@ class TestConfigParser(object):
             }
             """
         )
-        assert {
+        expected = {
             'a': {
                 'garfield': {
                     'say': 'meow'
                 },
                 't': 2
             }
-        } == config
+        }
+        assert expected == config
 
     def test_include_missing_required_file(self):
         with pytest.raises(IOError):
@@ -2040,9 +2041,10 @@ www.example-ö.com {
         config_tree = ConfigFactory.parse_string('a:{b: 3, d: 6}')
         assert 3 == config_tree.pop('a.b', 5)
         assert 5 == config_tree.pop('a.c', 5)
-        assert {
+        expected = {
             'a': {'d': 6}
-        } == config_tree
+        }
+        assert expected == config_tree
 
     def test_merge_overriden(self):
         # Adress issue #110
@@ -2065,3 +2067,21 @@ www.example-ö.com {
             }
             """)
         assert 5 == config.b.pb
+
+    def test_escape_quote(self):
+        config = ConfigFactory.parse_string(
+            """
+            quoted: "abc\\"test"
+            unquoted: abc\\"test
+            """)
+        assert 'abc"test' == config['quoted']
+        assert 'abc"test' == config['unquoted']
+
+    def test_escape_quote_complex(self):
+        config = ConfigFactory.parse_string(
+            """
+            value: "{\\"critical\\":\\"0.00\\",\\"warning\\":\\"99.99\\"}"
+            """
+        )
+
+        assert '{"critical":"0.00","warning":"99.99"}' == config['value']
