@@ -6,7 +6,7 @@ import tempfile
 from collections import OrderedDict
 from pyparsing import ParseSyntaxException, ParseException
 import pytest
-from pyhocon import ConfigFactory, ConfigSubstitutionException, ConfigTree, ConfigParser
+from pyhocon import ConfigFactory, ConfigSubstitutionException, ConfigTree, ConfigParser, UNTOUCHED_SUBSTITUTION
 from pyhocon.exceptions import ConfigMissingException, ConfigWrongTypeException, ConfigException
 
 
@@ -823,6 +823,22 @@ class TestConfigParser(object):
                 x = ${x}
                 """
             )
+
+    def test_self_ref_substitution_dict_recurse_accept_unresolve(self):
+        config = ConfigFactory.parse_string(
+            """
+            x = ${x}
+            """, resolve=False, unresolved_value=UNTOUCHED_SUBSTITUTION
+        )
+        assert 'x' == config['x'].tokens[0].variable
+
+    def test_self_ref_substitution_dict_recurse_accept_unresolve_string(self):
+        config = ConfigFactory.parse_string(
+            """
+            x = ${x}
+            """, resolve=False, allow_unresolved=True
+        )
+        assert {'x': '${x}'} == config
 
     def test_self_ref_substitution_dict_recurse2(self):
         with pytest.raises(ConfigSubstitutionException):
