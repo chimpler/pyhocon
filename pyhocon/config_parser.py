@@ -34,7 +34,15 @@ logger = logging.getLogger(__name__)
 #
 
 
-class UNTOUCHED_SUBSTITUTION(object):
+class DEFAULT_SUBSTITUTION(object):
+    pass
+
+
+class MANDATORY_SUBSTITUTION(object):
+    pass
+
+
+class NO_SUBSTITUTION(object):
     pass
 
 
@@ -45,7 +53,7 @@ class STR_SUBSTITUTION(object):
 class ConfigFactory(object):
 
     @classmethod
-    def parse_file(cls, filename, encoding='utf-8', required=True, resolve=True, allow_unresolved=False, unresolved_value=STR_SUBSTITUTION):
+    def parse_file(cls, filename, encoding='utf-8', required=True, resolve=True, unresolved_value=DEFAULT_SUBSTITUTION):
         """Parse file
 
         :param filename: filename
@@ -56,9 +64,9 @@ class ConfigFactory(object):
         :type required: boolean
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
-        :param allow_unresolved: if true, does not raise exception if some variables cannot be resolved
-        :type allow_unresolved:  boolean
-        :param unresolved_value: assigned value value to unresolved substitution. if none then return the string representing the substitution (e.g., ${value}).
+        :param unresolved_value: assigned value value to unresolved substitution.
+        If overriden with a default value, it will replace all unresolved value to the default value.
+        If it is set to to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
         :type unresolved_value: boolean
         :return: Config object
         :type return: Config
@@ -66,7 +74,7 @@ class ConfigFactory(object):
         try:
             with codecs.open(filename, 'r', encoding=encoding) as fd:
                 content = fd.read()
-                return cls.parse_string(content, os.path.dirname(filename), resolve, allow_unresolved, unresolved_value)
+                return cls.parse_string(content, os.path.dirname(filename), resolve, unresolved_value)
         except IOError as e:
             if required:
                 raise e
@@ -74,16 +82,16 @@ class ConfigFactory(object):
             return []
 
     @classmethod
-    def parse_URL(cls, url, timeout=None, resolve=True, required=False, allow_unresolved=False, unresolved_value=STR_SUBSTITUTION):
+    def parse_URL(cls, url, timeout=None, resolve=True, required=False, unresolved_value=DEFAULT_SUBSTITUTION):
         """Parse URL
 
         :param url: url to parse
         :type url: basestring
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
-        :param allow_unresolved: if true, does not raise exception if some variables cannot be resolved
-        :type allow_unresolved:  boolean
-        :param unresolved_value: assigned value value to unresolved substitution. if none then return the string representing the substitution (e.g., ${value}).
+        :param unresolved_value: assigned value value to unresolved substitution.
+        If overriden with a default value, it will replace all unresolved value to the default value.
+        If it is set to to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
         :type unresolved_value: boolean
         :return: Config object or []
         :type return: Config or list
@@ -93,7 +101,7 @@ class ConfigFactory(object):
         try:
             with contextlib.closing(urlopen(url, timeout=socket_timeout)) as fd:
                 content = fd.read() if use_urllib2 else fd.read().decode('utf-8')
-                return cls.parse_string(content, os.path.dirname(url), resolve, allow_unresolved, unresolved_value)
+                return cls.parse_string(content, os.path.dirname(url), resolve, unresolved_value)
         except (HTTPError, URLError) as e:
             logger.warn('Cannot include url %s. Resource is inaccessible.', url)
             if required:
@@ -102,7 +110,7 @@ class ConfigFactory(object):
                 return []
 
     @classmethod
-    def parse_string(cls, content, basedir=None, resolve=True, allow_unresolved=False, unresolved_value=STR_SUBSTITUTION):
+    def parse_string(cls, content, basedir=None, resolve=True, unresolved_value=DEFAULT_SUBSTITUTION):
         """Parse URL
 
         :param content: content to parse
@@ -110,14 +118,14 @@ class ConfigFactory(object):
         :param resolve: If true, resolve substitutions
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
-        :param allow_unresolved: if true, does not raise exception if some variables cannot be resolved
-        :type allow_unresolved:  boolean
-        :param unresolved_value: assigned value value to unresolved substitution. if none then return the string representing the substitution (e.g., ${value}).
+        :param unresolved_value: assigned value value to unresolved substitution.
+        If overriden with a default value, it will replace all unresolved value to the default value.
+        If it is set to to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
         :type unresolved_value: boolean
         :return: Config object
         :type return: Config
         """
-        return ConfigParser().parse(content, basedir, resolve, allow_unresolved, unresolved_value)
+        return ConfigParser().parse(content, basedir, resolve, unresolved_value)
 
     @classmethod
     def from_dict(cls, dictionary, root=False):
@@ -159,16 +167,16 @@ class ConfigParser(object):
     }
 
     @classmethod
-    def parse(cls, content, basedir=None, resolve=True, allow_unresolved=False, unresolved_value=STR_SUBSTITUTION):
+    def parse(cls, content, basedir=None, resolve=True, unresolved_value=DEFAULT_SUBSTITUTION):
         """parse a HOCON content
 
         :param content: HOCON content to parse
         :type content: basestring
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
-        :param allow_unresolved: if true, does not raise exception if some variables cannot be resolved
-        :type allow_unresolved:  boolean
-        :param unresolved_value: assigned value value to unresolved substitution. if none then return the string representing the substitution (e.g., ${value}).
+        :param unresolved_value: assigned value value to unresolved substitution.
+        If overriden with a default value, it will replace all unresolved value to the default value.
+        If it is set to to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
         :type unresolved_value: boolean
         :return: a ConfigTree or a list
         """
@@ -244,8 +252,7 @@ class ConfigParser(object):
                     url,
                     resolve=False,
                     required=required,
-                    allow_unresolved=allow_unresolved,
-                    unresolved_value=UNTOUCHED_SUBSTITUTION
+                    unresolved_value=NO_SUBSTITUTION
                 )
             elif file is not None:
                 path = file if basedir is None else os.path.join(basedir, file)
@@ -254,8 +261,7 @@ class ConfigParser(object):
                     path,
                     resolve=False,
                     required=required,
-                    allow_unresolved=allow_unresolved,
-                    unresolved_value=UNTOUCHED_SUBSTITUTION
+                    unresolved_value=NO_SUBSTITUTION
                 )
             else:
                 raise ConfigException('No file or URL specified at: {loc}: {instring}', loc=loc, instring=instring)
@@ -333,9 +339,13 @@ class ConfigParser(object):
         config = config_expr.parseString(content, parseAll=True)[0]
 
         if resolve:
+            allow_unresolved = resolve and unresolved_value is not DEFAULT_SUBSTITUTION and unresolved_value is not MANDATORY_SUBSTITUTION
             cls.resolve_substitutions(config, allow_unresolved)
 
-        if allow_unresolved and unresolved_value != UNTOUCHED_SUBSTITUTION:
+        if unresolved_value is not NO_SUBSTITUTION and unresolved_value is not DEFAULT_SUBSTITUTION:
+            if unresolved_value is MANDATORY_SUBSTITUTION:
+                raise ConfigSubstitutionException('resolve cannot be set to True and unresolved_value to MANDATORY_SUBSTITUTION')
+
             cls.unresolve_substitutions_to_value(config, unresolved_value)
         return config
 
@@ -473,9 +483,14 @@ class ConfigParser(object):
         return item
 
     @classmethod
-    def unresolve_substitutions_to_value(cls, config, default=STR_SUBSTITUTION):
+    def unresolve_substitutions_to_value(cls, config, unresolved_value=STR_SUBSTITUTION):
         for substitution in cls._find_substitutions(config):
-            value = substitution.raw_str() if default == STR_SUBSTITUTION else default
+            if unresolved_value is STR_SUBSTITUTION or unresolved_value is DEFAULT_SUBSTITUTION:
+                value = substitution.raw_str()
+            elif unresolved_value is None:
+                value = NoneValue()
+            else:
+                value = unresolved_value
             cls._do_substitute(substitution, value, False)
         cls._final_fixup(config)
 

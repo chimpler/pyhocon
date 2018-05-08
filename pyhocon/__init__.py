@@ -1,4 +1,4 @@
-from pyhocon.config_parser import ConfigParser, ConfigFactory, ConfigSubstitutionException, UNTOUCHED_SUBSTITUTION, STR_SUBSTITUTION  # noqa
+from pyhocon.config_parser import ConfigParser, ConfigFactory, ConfigSubstitutionException, NO_SUBSTITUTION, STR_SUBSTITUTION, DEFAULT_SUBSTITUTION  # noqa
 from pyhocon.config_tree import ConfigTree, ConfigList, UndefinedKey  # noqa
 from pyhocon.config_tree import ConfigInclude, ConfigSubstitution, ConfigUnquotedString, ConfigValues  # noqa
 from pyhocon.config_tree import ConfigMissingException, ConfigException, ConfigWrongTypeException  # noqa
