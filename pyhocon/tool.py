@@ -1,7 +1,7 @@
 import argparse
 import logging
 
-from converter import HOCONConverter
+from pyhocon.converter import HOCONConverter
 
 LOG_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 
