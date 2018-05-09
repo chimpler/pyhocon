@@ -48,7 +48,7 @@ class HOCONConverter(object):
                 lines += '\n{indent}]'.format(indent=''.rjust(level * indent, ' '))
         elif isinstance(config, basestring):
             lines = '"{value}"'.format(value=config.replace('\n', '\\n').replace('"', '\\"'))
-        elif config is None or isinstance(config, NoneValue):
+        elif config is None or config is NoneValue:
             lines = 'null'
         elif config is True:
             lines = 'true'
@@ -109,7 +109,7 @@ class HOCONConverter(object):
                 lines = '"""{value}"""'.format(value=config)  # multilines
             else:
                 lines = '"{value}"'.format(value=config.replace('\n', '\\n').replace('"', '\\"'))
-        elif config is None or isinstance(config, NoneValue):
+        elif config is None or config is NoneValue:
             lines = 'null'
         elif config is True:
             lines = 'true'
@@ -157,7 +157,7 @@ class HOCONConverter(object):
                 lines = config
             else:
                 lines = '|\n' + '\n'.join([line.rjust(level * indent, ' ') for line in lines])
-        elif config is None or isinstance(config, NoneValue):
+        elif config is None or config is NoneValue:
             lines = 'null'
         elif config is True:
             lines = 'true'
@@ -195,7 +195,7 @@ class HOCONConverter(object):
             lines.append('.'.join(stripped_key_stack) + ' = true')
         elif config is False:
             lines.append('.'.join(stripped_key_stack) + ' = false')
-        elif config is None or isinstance(config, NoneValue):
+        elif config is None or config is NoneValue:
             pass
         else:
             lines.append('.'.join(stripped_key_stack) + ' = ' + str(config))
