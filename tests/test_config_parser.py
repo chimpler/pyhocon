@@ -1656,8 +1656,8 @@ class TestConfigParser(object):
             resolve=False
         )
         merged = ConfigTree.merge_configs(config1, config2)
-        resolved = ConfigParser.resolve_substitutions(merged)
-        assert resolved.get("c.d") == [1]
+        ConfigParser.resolve_substitutions(merged)
+        assert merged.get("c.d") == [1]
 
     def test_self_merge_ref_substitutions_object2(self):
         config1 = ConfigFactory.parse_string(
@@ -1676,8 +1676,8 @@ class TestConfigParser(object):
             resolve=False
         )
         merged = ConfigTree.merge_configs(config1, config2)
-        resolved = ConfigParser.resolve_substitutions(merged)
-        b = resolved.get("b")
+        ConfigParser.resolve_substitutions(merged)
+        b = merged.get("b")
         assert len(b) == 2
         assert b[0] == {'v2': 2}
         assert b[1] == {'v1': 1, 'v2': 3}
@@ -1697,9 +1697,9 @@ class TestConfigParser(object):
             resolve=False
         )
         merged = ConfigTree.merge_configs(config1, config2)
-        resolved = ConfigParser.resolve_substitutions(merged)
-        assert resolved.get("b1") == {"v1": 2, "v2": 3}
-        b = resolved.get("b")
+        ConfigParser.resolve_substitutions(merged)
+        assert merged.get("b1") == {"v1": 2, "v2": 3}
+        b = merged.get("b")
         assert len(b) == 1
         assert b[0] == {"v1": 2, "v2": 3}
 

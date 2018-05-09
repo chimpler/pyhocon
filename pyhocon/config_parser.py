@@ -340,12 +340,11 @@ class ConfigParser(object):
 
         if resolve:
             allow_unresolved = resolve and unresolved_value is not DEFAULT_SUBSTITUTION and unresolved_value is not MANDATORY_SUBSTITUTION
-            cls.resolve_substitutions(config, allow_unresolved)
-
-        if unresolved_value is not NO_SUBSTITUTION and unresolved_value is not DEFAULT_SUBSTITUTION:
-            if unresolved_value is MANDATORY_SUBSTITUTION:
+            has_unresolved = cls.resolve_substitutions(config, allow_unresolved)
+            if has_unresolved and unresolved_value is MANDATORY_SUBSTITUTION:
                 raise ConfigSubstitutionException('resolve cannot be set to True and unresolved_value to MANDATORY_SUBSTITUTION')
 
+        if unresolved_value is not NO_SUBSTITUTION and unresolved_value is not DEFAULT_SUBSTITUTION:
             cls.unresolve_substitutions_to_value(config, unresolved_value)
         return config
 
@@ -485,7 +484,7 @@ class ConfigParser(object):
     @classmethod
     def unresolve_substitutions_to_value(cls, config, unresolved_value=STR_SUBSTITUTION):
         for substitution in cls._find_substitutions(config):
-            if unresolved_value is STR_SUBSTITUTION or unresolved_value is DEFAULT_SUBSTITUTION:
+            if unresolved_value is STR_SUBSTITUTION:
                 value = substitution.raw_str()
             elif unresolved_value is None:
                 value = NoneValue
@@ -496,6 +495,7 @@ class ConfigParser(object):
 
     @classmethod
     def resolve_substitutions(cls, config, accept_unresolved=False):
+        has_unresolved = False
         cls._fixup_self_references(config, accept_unresolved)
         substitutions = cls._find_substitutions(config)
         if len(substitutions) > 0:
@@ -540,6 +540,7 @@ class ConfigParser(object):
 
             cls._final_fixup(config)
             if unresolved:
+                has_unresolved = True
                 if not accept_unresolved:
                     raise ConfigSubstitutionException("Cannot resolve {variables}. Check for cycles.".format(
                         variables=', '.join('${{{variable}}}: (line: {line}, col: {col})'.format(
@@ -548,7 +549,7 @@ class ConfigParser(object):
                             col=col(substitution.loc, substitution.instring)) for substitution in substitutions)))
 
         cls._final_fixup(config)
-        return config
+        return has_unresolved
 
 
 class ListParser(TokenConverter):
