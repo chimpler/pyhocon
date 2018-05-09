@@ -149,16 +149,15 @@ class ConfigTree(OrderedDict):
 
         if elt is UndefinedKey:
             if default is UndefinedKey:
-                raise ConfigMissingException(
-                    u"No configuration setting found for key {key}".format(key='.'.join(key_path[:key_index + 1])))
+                raise ConfigMissingException(u"No configuration setting found for key {key}".format(key='.'.join(key_path[:key_index + 1])))
             else:
                 return default
 
         if key_index == len(key_path) - 1:
-            if elt is NoneValue:
+            if isinstance(elt, NoneValue):
                 return None
             elif isinstance(elt, list):
-                return [None if x is NoneValue else x for x in elt]
+                return [None if isinstance(x, NoneValue) else x for x in elt]
             else:
                 return elt
         elif isinstance(elt, ConfigTree):
@@ -385,7 +384,6 @@ class ConfigTree(OrderedDict):
         :return: this config as an OrderedDict
         :type return: OrderedDict
         """
-
         def plain_value(v):
             if isinstance(v, list):
                 return [plain_value(e) for e in v]
@@ -551,13 +549,6 @@ class ConfigSubstitution(object):
         self.parent = None
         self.instring = instring
         self.loc = loc
-
-    def raw_str(self):
-        return '${{{optional}{name}}}{ws}'.format(
-            optional='?' if self.optional else '',
-            name=self.variable,
-            ws=self.ws
-        )
 
     def __repr__(self):  # pragma: no cover
         return '[ConfigSubstitution: ' + self.variable + ']'
