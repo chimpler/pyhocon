@@ -6,7 +6,7 @@ import tempfile
 from collections import OrderedDict
 from pyparsing import ParseSyntaxException, ParseException
 import pytest
-from pyhocon import ConfigFactory, ConfigSubstitutionException, ConfigTree, ConfigParser
+from pyhocon import ConfigFactory, ConfigSubstitutionException, ConfigTree, ConfigParser, STR_SUBSTITUTION
 from pyhocon.exceptions import ConfigMissingException, ConfigWrongTypeException, ConfigException
 
 
@@ -823,6 +823,38 @@ class TestConfigParser(object):
                 x = ${x}
                 """
             )
+
+    def test_self_ref_substitution_dict_recurse_accept_unresolve(self):
+        config = ConfigFactory.parse_string(
+            """
+            x = ${x}
+            """, resolve=False
+        )
+        assert 'x' == config['x'].tokens[0].variable
+
+    def test_self_ref_substitution_dict_recurse_accept_unresolve_string_to_string(self):
+        config = ConfigFactory.parse_string(
+            """
+            x = ${x}
+            """, resolve=False, unresolved_value=STR_SUBSTITUTION
+        )
+        assert {'x': '${x}'} == config
+
+    def test_self_ref_substitution_dict_recurse_accept_unresolve_string_with_default(self):
+        config = ConfigFactory.parse_string(
+            """
+            x = ${x}
+            """, resolve=False, unresolved_value='(undefined)'
+        )
+        assert {'x': '(undefined)'} == config
+
+    def test_self_ref_substitution_dict_recurse_accept_unresolve_string_with_default_none(self):
+        config = ConfigFactory.parse_string(
+            """
+            x = ${x}
+            """, resolve=False, unresolved_value=None
+        )
+        assert config['x'] is None
 
     def test_self_ref_substitution_dict_recurse2(self):
         with pytest.raises(ConfigSubstitutionException):
