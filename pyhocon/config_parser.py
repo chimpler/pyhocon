@@ -273,7 +273,7 @@ class ConfigParser(object):
         assign_expr = Forward()
         true_expr = Keyword("true", caseless=True).setParseAction(replaceWith(True))
         false_expr = Keyword("false", caseless=True).setParseAction(replaceWith(False))
-        null_expr = Keyword("null", caseless=True).setParseAction(replaceWith(NoneValue()))
+        null_expr = Keyword("null", caseless=True).setParseAction(replaceWith(NoneValue))
         key = QuotedString('"', escChar='\\', unquoteResults=False) | Word(alphanums + alphas8bit + '._- ')
 
         eol = Word('\n\r').suppress()
@@ -488,7 +488,7 @@ class ConfigParser(object):
             if unresolved_value is STR_SUBSTITUTION or unresolved_value is DEFAULT_SUBSTITUTION:
                 value = substitution.raw_str()
             elif unresolved_value is None:
-                value = NoneValue()
+                value = NoneValue
             else:
                 value = unresolved_value
             cls._do_substitute(substitution, value, False)
