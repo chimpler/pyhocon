@@ -854,6 +854,8 @@ class TestConfigParser(object):
             x = ${x}
             """, resolve=False, unresolved_value=None
         )
+        print(config)
+        assert config['x'] is None
         assert {'x': None} == config
 
     def test_self_ref_substitution_dict_recurse2(self):
