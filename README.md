@@ -350,6 +350,7 @@ Java properties mapping                                    | :x:
   - hugovk [@hugovk](https://github.com/hugovk)
   - chunyang-wen [@chunyang-wen](https://github.com/chunyang-wen)
   - afanasev [@afanasev](https://github.com/afanasev)
+  - derkcrezee [@derkcrezee](https://github.com/derkcrezee)
 
 ### Thanks
 
