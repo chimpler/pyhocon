@@ -1293,6 +1293,14 @@ class TestConfigParser(object):
         config = source.with_fallback(unresolved)
         assert config['foo'] == 42
 
+    def test_fallback_with_resolve(self):
+        config3 = ConfigFactory.parse_string("c=5")
+        config2 = ConfigFactory.parse_string("b=${c}", resolve=False)
+        config1 = ConfigFactory.parse_string("a=${b}", resolve=False) \
+            .with_fallback(config2, resolve=False) \
+            .with_fallback(config3)
+        assert {'a': 5, 'b': 5, 'c': 5} == config1
+
     def test_optional_substitution(self):
         config = ConfigFactory.parse_string(
             """
