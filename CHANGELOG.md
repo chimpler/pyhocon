@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.42
+* Added resolve option to with_fallback (@afanasev) [#164]
+* Allow unresolved substitution to use default string or substitution string (e.g., ${abc}) [#163]
+
 # Version 0.3.41
 * Fixed escaped quotes inside quoted and unquoted string (@darthbear) [#158]
 

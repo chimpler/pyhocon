@@ -349,6 +349,7 @@ Java properties mapping                                    | :x:
   - Anthony Alba [@aalba6675](https://github.com/aalba6675)
   - hugovk [@hugovk](https://github.com/hugovk)
   - chunyang-wen [@chunyang-wen](https://github.com/chunyang-wen)
+  - afanasev [@afanasev](https://github.com/afanasev)
 
 ### Thanks
 
