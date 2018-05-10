@@ -358,10 +358,11 @@ class ConfigTree(OrderedDict):
     def __contains__(self, item):
         return self._get(self.parse_key(item), default=NoneValue) is not NoneValue
 
-    def with_fallback(self, config):
+    def with_fallback(self, config, resolve=True):
         """
         return a new config with fallback on config
         :param config: config or filename of the config to fallback on
+        :param resolve: resolve substitutions
         :return: new config with fallback on config
         """
         if isinstance(config, ConfigTree):
@@ -370,8 +371,9 @@ class ConfigTree(OrderedDict):
             from . import ConfigFactory
             result = ConfigTree.merge_configs(ConfigFactory.parse_file(config, resolve=False), copy.deepcopy(self))
 
-        from . import ConfigParser
-        ConfigParser.resolve_substitutions(result)
+        if resolve:
+            from . import ConfigParser
+            ConfigParser.resolve_substitutions(result)
         return result
 
     def as_plain_ordered_dict(self):
