@@ -154,10 +154,10 @@ class ConfigTree(OrderedDict):
                 return default
 
         if key_index == len(key_path) - 1:
-            if isinstance(elt, NoneValue):
+            if elt is NoneValue:
                 return None
             elif isinstance(elt, list):
-                return [None if isinstance(x, NoneValue) else x for x in elt]
+                return [None if x is NoneValue else x for x in elt]
             else:
                 return elt
         elif isinstance(elt, ConfigTree):
