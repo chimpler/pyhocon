@@ -29,10 +29,31 @@ except NameError:  # pragma: no cover
 
 logger = logging.getLogger(__name__)
 
+#
+# Substitution Defaults
+#
+
+
+class DEFAULT_SUBSTITUTION(object):
+    pass
+
+
+class MANDATORY_SUBSTITUTION(object):
+    pass
+
+
+class NO_SUBSTITUTION(object):
+    pass
+
+
+class STR_SUBSTITUTION(object):
+    pass
+
 
 class ConfigFactory(object):
-    @staticmethod
-    def parse_file(filename, encoding='utf-8', required=True, resolve=True):
+
+    @classmethod
+    def parse_file(cls, filename, encoding='utf-8', required=True, resolve=True, unresolved_value=DEFAULT_SUBSTITUTION):
         """Parse file
 
         :param filename: filename
@@ -41,29 +62,37 @@ class ConfigFactory(object):
         :type encoding: basestring
         :param required: If true, raises an exception if can't load file
         :type required: boolean
-        :param resolve: If true, resolve substitutions
+        :param resolve: if true, resolve substitutions
         :type resolve: boolean
+        :param unresolved_value: assigned value value to unresolved substitution.
+        If overriden with a default value, it will replace all unresolved value to the default value.
+        If it is set to to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
+        :type unresolved_value: boolean
         :return: Config object
         :type return: Config
         """
         try:
             with codecs.open(filename, 'r', encoding=encoding) as fd:
                 content = fd.read()
-                return ConfigFactory.parse_string(content, os.path.dirname(filename), resolve)
+                return cls.parse_string(content, os.path.dirname(filename), resolve, unresolved_value)
         except IOError as e:
             if required:
                 raise e
             logger.warn('Cannot include file %s. File does not exist or cannot be read.', filename)
             return []
 
-    @staticmethod
-    def parse_URL(url, timeout=None, resolve=True, required=False):
+    @classmethod
+    def parse_URL(cls, url, timeout=None, resolve=True, required=False, unresolved_value=DEFAULT_SUBSTITUTION):
         """Parse URL
 
         :param url: url to parse
         :type url: basestring
-        :param resolve: If true, resolve substitutions
+        :param resolve: if true, resolve substitutions
         :type resolve: boolean
+        :param unresolved_value: assigned value value to unresolved substitution.
+        If overriden with a default value, it will replace all unresolved value to the default value.
+        If it is set to to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
+        :type unresolved_value: boolean
         :return: Config object or []
         :type return: Config or list
         """
@@ -72,7 +101,7 @@ class ConfigFactory(object):
         try:
             with contextlib.closing(urlopen(url, timeout=socket_timeout)) as fd:
                 content = fd.read() if use_urllib2 else fd.read().decode('utf-8')
-                return ConfigFactory.parse_string(content, os.path.dirname(url), resolve)
+                return cls.parse_string(content, os.path.dirname(url), resolve, unresolved_value)
         except (HTTPError, URLError) as e:
             logger.warn('Cannot include url %s. Resource is inaccessible.', url)
             if required:
@@ -80,18 +109,23 @@ class ConfigFactory(object):
             else:
                 return []
 
-    @staticmethod
-    def parse_string(content, basedir=None, resolve=True):
+    @classmethod
+    def parse_string(cls, content, basedir=None, resolve=True, unresolved_value=DEFAULT_SUBSTITUTION):
         """Parse URL
 
         :param content: content to parse
         :type content: basestring
         :param resolve: If true, resolve substitutions
+        :param resolve: if true, resolve substitutions
         :type resolve: boolean
+        :param unresolved_value: assigned value value to unresolved substitution.
+        If overriden with a default value, it will replace all unresolved value to the default value.
+        If it is set to to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
+        :type unresolved_value: boolean
         :return: Config object
         :type return: Config
         """
-        return ConfigParser().parse(content, basedir, resolve)
+        return ConfigParser().parse(content, basedir, resolve, unresolved_value)
 
     @classmethod
     def from_dict(cls, dictionary, root=False):
@@ -132,19 +166,23 @@ class ConfigParser(object):
         '\\"': '"'
     }
 
-    @staticmethod
-    def parse(content, basedir=None, resolve=True):
+    @classmethod
+    def parse(cls, content, basedir=None, resolve=True, unresolved_value=DEFAULT_SUBSTITUTION):
         """parse a HOCON content
 
         :param content: HOCON content to parse
         :type content: basestring
-        :param resolve: If true, resolve substitutions
+        :param resolve: if true, resolve substitutions
         :type resolve: boolean
+        :param unresolved_value: assigned value value to unresolved substitution.
+        If overriden with a default value, it will replace all unresolved value to the default value.
+        If it is set to to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
+        :type unresolved_value: boolean
         :return: a ConfigTree or a list
         """
 
         def norm_string(value):
-            for k, v in ConfigParser.REPLACEMENTS.items():
+            for k, v in cls.REPLACEMENTS.items():
                 value = value.replace(k, v)
             return value
 
@@ -210,11 +248,21 @@ class ConfigParser(object):
 
             if url is not None:
                 logger.debug('Loading config from url %s', url)
-                obj = ConfigFactory.parse_URL(url, resolve=False, required=required)
+                obj = ConfigFactory.parse_URL(
+                    url,
+                    resolve=False,
+                    required=required,
+                    unresolved_value=NO_SUBSTITUTION
+                )
             elif file is not None:
                 path = file if basedir is None else os.path.join(basedir, file)
                 logger.debug('Loading config from file %s', path)
-                obj = ConfigFactory.parse_file(path, resolve=False, required=required)
+                obj = ConfigFactory.parse_file(
+                    path,
+                    resolve=False,
+                    required=required,
+                    unresolved_value=NO_SUBSTITUTION
+                )
             else:
                 raise ConfigException('No file or URL specified at: {loc}: {instring}', loc=loc, instring=instring)
 
@@ -225,7 +273,7 @@ class ConfigParser(object):
         assign_expr = Forward()
         true_expr = Keyword("true", caseless=True).setParseAction(replaceWith(True))
         false_expr = Keyword("false", caseless=True).setParseAction(replaceWith(False))
-        null_expr = Keyword("null", caseless=True).setParseAction(replaceWith(NoneValue()))
+        null_expr = Keyword("null", caseless=True).setParseAction(replaceWith(NoneValue))
         key = QuotedString('"', escChar='\\', unquoteResults=False) | Word(alphanums + alphas8bit + '._- ')
 
         eol = Word('\n\r').suppress()
@@ -289,12 +337,19 @@ class ConfigParser(object):
         config_expr = ZeroOrMore(comment_eol | eol) + (list_expr | root_dict_expr | inside_root_dict_expr) + ZeroOrMore(
             comment_eol | eol_comma)
         config = config_expr.parseString(content, parseAll=True)[0]
+
         if resolve:
-            ConfigParser.resolve_substitutions(config)
+            allow_unresolved = resolve and unresolved_value is not DEFAULT_SUBSTITUTION and unresolved_value is not MANDATORY_SUBSTITUTION
+            has_unresolved = cls.resolve_substitutions(config, allow_unresolved)
+            if has_unresolved and unresolved_value is MANDATORY_SUBSTITUTION:
+                raise ConfigSubstitutionException('resolve cannot be set to True and unresolved_value to MANDATORY_SUBSTITUTION')
+
+        if unresolved_value is not NO_SUBSTITUTION and unresolved_value is not DEFAULT_SUBSTITUTION:
+            cls.unresolve_substitutions_to_value(config, unresolved_value)
         return config
 
-    @staticmethod
-    def _resolve_variable(config, substitution):
+    @classmethod
+    def _resolve_variable(cls, config, substitution):
         """
         :param config:
         :param substitution:
@@ -326,36 +381,40 @@ class ConfigParser(object):
                         col=col(substitution.loc, substitution.instring)))
             return True, value
 
-    @staticmethod
-    def _fixup_self_references(config):
+    @classmethod
+    def _fixup_self_references(cls, config, accept_unresolved=False):
         if isinstance(config, ConfigTree) and config.root:
             for key in config:  # Traverse history of element
                 history = config.history[key]
                 previous_item = history[0]
                 for current_item in history[1:]:
-                    for substitution in ConfigParser._find_substitutions(current_item):
+                    for substitution in cls._find_substitutions(current_item):
                         prop_path = ConfigTree.parse_key(substitution.variable)
                         if len(prop_path) > 1 and config.get(substitution.variable, None) is not None:
                             continue  # If value is present in latest version, don't do anything
                         if prop_path[0] == key:
-                            if isinstance(previous_item, ConfigValues):  # We hit a dead end, we cannot evaluate
-                                raise ConfigSubstitutionException("Property {variable} cannot be substituted. Check for cycles.".format(
-                                    variable=substitution.variable))
-                            value = previous_item if len(prop_path) == 1 else previous_item.get(".".join(prop_path[1:]))
-                            _, _, current_item = ConfigParser._do_substitute(substitution, value)
+                            if isinstance(previous_item, ConfigValues) and not accept_unresolved:  # We hit a dead end, we cannot evaluate
+                                raise ConfigSubstitutionException(
+                                    "Property {variable} cannot be substituted. Check for cycles.".format(
+                                        variable=substitution.variable
+                                    )
+                                )
+                            else:
+                                value = previous_item if len(prop_path) == 1 else previous_item.get(".".join(prop_path[1:]))
+                                _, _, current_item = cls._do_substitute(substitution, value)
                     previous_item = current_item
 
                 if len(history) == 1:  # special case, when self optional referencing without existing
-                    for substitution in ConfigParser._find_substitutions(previous_item):
+                    for substitution in cls._find_substitutions(previous_item):
                         prop_path = ConfigTree.parse_key(substitution.variable)
                         if len(prop_path) > 1 and config.get(substitution.variable, None) is not None:
                             continue  # If value is present in latest version, don't do anything
                         if prop_path[0] == key and substitution.optional:
-                            ConfigParser._do_substitute(substitution, None)
+                            cls._do_substitute(substitution, None)
 
     # traverse config to find all the substitutions
-    @staticmethod
-    def _find_substitutions(item):
+    @classmethod
+    def _find_substitutions(cls, item):
         """Convert HOCON input into a JSON output
 
         :return: JSON string representation
@@ -365,16 +424,18 @@ class ConfigParser(object):
             return item.get_substitutions()
 
         substitutions = []
+        elements = []
         if isinstance(item, ConfigTree):
-            for key, child in item.items():
-                substitutions += ConfigParser._find_substitutions(child)
+            elements = item.values()
         elif isinstance(item, list):
-            for child in item:
-                substitutions += ConfigParser._find_substitutions(child)
+            elements = item
+
+        for child in elements:
+            substitutions += cls._find_substitutions(child)
         return substitutions
 
-    @staticmethod
-    def _do_substitute(substitution, resolved_value, is_optional_resolved=True):
+    @classmethod
+    def _do_substitute(cls, substitution, resolved_value, is_optional_resolved=True):
         unresolved = False
         new_substitutions = []
         if isinstance(resolved_value, ConfigValues):
@@ -393,39 +454,50 @@ class ConfigParser(object):
                 else (str(resolved_value) + substitution.ws)
             config_values.put(substitution.index, formatted_resolved_value)
             transformation = config_values.transform()
-            result = None
-            if transformation is None and not is_optional_resolved:
-                result = config_values.overriden_value
-            else:
-                result = transformation
+            result = config_values.overriden_value \
+                if transformation is None and not is_optional_resolved \
+                else transformation
 
             if result is None and config_values.key in config_values.parent:
                 del config_values.parent[config_values.key]
             else:
                 config_values.parent[config_values.key] = result
-                s = ConfigParser._find_substitutions(result)
+                s = cls._find_substitutions(result)
                 if s:
                     new_substitutions = s
                     unresolved = True
 
         return (unresolved, new_substitutions, result)
 
-    @staticmethod
-    def _final_fixup(item):
+    @classmethod
+    def _final_fixup(cls, item):
         if isinstance(item, ConfigValues):
             return item.transform()
         elif isinstance(item, list):
-            return list([ConfigParser._final_fixup(child) for child in item])
+            return list([cls._final_fixup(child) for child in item])
         elif isinstance(item, ConfigTree):
             items = list(item.items())
             for key, child in items:
-                item[key] = ConfigParser._final_fixup(child)
+                item[key] = cls._final_fixup(child)
         return item
 
-    @staticmethod
-    def resolve_substitutions(config):
-        ConfigParser._fixup_self_references(config)
-        substitutions = ConfigParser._find_substitutions(config)
+    @classmethod
+    def unresolve_substitutions_to_value(cls, config, unresolved_value=STR_SUBSTITUTION):
+        for substitution in cls._find_substitutions(config):
+            if unresolved_value is STR_SUBSTITUTION:
+                value = substitution.raw_str()
+            elif unresolved_value is None:
+                value = NoneValue
+            else:
+                value = unresolved_value
+            cls._do_substitute(substitution, value, False)
+        cls._final_fixup(config)
+
+    @classmethod
+    def resolve_substitutions(cls, config, accept_unresolved=False):
+        has_unresolved = False
+        cls._fixup_self_references(config, accept_unresolved)
+        substitutions = cls._find_substitutions(config)
         if len(substitutions) > 0:
             unresolved = True
             any_unresolved = True
@@ -437,45 +509,47 @@ class ConfigParser(object):
                 _substitutions = substitutions[:]
 
                 for substitution in _substitutions:
-                    is_optional_resolved, resolved_value = ConfigParser._resolve_variable(config, substitution)
+                    is_optional_resolved, resolved_value = cls._resolve_variable(config, substitution)
 
                     # if the substitution is optional
                     if not is_optional_resolved and substitution.optional:
                         resolved_value = None
                     if isinstance(resolved_value, ConfigValues):
-                        parents = cache.get(resolved_value, None)
+                        parents = cache.get(resolved_value)
                         if parents is None:
                             parents = []
                             link = resolved_value
                             while isinstance(link, ConfigValues):
                                 parents.append(link)
-                                link = getattr(link, 'overriden_value')
+                                link = link.overriden_value
                             cache[resolved_value] = parents
 
                     if isinstance(resolved_value, ConfigValues) \
                        and substitution.parent in parents \
-                       and hasattr(substitution.parent, "overriden_value") \
+                       and hasattr(substitution.parent, 'overriden_value') \
                        and substitution.parent.overriden_value:
 
                         # self resolution, backtrack
                         resolved_value = substitution.parent.overriden_value
 
-                    unresolved, new_substitutions, result = ConfigParser._do_substitute(substitution, resolved_value, is_optional_resolved)
+                    unresolved, new_substitutions, result = cls._do_substitute(substitution, resolved_value, is_optional_resolved)
                     any_unresolved = unresolved or any_unresolved
                     substitutions.extend(new_substitutions)
                     if not isinstance(result, ConfigValues):
                         substitutions.remove(substitution)
 
-            ConfigParser._final_fixup(config)
+            cls._final_fixup(config)
             if unresolved:
-                raise ConfigSubstitutionException("Cannot resolve {variables}. Check for cycles.".format(
-                    variables=', '.join('${{{variable}}}: (line: {line}, col: {col})'.format(
-                        variable=substitution.variable,
-                        line=lineno(substitution.loc, substitution.instring),
-                        col=col(substitution.loc, substitution.instring)) for substitution in substitutions)))
+                has_unresolved = True
+                if not accept_unresolved:
+                    raise ConfigSubstitutionException("Cannot resolve {variables}. Check for cycles.".format(
+                        variables=', '.join('${{{variable}}}: (line: {line}, col: {col})'.format(
+                            variable=substitution.variable,
+                            line=lineno(substitution.loc, substitution.instring),
+                            col=col(substitution.loc, substitution.instring)) for substitution in substitutions)))
 
-        ConfigParser._final_fixup(config)
-        return config
+        cls._final_fixup(config)
+        return has_unresolved
 
 
 class ListParser(TokenConverter):
