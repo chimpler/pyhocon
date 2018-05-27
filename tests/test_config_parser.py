@@ -2093,3 +2093,14 @@ www.example-ö.com {
         )
 
         assert '{"critical":"0.00","warning":"99.99"}' == config['value']
+
+    def test_keys_with_slash(self):
+        config = ConfigFactory.parse_string(
+            """
+            /abc/cde1: abc
+            "/abc/cde2": "cde"
+            /abc/cde3: "fgh"
+            """)
+        assert 'abc' == config['/abc/cde1']
+        assert 'cde' == config['/abc/cde2']
+        assert 'fgh' == config['/abc/cde3']
