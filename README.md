@@ -364,3 +364,4 @@ Java properties mapping                                    | :x:
   - Cosmin Basca ([@cosminbasca](https://github.com/cosminbasca))
   - cryptofred ([@cryptofred](https://github.com/cryptofred))
   - Dominik1123 ([@Dominik1123](https://github.com/Dominik1123))
+  - Richard Taylor ([@richard534](https://github.com/richard534))

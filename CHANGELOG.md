@@ -1,5 +1,8 @@
 # Changelog
 
+# Version 0.3.43
+* Support slash character / in keys (@richard534) [#166]
+
 # Version 0.3.42
 * Added resolve option to with_fallback (@afanasev) [#164]
 * Allow unresolved substitution to use default string or substitution string (e.g., ${abc}) [#163]
