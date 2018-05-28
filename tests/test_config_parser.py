@@ -2104,3 +2104,34 @@ www.example-ö.com {
         assert 'abc' == config['/abc/cde1']
         assert 'cde' == config['/abc/cde2']
         assert 'fgh' == config['/abc/cde3']
+
+    def test_mutation_values(self):
+        config = ConfigFactory.parse_string(
+            """
+            common : {
+            }
+
+            b1 = []
+
+            var = "wrong"
+
+            compilerCommon : ${common} {
+                VAR : ${var}
+            }
+
+            substrate-suite: {
+                VAR  : "right"
+            }
+            b1 = [
+              ${compilerCommon} ${substrate-suite}
+              ${compilerCommon} ${substrate-suite}
+            ]
+
+            b2 = [
+              ${compilerCommon} ${substrate-suite}
+              ${compilerCommon} ${substrate-suite}
+            ]
+            """)
+
+        assert config.get("b1")[1]['VAR'] == 'right'
+        assert config.get("b2")[1]['VAR'] == 'right'
