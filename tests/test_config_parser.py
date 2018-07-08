@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 
+import json
 import os
 import mock
 import tempfile
@@ -2104,3 +2105,34 @@ www.example-ö.com {
         assert 'abc' == config['/abc/cde1']
         assert 'cde' == config['/abc/cde2']
         assert 'fgh' == config['/abc/cde3']
+
+    def test_escape_sequences_json_equivalence(self):
+        """
+        Quoted strings are in the same format as JSON strings,
+        See: https://github.com/lightbend/config/blob/master/HOCON.md#unchanged-from-json
+        """
+        source = r"""
+        {
+            "plain-backslash": "\\",
+            "tab": "\t",
+            "no-tab": "\\t",
+            "newline": "\n",
+            "no-newline": "\\n",
+            "cr": "\r",
+            "no-cr": "\\r",
+            "windows": "c:\\temp"
+        }
+        """
+        expected = {
+            'plain-backslash': '\\',
+            'tab': '\t',
+            'no-tab': '\\t',
+            'newline': '\n',
+            'no-newline': '\\n',
+            'cr': '\r',
+            'no-cr': '\\r',
+            'windows': 'c:\\temp',
+        }
+        config = ConfigFactory.parse_string(source)
+        assert config == expected
+        assert config == json.loads(source)
