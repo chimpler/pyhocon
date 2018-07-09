@@ -3,7 +3,6 @@ import os
 import socket
 import contextlib
 import codecs
-from collections import OrderedDict
 
 from pyparsing import Forward, Keyword, QuotedString, Word, Literal, Suppress, Regex, Optional, SkipTo, ZeroOrMore, \
     Group, lineno, col, TokenConverter, replaceWith, alphanums, alphas8bit, ParseSyntaxException, StringEnd
