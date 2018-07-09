@@ -3,6 +3,7 @@ import os
 import socket
 import contextlib
 import codecs
+
 from pyparsing import Forward, Keyword, QuotedString, Word, Literal, Suppress, Regex, Optional, SkipTo, ZeroOrMore, \
     Group, lineno, col, TokenConverter, replaceWith, alphanums, alphas8bit, ParseSyntaxException, StringEnd
 from pyparsing import ParserElement
@@ -157,6 +158,7 @@ class ConfigParser(object):
     """
 
     REPLACEMENTS = {
+        '\\\\': '\\',
         '\\\n': '\n',
         '\\n': '\n',
         '\\r': '\r',
@@ -164,7 +166,7 @@ class ConfigParser(object):
         '\\=': '=',
         '\\#': '#',
         '\\!': '!',
-        '\\"': '"'
+        '\\"': '"',
     }
 
     @classmethod
@@ -182,10 +184,14 @@ class ConfigParser(object):
         :return: a ConfigTree or a list
         """
 
+        unescape_pattern = re.compile(r'\\.')
+
+        def replace_escape_sequence(match):
+            value = match.group(0)
+            return cls.REPLACEMENTS.get(value, value)
+
         def norm_string(value):
-            for k, v in cls.REPLACEMENTS.items():
-                value = value.replace(k, v)
-            return value
+            return unescape_pattern.sub(replace_escape_sequence, value)
 
         def unescape_string(tokens):
             return ConfigUnquotedString(norm_string(tokens[0]))
