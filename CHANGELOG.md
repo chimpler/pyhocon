@@ -1,5 +1,10 @@
 # Changelog
 
+# Version 0.3.44
+
+* Escape backslash (@roee-allegro) [#173]
+* Fixed incorrect config merge (@aalba6675) [#170]
+
 # Version 0.3.43
 * Support slash character / in keys (@richard534) [#166]
 

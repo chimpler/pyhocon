@@ -351,6 +351,7 @@ Java properties mapping                                    | :x:
   - chunyang-wen [@chunyang-wen](https://github.com/chunyang-wen)
   - afanasev [@afanasev](https://github.com/afanasev)
   - derkcrezee [@derkcrezee](https://github.com/derkcrezee)
+  - roee-allegro [@roee-allegro](https://github.com/roee-allegro)
 
 ### Thanks
 
