@@ -11,6 +11,7 @@ from pyhocon.config_tree import ConfigTree, ConfigSubstitution, ConfigList, Conf
     ConfigInclude, NoneValue, ConfigQuotedString
 from pyhocon.exceptions import ConfigSubstitutionException, ConfigMissingException, ConfigException
 import logging
+import copy
 
 use_urllib2 = False
 try:
@@ -458,7 +459,8 @@ class ConfigParser(object):
                 or isinstance(resolved_value, (dict, list)) \
                 or substitution.index == len(config_values.tokens) - 1 \
                 else (str(resolved_value) + substitution.ws)
-            config_values.put(substitution.index, formatted_resolved_value)
+            # use a deepcopy of resolved_value to avoid mutation
+            config_values.put(substitution.index, copy.deepcopy(formatted_resolved_value))
             transformation = config_values.transform()
             result = config_values.overriden_value \
                 if transformation is None and not is_optional_resolved \

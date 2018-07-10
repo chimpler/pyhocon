@@ -2106,6 +2106,37 @@ www.example-ö.com {
         assert 'cde' == config['/abc/cde2']
         assert 'fgh' == config['/abc/cde3']
 
+    def test_mutation_values(self):
+        config = ConfigFactory.parse_string(
+            """
+            common : {
+            }
+
+            b1 = []
+
+            var = "wrong"
+
+            compilerCommon : ${common} {
+                VAR : ${var}
+            }
+
+            substrate-suite: {
+                VAR  : "right"
+            }
+            b1 = [
+              ${compilerCommon} ${substrate-suite}
+              ${compilerCommon} ${substrate-suite}
+            ]
+
+            b2 = [
+              ${compilerCommon} ${substrate-suite}
+              ${compilerCommon} ${substrate-suite}
+            ]
+            """)
+
+        assert config.get("b1")[1]['VAR'] == 'right'
+        assert config.get("b2")[1]['VAR'] == 'right'
+
     def test_escape_sequences_json_equivalence(self):
         """
         Quoted strings are in the same format as JSON strings,
