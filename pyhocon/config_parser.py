@@ -290,6 +290,9 @@ class ConfigParser(object):
         comment_no_comma_eol = (comment | eol).suppress()
         number_expr = Regex('[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE]\d+)?(?=$|[ \t]*([\$\}\],#\n\r]|//))',
                             re.DOTALL).setParseAction(convert_number)
+        sci_regex = Regex(r'[+-]?\d+([eE][+-]?\d+|\.\d*([eE][+-]?\d+)?)', re.DOTALL)
+        sci_real = sci_regex.setParseAction(convert_number)
+        number_expr = number_expr | sci_real
 
         # multi line string using """
         # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969

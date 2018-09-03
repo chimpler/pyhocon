@@ -2167,3 +2167,18 @@ www.example-ö.com {
         config = ConfigFactory.parse_string(source)
         assert config == expected
         assert config == json.loads(source)
+
+    def test_sci_real(self):
+        """
+        Test scientific expression of number
+        """
+
+        config = """
+        a = 1e-3
+        b = 1e3
+        c = 1
+        """
+        conf = ConfigFactory.parse_string(config)
+        assert conf.a == float('1e-3')
+        assert conf.b == float('1e3')
+        assert conf.c == int('1')
