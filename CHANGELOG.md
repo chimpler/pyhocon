@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.45
+
+* Fixed scientific notation parsing (chunyang-wen) [#177]
+
 # Version 0.3.44
 
 * Escape backslash (@roee-allegro) [#173]
