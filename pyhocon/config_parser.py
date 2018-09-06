@@ -202,9 +202,9 @@ class ConfigParser(object):
 
         def convert_number(tokens):
             n = tokens[0]
-            try:
-                return int(n)
-            except ValueError:
+            if n.isdigit():
+                return int(n, 10)
+            else:
                 return float(n)
 
         # ${path} or ${?path} for optional substitution
@@ -288,11 +288,8 @@ class ConfigParser(object):
         comment = (Literal('#') | Literal('//')) - SkipTo(eol | StringEnd())
         comment_eol = Suppress(Optional(eol_comma) + comment)
         comment_no_comma_eol = (comment | eol).suppress()
-        number_expr = Regex('[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE]\d+)?(?=$|[ \t]*([\$\}\],#\n\r]|//))',
+        number_expr = Regex('[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE][+\-]?\d+)?(?=$|[ \t]*([\$\}\],#\n\r]|//))',
                             re.DOTALL).setParseAction(convert_number)
-        sci_regex = Regex(r'[+-]?\d+([eE][+-]?\d+|\.\d*([eE][+-]?\d+)?)', re.DOTALL)
-        sci_real = sci_regex.setParseAction(convert_number)
-        number_expr = number_expr | sci_real
 
         # multi line string using """
         # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969

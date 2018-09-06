@@ -1359,6 +1359,59 @@ class TestConfigParser(object):
         assert config['b'] == 5
         assert config['c'] == 6
 
+    def test_assign_int(self):
+        config = ConfigFactory.parse_string(
+            """
+            short = 12
+            long = 12321321837612378126213217321
+            """
+        )
+
+        # on python 3 long will be an int but on python 2 long with be a long
+        assert config['short'] == 12
+        assert isinstance(config['short'], int)
+        assert config['long'] == 12321321837612378126213217321
+
+    def test_assign_float(self):
+        config = ConfigFactory.parse_string(
+            """
+            a = 121.22
+            b = -121.22
+            c = .54
+            d = -.54
+            """
+        )
+
+        # on python 3 long will be an int but on python 2 long with be a long
+        assert config['a'] == 121.22
+        assert config['b'] == -121.22
+        assert config['c'] == .54
+        assert config['d'] == -.54
+
+    def test_sci_real(self):
+        """
+        Test scientific expression of number
+        """
+
+        config = ConfigFactory.parse_string(
+            """
+            short = 12.12321
+            long1 = 121.22E3423432
+            neg_long1 = 121.22E-1
+            long2 = 121.22e3423432
+            neg_long2 = 121.22e-3
+            """
+        )
+
+        # on python 3 long will be an int but on python 2 long with be a long
+        assert config['short'] == 12.12321
+
+        assert config['long1'] == 121.22E3423432
+        assert config['neg_long1'] == 121.22E-1
+
+        assert config['long2'] == 121.22E3423432
+        assert config['neg_long2'] == 121.22E-3
+
     def test_assign_strings_with_eol(self):
         config = ConfigFactory.parse_string(
             """
@@ -2167,18 +2220,3 @@ www.example-ö.com {
         config = ConfigFactory.parse_string(source)
         assert config == expected
         assert config == json.loads(source)
-
-    def test_sci_real(self):
-        """
-        Test scientific expression of number
-        """
-
-        config = """
-        a = 1e-3
-        b = 1e3
-        c = 1
-        """
-        conf = ConfigFactory.parse_string(config)
-        assert conf.a == float('1e-3')
-        assert conf.b == float('1e3')
-        assert conf.c == int('1')
