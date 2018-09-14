@@ -50,9 +50,15 @@ class TestConfigParser(object):
         assert config.get_list('t.g') is None
         assert config.get_config('t.g') is None
 
-    def test_fail_parse_forbidden_characters(self):
+    @pytest.mark.parametrize('forbidden_char', ['+', '`', '^', '?', '!', '@', '*', '&'])
+    def test_fail_parse_forbidden_characters(self, forbidden_char):
         with pytest.raises(ParseSyntaxException):
-            config = ConfigFactory.parse_string("a: hey man!")
+            config = ConfigFactory.parse_string('a: hey man{}'.format(forbidden_char))
+
+    @pytest.mark.parametrize('forbidden_char', ['$', '"'])
+    def test_fail_parse_forbidden_characters_in_context(self, forbidden_char):
+        with pytest.raises(ParseException):
+            config = ConfigFactory.parse_string('a: hey man{}'.format(forbidden_char))
 
     def test_parse_with_enclosing_brace(self):
         config = ConfigFactory.parse_string(
