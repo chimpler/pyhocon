@@ -60,6 +60,12 @@ class TestConfigParser(object):
         with pytest.raises(ParseException):
             config = ConfigFactory.parse_string('a: hey man{}'.format(forbidden_char))
 
+    @pytest.mark.parametrize('forbidden_char', ['+', '`', '^', '?', '!', '@', '*', '&'])
+    def test_parse_forbidden_characters_quoted(self, forbidden_char):
+        value = "hey man{}".format(forbidden_char)
+        config = ConfigFactory.parse_string('a: "{}"'.format(value))
+        assert config.get_string("a") == value
+
     def test_parse_with_enclosing_brace(self):
         config = ConfigFactory.parse_string(
             """
