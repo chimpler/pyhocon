@@ -5,7 +5,7 @@ import os
 import mock
 import tempfile
 from collections import OrderedDict
-from pyparsing import ParseSyntaxException, ParseException
+from pyparsing import ParseSyntaxException, ParseException, ParseBaseException
 import pytest
 from pyhocon import ConfigFactory, ConfigSubstitutionException, ConfigTree, ConfigParser
 from pyhocon.exceptions import ConfigMissingException, ConfigWrongTypeException, ConfigException
@@ -52,7 +52,7 @@ class TestConfigParser(object):
 
     @pytest.mark.parametrize('forbidden_char', ['+', '`', '^', '?', '!', '@', '*', '&'])
     def test_fail_parse_forbidden_characters(self, forbidden_char):
-        with pytest.raises(ParseSyntaxException):
+        with pytest.raises(ParseBaseException):
             config = ConfigFactory.parse_string('a: hey man{}'.format(forbidden_char))
 
     @pytest.mark.parametrize('forbidden_char', ['$', '"'])
@@ -602,8 +602,8 @@ class TestConfigParser(object):
         config = ConfigFactory.parse_string(
             """
             application.foo = 128m
-            application.large-jvm-opts = [-XX:+UseParNewGC] [-Xm16g, ${application.foo}]
-            application.large-jvm-opts2 = [-Xm16g, ${application.foo}] [-XX:+UseParNewGC]
+            application.large-jvm-opts = ["-XX:+UseParNewGC"] [-Xm16g, ${application.foo}]
+            application.large-jvm-opts2 = [-Xm16g, ${application.foo}] ["-XX:+UseParNewGC"]
             """)
 
         assert config["application.large-jvm-opts"] == [
@@ -622,7 +622,7 @@ class TestConfigParser(object):
         config = ConfigFactory.parse_string(
             """
             application.foo = 128m
-            application.default-jvm-opts = [-XX:+UseParNewGC]
+            application.default-jvm-opts = ["-XX:+UseParNewGC"]
             application.large-jvm-opts = ${application.default-jvm-opts} [-Xm16g, ${application.foo}]
             application.large-jvm-opts2 = [-Xm16g, ${application.foo}] ${application.default-jvm-opts}
             """)
