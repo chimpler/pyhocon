@@ -20,7 +20,7 @@ class TestConfigParser(object):
                 e.y = {
                     f: 7
                     g: "hey dude!"
-                    h: hey man!
+                    h: hey man
                     i = \"\"\"
                         "first line"
                         "second" line
@@ -37,7 +37,7 @@ class TestConfigParser(object):
         assert config.get_int('t.c') == 5
         assert config.get('t.e.y.f') == 7
         assert config.get('t.e.y.g') == 'hey dude!'
-        assert config.get('t.e.y.h') == 'hey man!'
+        assert config.get('t.e.y.h') == 'hey man'
         assert [l.strip() for l in config.get('t.e.y.i').split('\n')] == ['', '"first line"', '"second" line', '']
         assert config.get_bool('t.d') is True
         assert config.get_int('t.e.y.f') == 7
@@ -49,6 +49,7 @@ class TestConfigParser(object):
         assert config.get_bool('t.g') is None
         assert config.get_list('t.g') is None
         assert config.get_config('t.g') is None
+
 
     def test_parse_with_enclosing_brace(self):
         config = ConfigFactory.parse_string(
@@ -105,7 +106,7 @@ class TestConfigParser(object):
             """
             a=1,
             b="abc",
-            c=the man!,
+            c=the man,
             d=woof,
             a-b-c-d=test,
             a b c d=test2,
@@ -114,7 +115,7 @@ class TestConfigParser(object):
         )
         assert config.get('a') == 1
         assert config.get('b') == 'abc'
-        assert config.get('c') == 'the man!'
+        assert config.get('c') == 'the man'
         assert config.get('d') == 'woof'
         assert config.get('a-b-c-d') == 'test'
         assert config.get('a b c d') == 'test2'
