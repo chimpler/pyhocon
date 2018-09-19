@@ -5,7 +5,7 @@ import os
 import mock
 import tempfile
 from collections import OrderedDict
-from pyparsing import ParseSyntaxException, ParseException
+from pyparsing import ParseSyntaxException, ParseException, ParseBaseException
 import pytest
 from pyhocon import ConfigFactory, ConfigSubstitutionException, ConfigTree, ConfigParser
 from pyhocon.exceptions import ConfigMissingException, ConfigWrongTypeException, ConfigException
@@ -20,7 +20,7 @@ class TestConfigParser(object):
                 e.y = {
                     f: 7
                     g: "hey dude!"
-                    h: hey man!
+                    h: hey man
                     i = \"\"\"
                         "first line"
                         "second" line
@@ -37,7 +37,7 @@ class TestConfigParser(object):
         assert config.get_int('t.c') == 5
         assert config.get('t.e.y.f') == 7
         assert config.get('t.e.y.g') == 'hey dude!'
-        assert config.get('t.e.y.h') == 'hey man!'
+        assert config.get('t.e.y.h') == 'hey man'
         assert [l.strip() for l in config.get('t.e.y.i').split('\n')] == ['', '"first line"', '"second" line', '']
         assert config.get_bool('t.d') is True
         assert config.get_int('t.e.y.f') == 7
@@ -49,6 +49,22 @@ class TestConfigParser(object):
         assert config.get_bool('t.g') is None
         assert config.get_list('t.g') is None
         assert config.get_config('t.g') is None
+
+    @pytest.mark.parametrize('forbidden_char', ['+', '`', '^', '?', '!', '@', '*', '&'])
+    def test_fail_parse_forbidden_characters(self, forbidden_char):
+        with pytest.raises(ParseBaseException):
+            ConfigFactory.parse_string('a: hey man{}'.format(forbidden_char))
+
+    @pytest.mark.parametrize('forbidden_char', ['$', '"'])
+    def test_fail_parse_forbidden_characters_in_context(self, forbidden_char):
+        with pytest.raises(ParseException):
+            ConfigFactory.parse_string('a: hey man{}'.format(forbidden_char))
+
+    @pytest.mark.parametrize('forbidden_char', ['+', '`', '^', '?', '!', '@', '*', '&'])
+    def test_parse_forbidden_characters_quoted(self, forbidden_char):
+        value = "hey man{}".format(forbidden_char)
+        config = ConfigFactory.parse_string('a: "{}"'.format(value))
+        assert config.get_string("a") == value
 
     def test_parse_with_enclosing_brace(self):
         config = ConfigFactory.parse_string(
@@ -105,7 +121,7 @@ class TestConfigParser(object):
             """
             a=1,
             b="abc",
-            c=the man!,
+            c=the man,
             d=woof,
             a-b-c-d=test,
             a b c d=test2,
@@ -114,7 +130,7 @@ class TestConfigParser(object):
         )
         assert config.get('a') == 1
         assert config.get('b') == 'abc'
-        assert config.get('c') == 'the man!'
+        assert config.get('c') == 'the man'
         assert config.get('d') == 'woof'
         assert config.get('a-b-c-d') == 'test'
         assert config.get('a b c d') == 'test2'
@@ -586,8 +602,8 @@ class TestConfigParser(object):
         config = ConfigFactory.parse_string(
             """
             application.foo = 128m
-            application.large-jvm-opts = [-XX:+UseParNewGC] [-Xm16g, ${application.foo}]
-            application.large-jvm-opts2 = [-Xm16g, ${application.foo}] [-XX:+UseParNewGC]
+            application.large-jvm-opts = ["-XX:+UseParNewGC"] [-Xm16g, ${application.foo}]
+            application.large-jvm-opts2 = [-Xm16g, ${application.foo}] ["-XX:+UseParNewGC"]
             """)
 
         assert config["application.large-jvm-opts"] == [
@@ -606,7 +622,7 @@ class TestConfigParser(object):
         config = ConfigFactory.parse_string(
             """
             application.foo = 128m
-            application.default-jvm-opts = [-XX:+UseParNewGC]
+            application.default-jvm-opts = ["-XX:+UseParNewGC"]
             application.large-jvm-opts = ${application.default-jvm-opts} [-Xm16g, ${application.foo}]
             application.large-jvm-opts2 = [-Xm16g, ${application.foo}] ${application.default-jvm-opts}
             """)

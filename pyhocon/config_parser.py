@@ -301,7 +301,7 @@ class ConfigParser(object):
         # line1  \
         # line2 \
         # so a backslash precedes the \n
-        unquoted_string = Regex('(?:[^"\[\{\s\]\}#,=\$\\\\]|\\\\.)+[ \t]*', re.UNICODE).setParseAction(unescape_string)
+        unquoted_string = Regex('(?:[^^`+?!@*&"\[\{\s\]\}#,=\$\\\\]|\\\\.)+[ \t]*', re.UNICODE).setParseAction(unescape_string)
         substitution_expr = Regex('[ \t]*\$\{[^\}]+\}[ \t]*').setParseAction(create_substitution)
         string_expr = multiline_string | quoted_string | unquoted_string
 
