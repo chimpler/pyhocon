@@ -352,6 +352,7 @@ Java properties mapping                                    | :x:
   - afanasev [@afanasev](https://github.com/afanasev)
   - derkcrezee [@derkcrezee](https://github.com/derkcrezee)
   - Roee Nizan [@roee-allegro](https://github.com/roee-allegro)
+  - Samuel Bible [@sambible](https://github.com/sambible)
 
 ### Thanks
 

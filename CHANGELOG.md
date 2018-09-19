@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.46
+
+* Fixed forbidden characters (@sambible) [#184]
+
 # Version 0.3.45
 
 * Fixed scientific notation parsing (chunyang-wen) [#177]

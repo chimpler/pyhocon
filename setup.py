@@ -25,7 +25,7 @@ class PyTestCommand(TestCommand):
 
 setup(
     name='pyhocon',
-    version='0.3.45',
+    version='0.3.46',
     description='HOCON parser for Python',
     long_description='pyhocon is a HOCON parser for Python. Additionally we provide a tool (pyhocon) to convert any HOCON '
                      'content into json, yaml and properties format.',
