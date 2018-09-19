@@ -53,12 +53,12 @@ class TestConfigParser(object):
     @pytest.mark.parametrize('forbidden_char', ['+', '`', '^', '?', '!', '@', '*', '&'])
     def test_fail_parse_forbidden_characters(self, forbidden_char):
         with pytest.raises(ParseBaseException):
-            config = ConfigFactory.parse_string('a: hey man{}'.format(forbidden_char))
+            ConfigFactory.parse_string('a: hey man{}'.format(forbidden_char))
 
     @pytest.mark.parametrize('forbidden_char', ['$', '"'])
     def test_fail_parse_forbidden_characters_in_context(self, forbidden_char):
         with pytest.raises(ParseException):
-            config = ConfigFactory.parse_string('a: hey man{}'.format(forbidden_char))
+            ConfigFactory.parse_string('a: hey man{}'.format(forbidden_char))
 
     @pytest.mark.parametrize('forbidden_char', ['+', '`', '^', '?', '!', '@', '*', '&'])
     def test_parse_forbidden_characters_quoted(self, forbidden_char):
