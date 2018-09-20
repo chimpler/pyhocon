@@ -1380,6 +1380,7 @@ class TestConfigParser(object):
             """
             short = 12
             long = 12321321837612378126213217321
+            negative = -15
             """
         )
 
@@ -1387,6 +1388,8 @@ class TestConfigParser(object):
         assert config['short'] == 12
         assert isinstance(config['short'], int)
         assert config['long'] == 12321321837612378126213217321
+        assert isinstance(config['negative'], int)
+        assert config['negative'] == -15
 
     def test_assign_float(self):
         config = ConfigFactory.parse_string(
