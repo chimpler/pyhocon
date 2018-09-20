@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.47
+
+* Fixed negative integer parsing [#185]
+
 # Version 0.3.46
 
 * Fixed forbidden characters (@sambible) [#184]

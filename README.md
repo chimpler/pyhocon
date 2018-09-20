@@ -367,3 +367,4 @@ Java properties mapping                                    | :x:
   - cryptofred ([@cryptofred](https://github.com/cryptofred))
   - Dominik1123 ([@Dominik1123](https://github.com/Dominik1123))
   - Richard Taylor ([@richard534](https://github.com/richard534))
+  - Sergii Lutsanych ([@sergii1989](https://github.com/sergii1989))
