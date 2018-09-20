@@ -202,9 +202,9 @@ class ConfigParser(object):
 
         def convert_number(tokens):
             n = tokens[0]
-            if n.isdigit():
+            try:
                 return int(n, 10)
-            else:
+            except ValueError:
                 return float(n)
 
         # ${path} or ${?path} for optional substitution
