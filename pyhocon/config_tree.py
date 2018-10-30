@@ -262,7 +262,11 @@ class ConfigTree(OrderedDict):
         :type return: int
         """
         value = self.get(key, default)
-        return int(value) if value is not None else None
+        try:
+            return int(value) if value is not None else None
+        except (TypeError, ValueError):
+            raise ConfigException(
+                u"{key} has type '{type}' rather than 'int'".format(key=key, type=type(value).__name__))
 
     def get_float(self, key, default=UndefinedKey):
         """Return float representation of value found at key
@@ -275,7 +279,11 @@ class ConfigTree(OrderedDict):
         :type return: float
         """
         value = self.get(key, default)
-        return float(value) if value is not None else None
+        try:
+            return float(value) if value is not None else None
+        except (TypeError, ValueError):
+            raise ConfigException(
+                u"{key} has type '{type}' rather than 'float'".format(key=key, type=type(value).__name__))
 
     def get_bool(self, key, default=UndefinedKey):
         """Return boolean representation of value found at key
