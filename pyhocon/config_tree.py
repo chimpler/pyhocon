@@ -317,6 +317,19 @@ class ConfigTree(OrderedDict):
         value = self.get(key, default)
         if isinstance(value, list):
             return value
+        elif isinstance(value, ConfigTree):
+            try:
+                lst = []
+                sorted_tree = sorted(value.items())
+                for k, v in sorted_tree:
+                    if re.match('^[1-9][0-9]*$|0', k):
+                        lst.append(v)
+                    else:
+                        raise ValueError
+                return lst
+            except ValueError:
+                raise ConfigException(
+                    u"{key} does not translate to a list".format(key=key))
         elif value is None:
             return None
         else:

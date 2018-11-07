@@ -33,6 +33,17 @@ class TestConfigTree(object):
         config_tree.put("a.b.c", [8, 9], True)
         assert config_tree.get("a.b.c") == [6, 7, 8, 9]
 
+    def test_numerically_index_objects_to_arrays(self):
+        config_tree = ConfigTree()
+        config_tree.put("list.2", "b")
+        config_tree.put("list.0", "a")
+        assert config_tree.get_list("list") == ["a", "b"]
+
+        config_tree.put("invalid-list.a", "c")
+        config_tree.put("invalid-list.b", "d")
+        with pytest.raises(ConfigException):
+            config_tree.get_list("invalid-list")
+
     def test_config_tree_number(self):
         config_tree = ConfigTree()
         config_tree.put("a.b.c", 5)
