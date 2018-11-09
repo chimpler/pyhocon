@@ -17,10 +17,6 @@ class UndefinedKey(object):
     pass
 
 
-class NonExistentKey(object):
-    pass
-
-
 class NoneValue(object):
     pass
 
@@ -349,9 +345,7 @@ class ConfigTree(OrderedDict):
         return val
 
     def __getattr__(self, item):
-        val = self.get(item, NonExistentKey)
-        if val is NonExistentKey:
-            return super(ConfigTree, self).__getattr__(item)
+        val = self.get(item, None)
         return val
 
     def __contains__(self, item):
