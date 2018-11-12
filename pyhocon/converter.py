@@ -1,7 +1,9 @@
 import sys
 
 from pyhocon import ConfigFactory
+from pyhocon.config_tree import ConfigSubstitution
 from pyhocon.config_tree import ConfigTree
+from pyhocon.config_tree import ConfigValues
 from pyhocon.config_tree import NoneValue
 
 try:
@@ -109,6 +111,13 @@ class HOCONConverter(object):
                 lines = '"""{value}"""'.format(value=config)  # multilines
             else:
                 lines = '"{value}"'.format(value=config.replace('\n', '\\n').replace('"', '\\"'))
+        elif isinstance(config, ConfigValues):
+            lines = ''.join(cls.to_hocon(o, compact, indent, level) for o in config.tokens)
+        elif isinstance(config, ConfigSubstitution):
+            lines = '${'
+            if config.optional:
+                lines += '?'
+            lines += config.variable + '}' + config.ws
         elif config is None or isinstance(config, NoneValue):
             lines = 'null'
         elif config is True:
