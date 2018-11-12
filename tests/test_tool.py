@@ -174,7 +174,7 @@ def test_substitutions_conversions():
     data-center-east = ${data-center-generic} { name = "east" }
 
     # you can use substitution with unquoted strings. If it it not found in the document, it defaults to environment variables
-    home_dir = ${HOME} # you can substitute with environment variables
+    home_dir = ${HOME}"/work" # you can substitute with environment variables
 
     // list merge
     default-jvm-opts = ["-XX:+UseParNewGC"]

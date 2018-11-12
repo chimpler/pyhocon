@@ -1,10 +1,12 @@
 import sys
 
 from pyhocon import ConfigFactory
+from pyhocon.config_tree import ConfigQuotedString
 from pyhocon.config_tree import ConfigSubstitution
 from pyhocon.config_tree import ConfigTree
 from pyhocon.config_tree import ConfigValues
 from pyhocon.config_tree import NoneValue
+
 
 try:
     basestring
@@ -118,6 +120,11 @@ class HOCONConverter(object):
             if config.optional:
                 lines += '?'
             lines += config.variable + '}' + config.ws
+        elif isinstance(config, ConfigQuotedString):
+            if '\n' in config.value:
+                lines = '"""{value}"""'.format(value=config.value)  # multilines
+            else:
+                lines = '"{value}"'.format(value=config.value.replace('\n', '\\n').replace('"', '\\"'))
         elif config is None or isinstance(config, NoneValue):
             lines = 'null'
         elif config is True:
