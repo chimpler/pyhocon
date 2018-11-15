@@ -311,7 +311,7 @@ Include semantics: missing files       | :x:
 Include semantics: file formats and extensions     | :x:
 Include semantics: locating resources              | :x:
 Include semantics: preventing cycles               | :x:
-Conversion of numerically-index objects to arrays  | :x:
+Conversion of numerically-index objects to arrays  | :white_check_mark:
 
 API Recommendations                                        | Status
 ---------------------------------------------------------- | :----:
