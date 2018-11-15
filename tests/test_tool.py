@@ -164,3 +164,24 @@ class TestHOCONConverter(object):
     def test_invalid_format(self):
         with pytest.raises(Exception):
             self._test_convert_from_file(TestHOCONConverter.CONFIG_STRING, TestHOCONConverter.EXPECTED_PROPERTIES, 'invalid')
+
+
+def test_substitutions_conversions():
+    config_string = """
+{
+    // dict merge
+    data-center-generic = { cluster-size = 6 }
+    data-center-east = ${data-center-generic} { name = "east" }
+
+    # you can use substitution with unquoted strings. If it it not found in the document, it defaults to environment variables
+    home_dir = ${HOME}"/work" # you can substitute with environment variables
+
+    // list merge
+    default-jvm-opts = ["-XX:+UseParNewGC"]
+    large-jvm-opts = ${default-jvm-opts} [-Xm16g]
+}
+    """
+    converted1 = HOCONConverter.to_hocon(ConfigFactory.parse_string(config_string, resolve=False))
+    converted2 = HOCONConverter.to_hocon(ConfigFactory.parse_string(converted1, resolve=False))
+    assert [line.strip() for line in converted1.split('\n') if line.strip()] \
+           == [line.strip() for line in converted2.split('\n') if line.strip()]
