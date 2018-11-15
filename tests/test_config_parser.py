@@ -35,6 +35,7 @@ class TestConfigParser(object):
 
         assert config.get_string('t.c') == '5'
         assert config.get_int('t.c') == 5
+        assert config.get_float('t.c') == 5.0
         assert config.get('t.e.y.f') == 7
         assert config.get('t.e.y.g') == 'hey dude!'
         assert config.get('t.e.y.h') == 'hey man'

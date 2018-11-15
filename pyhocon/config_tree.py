@@ -181,7 +181,7 @@ class ConfigTree(OrderedDict):
         :param str:
         :return:
         """
-        tokens = re.findall('"[^"]+"|[^\.]+', string)
+        tokens = re.findall(r'"[^"]+"|[^\.]+', string)
         return [token if '.' in token else token.strip('"') for token in tokens]
 
     def put(self, key, value, append=False):

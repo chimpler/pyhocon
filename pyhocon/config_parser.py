@@ -208,7 +208,7 @@ class ConfigParser(object):
                 return float(n)
 
         # ${path} or ${?path} for optional substitution
-        SUBSTITUTION_PATTERN = "\$\{(?P<optional>\?)?(?P<variable>[^}]+)\}(?P<ws>[ \t]*)"
+        SUBSTITUTION_PATTERN = r"\$\{(?P<optional>\?)?(?P<variable>[^}]+)\}(?P<ws>[ \t]*)"
 
         def create_substitution(instring, loc, token):
             # remove the ${ and }
@@ -288,31 +288,29 @@ class ConfigParser(object):
         comment = (Literal('#') | Literal('//')) - SkipTo(eol | StringEnd())
         comment_eol = Suppress(Optional(eol_comma) + comment)
         comment_no_comma_eol = (comment | eol).suppress()
-        number_expr = Regex('[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE][+\-]?\d+)?(?=$|[ \t]*([\$\}\],#\n\r]|//))',
+        number_expr = Regex(r'[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE][+\-]?\d+)?(?=$|[ \t]*([\$\}\],#\n\r]|//))',
                             re.DOTALL).setParseAction(convert_number)
 
         # multi line string using """
         # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
         multiline_string = Regex('""".*?"*"""', re.DOTALL | re.UNICODE).setParseAction(parse_multi_string)
         # single quoted line string
-        quoted_string = Regex('"(?:[^"\\\\\n]|\\\\.)*"[ \t]*', re.UNICODE).setParseAction(create_quoted_string)
+        quoted_string = Regex(r'"(?:[^"\\\n]|\\.)*"[ \t]*', re.UNICODE).setParseAction(create_quoted_string)
         # unquoted string that takes the rest of the line until an optional comment
         # we support .properties multiline support which is like this:
         # line1  \
         # line2 \
         # so a backslash precedes the \n
-        unquoted_string = Regex('(?:[^^`+?!@*&"\[\{\s\]\}#,=\$\\\\]|\\\\.)+[ \t]*', re.UNICODE).setParseAction(unescape_string)
-        substitution_expr = Regex('[ \t]*\$\{[^\}]+\}[ \t]*').setParseAction(create_substitution)
+        unquoted_string = Regex(r'(?:[^^`+?!@*&"\[\{\s\]\}#,=\$\\]|\\.)+[ \t]*', re.UNICODE).setParseAction(unescape_string)
+        substitution_expr = Regex(r'[ \t]*\$\{[^\}]+\}[ \t]*').setParseAction(create_substitution)
         string_expr = multiline_string | quoted_string | unquoted_string
 
         value_expr = number_expr | true_expr | false_expr | null_expr | string_expr
 
         include_content = (quoted_string | ((Keyword('url') | Keyword('file')) - Literal('(').suppress() - quoted_string - Literal(')').suppress()))
         include_expr = (
-            Keyword("include", caseless=True).suppress() +
-            (
-                include_content |
-                (
+            Keyword("include", caseless=True).suppress() + (
+                include_content | (
                     Keyword("required") - Literal('(').suppress() - include_content - Literal(')').suppress()
                 )
             )
@@ -334,9 +332,7 @@ class ConfigParser(object):
 
         # special case when we have a value assignment where the string can potentially be the remainder of the line
         assign_expr << Group(
-            key -
-            ZeroOrMore(comment_no_comma_eol) -
-            (dict_expr | (Literal('=') | Literal(':') | Literal('+=')) - ZeroOrMore(
+            key - ZeroOrMore(comment_no_comma_eol) - (dict_expr | (Literal('=') | Literal(':') | Literal('+=')) - ZeroOrMore(
                 comment_no_comma_eol) - ConcatenatedValueParser(multi_value_expr))
         )
 
