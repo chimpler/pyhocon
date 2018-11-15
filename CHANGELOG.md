@@ -1,5 +1,12 @@
 # Changelog
 
+# Version 0.3.48
+
+* Support conversion of numerically-index objects to arrays (a.1 = 4) (@lune-sta) [#189]
+* Handle ConfigValues and ConfigSubstitution in HOCONConverter.to_hocon (@ChristopheDuong) [#192]
+* Fix raising of ConfigException for get_int() and get_float() (@ElkMonster) [#188]
+* Fixed Flake8 error for Python 2.7
+
 # Version 0.3.47
 
 * Fixed negative integer parsing [#185]
@@ -10,7 +17,7 @@
 
 # Version 0.3.45
 
-* Fixed scientific notation parsing (chunyang-wen) [#177]
+* Fixed scientific notation parsing (@chunyang-wen) [#177]
 
 # Version 0.3.44
 

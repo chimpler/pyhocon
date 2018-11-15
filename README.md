@@ -353,6 +353,9 @@ Java properties mapping                                    | :x:
   - derkcrezee [@derkcrezee](https://github.com/derkcrezee)
   - Roee Nizan [@roee-allegro](https://github.com/roee-allegro)
   - Samuel Bible [@sambible](https://github.com/sambible)
+  - Christophe Duong [@ChristopheDuong](https://github.com/ChristopheDuong)
+  - lune* [@lune-sta](https://github.com/lune-sta)
+  - Sascha [@ElkMonster](https://github.com/ElkMonster)
 
 ### Thanks
 

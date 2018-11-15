@@ -183,5 +183,6 @@ def test_substitutions_conversions():
     """
     converted1 = HOCONConverter.to_hocon(ConfigFactory.parse_string(config_string, resolve=False))
     converted2 = HOCONConverter.to_hocon(ConfigFactory.parse_string(converted1, resolve=False))
-    assert [line.strip() for line in converted1.split('\n') if line.strip()] \
-           == [line.strip() for line in converted2.split('\n') if line.strip()]
+    line1_tokens = [line.strip() for line in converted1.split('\n') if line.strip()]
+    line2_tokens = [line.strip() for line in converted2.split('\n') if line.strip()]
+    assert line1_tokens == line2_tokens
