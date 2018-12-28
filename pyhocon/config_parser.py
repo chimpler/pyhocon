@@ -275,80 +275,86 @@ class ConfigParser(object):
 
             return ConfigInclude(obj if isinstance(obj, list) else obj.items())
 
-        ParserElement.setDefaultWhitespaceChars(' \t')
+        @contextlib.contextmanager
+        def set_default_white_spaces():
+            default = ParserElement.DEFAULT_WHITE_CHARS
+            ParserElement.setDefaultWhitespaceChars(' \t')
+            yield
+            ParserElement.setDefaultWhitespaceChars(default)
 
-        assign_expr = Forward()
-        true_expr = Keyword("true", caseless=True).setParseAction(replaceWith(True))
-        false_expr = Keyword("false", caseless=True).setParseAction(replaceWith(False))
-        null_expr = Keyword("null", caseless=True).setParseAction(replaceWith(NoneValue()))
-        key = QuotedString('"', escChar='\\', unquoteResults=False) | Word(alphanums + alphas8bit + '._- /')
+        with set_default_white_spaces():
+            assign_expr = Forward()
+            true_expr = Keyword("true", caseless=True).setParseAction(replaceWith(True))
+            false_expr = Keyword("false", caseless=True).setParseAction(replaceWith(False))
+            null_expr = Keyword("null", caseless=True).setParseAction(replaceWith(NoneValue()))
+            key = QuotedString('"', escChar='\\', unquoteResults=False) | Word(alphanums + alphas8bit + '._- /')
 
-        eol = Word('\n\r').suppress()
-        eol_comma = Word('\n\r,').suppress()
-        comment = (Literal('#') | Literal('//')) - SkipTo(eol | StringEnd())
-        comment_eol = Suppress(Optional(eol_comma) + comment)
-        comment_no_comma_eol = (comment | eol).suppress()
-        number_expr = Regex(r'[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE][+\-]?\d+)?(?=$|[ \t]*([\$\}\],#\n\r]|//))',
-                            re.DOTALL).setParseAction(convert_number)
+            eol = Word('\n\r').suppress()
+            eol_comma = Word('\n\r,').suppress()
+            comment = (Literal('#') | Literal('//')) - SkipTo(eol | StringEnd())
+            comment_eol = Suppress(Optional(eol_comma) + comment)
+            comment_no_comma_eol = (comment | eol).suppress()
+            number_expr = Regex(r'[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE][+\-]?\d+)?(?=$|[ \t]*([\$\}\],#\n\r]|//))',
+                                re.DOTALL).setParseAction(convert_number)
 
-        # multi line string using """
-        # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
-        multiline_string = Regex('""".*?"*"""', re.DOTALL | re.UNICODE).setParseAction(parse_multi_string)
-        # single quoted line string
-        quoted_string = Regex(r'"(?:[^"\\\n]|\\.)*"[ \t]*', re.UNICODE).setParseAction(create_quoted_string)
-        # unquoted string that takes the rest of the line until an optional comment
-        # we support .properties multiline support which is like this:
-        # line1  \
-        # line2 \
-        # so a backslash precedes the \n
-        unquoted_string = Regex(r'(?:[^^`+?!@*&"\[\{\s\]\}#,=\$\\]|\\.)+[ \t]*', re.UNICODE).setParseAction(unescape_string)
-        substitution_expr = Regex(r'[ \t]*\$\{[^\}]+\}[ \t]*').setParseAction(create_substitution)
-        string_expr = multiline_string | quoted_string | unquoted_string
+            # multi line string using """
+            # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
+            multiline_string = Regex('""".*?"*"""', re.DOTALL | re.UNICODE).setParseAction(parse_multi_string)
+            # single quoted line string
+            quoted_string = Regex(r'"(?:[^"\\\n]|\\.)*"[ \t]*', re.UNICODE).setParseAction(create_quoted_string)
+            # unquoted string that takes the rest of the line until an optional comment
+            # we support .properties multiline support which is like this:
+            # line1  \
+            # line2 \
+            # so a backslash precedes the \n
+            unquoted_string = Regex(r'(?:[^^`+?!@*&"\[\{\s\]\}#,=\$\\]|\\.)+[ \t]*', re.UNICODE).setParseAction(unescape_string)
+            substitution_expr = Regex(r'[ \t]*\$\{[^\}]+\}[ \t]*').setParseAction(create_substitution)
+            string_expr = multiline_string | quoted_string | unquoted_string
 
-        value_expr = number_expr | true_expr | false_expr | null_expr | string_expr
+            value_expr = number_expr | true_expr | false_expr | null_expr | string_expr
 
-        include_content = (quoted_string | ((Keyword('url') | Keyword('file')) - Literal('(').suppress() - quoted_string - Literal(')').suppress()))
-        include_expr = (
-            Keyword("include", caseless=True).suppress() + (
-                include_content | (
-                    Keyword("required") - Literal('(').suppress() - include_content - Literal(')').suppress()
+            include_content = (quoted_string | ((Keyword('url') | Keyword('file')) - Literal('(').suppress() - quoted_string - Literal(')').suppress()))
+            include_expr = (
+                Keyword("include", caseless=True).suppress() + (
+                    include_content | (
+                        Keyword("required") - Literal('(').suppress() - include_content - Literal(')').suppress()
+                    )
                 )
+            ).setParseAction(include_config)
+
+            root_dict_expr = Forward()
+            dict_expr = Forward()
+            list_expr = Forward()
+            multi_value_expr = ZeroOrMore(comment_eol | include_expr | substitution_expr | dict_expr | list_expr | value_expr | (Literal(
+                '\\') - eol).suppress())
+            # for a dictionary : or = is optional
+            # last zeroOrMore is because we can have t = {a:4} {b: 6} {c: 7} which is dictionary concatenation
+            inside_dict_expr = ConfigTreeParser(ZeroOrMore(comment_eol | include_expr | assign_expr | eol_comma))
+            inside_root_dict_expr = ConfigTreeParser(ZeroOrMore(comment_eol | include_expr | assign_expr | eol_comma), root=True)
+            dict_expr << Suppress('{') - inside_dict_expr - Suppress('}')
+            root_dict_expr << Suppress('{') - inside_root_dict_expr - Suppress('}')
+            list_entry = ConcatenatedValueParser(multi_value_expr)
+            list_expr << Suppress('[') - ListParser(list_entry - ZeroOrMore(eol_comma - list_entry)) - Suppress(']')
+
+            # special case when we have a value assignment where the string can potentially be the remainder of the line
+            assign_expr << Group(
+                key - ZeroOrMore(comment_no_comma_eol) - (dict_expr | (Literal('=') | Literal(':') | Literal('+=')) - ZeroOrMore(
+                    comment_no_comma_eol) - ConcatenatedValueParser(multi_value_expr))
             )
-        ).setParseAction(include_config)
 
-        root_dict_expr = Forward()
-        dict_expr = Forward()
-        list_expr = Forward()
-        multi_value_expr = ZeroOrMore(comment_eol | include_expr | substitution_expr | dict_expr | list_expr | value_expr | (Literal(
-            '\\') - eol).suppress())
-        # for a dictionary : or = is optional
-        # last zeroOrMore is because we can have t = {a:4} {b: 6} {c: 7} which is dictionary concatenation
-        inside_dict_expr = ConfigTreeParser(ZeroOrMore(comment_eol | include_expr | assign_expr | eol_comma))
-        inside_root_dict_expr = ConfigTreeParser(ZeroOrMore(comment_eol | include_expr | assign_expr | eol_comma), root=True)
-        dict_expr << Suppress('{') - inside_dict_expr - Suppress('}')
-        root_dict_expr << Suppress('{') - inside_root_dict_expr - Suppress('}')
-        list_entry = ConcatenatedValueParser(multi_value_expr)
-        list_expr << Suppress('[') - ListParser(list_entry - ZeroOrMore(eol_comma - list_entry)) - Suppress(']')
+            # the file can be { ... } where {} can be omitted or []
+            config_expr = ZeroOrMore(comment_eol | eol) + (list_expr | root_dict_expr | inside_root_dict_expr) + ZeroOrMore(
+                comment_eol | eol_comma)
+            config = config_expr.parseString(content, parseAll=True)[0]
 
-        # special case when we have a value assignment where the string can potentially be the remainder of the line
-        assign_expr << Group(
-            key - ZeroOrMore(comment_no_comma_eol) - (dict_expr | (Literal('=') | Literal(':') | Literal('+=')) - ZeroOrMore(
-                comment_no_comma_eol) - ConcatenatedValueParser(multi_value_expr))
-        )
+            if resolve:
+                allow_unresolved = resolve and unresolved_value is not DEFAULT_SUBSTITUTION and unresolved_value is not MANDATORY_SUBSTITUTION
+                has_unresolved = cls.resolve_substitutions(config, allow_unresolved)
+                if has_unresolved and unresolved_value is MANDATORY_SUBSTITUTION:
+                    raise ConfigSubstitutionException('resolve cannot be set to True and unresolved_value to MANDATORY_SUBSTITUTION')
 
-        # the file can be { ... } where {} can be omitted or []
-        config_expr = ZeroOrMore(comment_eol | eol) + (list_expr | root_dict_expr | inside_root_dict_expr) + ZeroOrMore(
-            comment_eol | eol_comma)
-        config = config_expr.parseString(content, parseAll=True)[0]
-
-        if resolve:
-            allow_unresolved = resolve and unresolved_value is not DEFAULT_SUBSTITUTION and unresolved_value is not MANDATORY_SUBSTITUTION
-            has_unresolved = cls.resolve_substitutions(config, allow_unresolved)
-            if has_unresolved and unresolved_value is MANDATORY_SUBSTITUTION:
-                raise ConfigSubstitutionException('resolve cannot be set to True and unresolved_value to MANDATORY_SUBSTITUTION')
-
-        if unresolved_value is not NO_SUBSTITUTION and unresolved_value is not DEFAULT_SUBSTITUTION:
-            cls.unresolve_substitutions_to_value(config, unresolved_value)
+            if unresolved_value is not NO_SUBSTITUTION and unresolved_value is not DEFAULT_SUBSTITUTION:
+                cls.unresolve_substitutions_to_value(config, unresolved_value)
         return config
 
     @classmethod
