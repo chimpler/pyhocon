@@ -1,6 +1,7 @@
 from collections import OrderedDict
 from pyparsing import lineno
 from pyparsing import col
+import six
 
 try:
     basestring
@@ -363,6 +364,11 @@ class ConfigTree(OrderedDict):
         if val is UndefinedKey:
             raise KeyError(item)
         return val
+
+    if six.PY3:  # pragma: nocover
+        def items(self):
+            from collections import _OrderedDictItemsView
+            return _OrderedDictItemsView(self)
 
     def __getattr__(self, item):
         val = self.get(item, NonExistentKey)

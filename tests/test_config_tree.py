@@ -1,6 +1,6 @@
 import pytest
 from collections import OrderedDict
-from pyhocon.config_tree import ConfigTree
+from pyhocon.config_tree import ConfigTree, NoneValue
 from pyhocon.exceptions import (
     ConfigMissingException, ConfigWrongTypeException, ConfigException)
 
@@ -69,6 +69,11 @@ class TestConfigTree(object):
         config_tree = ConfigTree()
         config_tree.put("a.b.c", None)
         assert config_tree.get("a.b.c") is None
+
+    def test_config_tree_null_items(self):
+        config_tree = ConfigTree()
+        config_tree.put("a", NoneValue())
+        assert list(config_tree.items()) == [("a", None)]
 
     def test_getters(self):
         config_tree = ConfigTree()
