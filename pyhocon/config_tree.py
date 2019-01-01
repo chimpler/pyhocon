@@ -1,8 +1,6 @@
 from collections import OrderedDict
 from pyparsing import lineno
 from pyparsing import col
-import six
-
 try:
     basestring
 except NameError:  # pragma: no cover
@@ -365,10 +363,13 @@ class ConfigTree(OrderedDict):
             raise KeyError(item)
         return val
 
-    if six.PY3:  # pragma: nocover
-        def items(self):
-            from collections import _OrderedDictItemsView
-            return _OrderedDictItemsView(self)
+    try:
+        from collections import _OrderedDictItemsView
+    except ImportError:  # pragma: nocover
+        pass
+    else:
+        def items(self):  # pragma: nocover
+            return self._OrderedDictItemsView(self)
 
     def __getattr__(self, item):
         val = self.get(item, NonExistentKey)
