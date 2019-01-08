@@ -1,5 +1,10 @@
 # Changelog
 
+# Version 0.3.49
+
+* Return None instead of NoneValue when using items() method (@roee-allegro) [#196]
+* Add context for changing default chars to avoid conflict with other dependencies using pyparsing (@chunyang-wen) [#195]
+
 # Version 0.3.48
 
 * Support conversion of numerically-index objects to arrays (a.1 = 4) (@lune-sta) [#189]
