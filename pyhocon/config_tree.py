@@ -174,14 +174,20 @@ class ConfigTree(OrderedDict):
         """
         Split a key into path elements:
         - a.b.c => a, b, c
-        - a."b.c" => a, QuotedKey("b.c")
+        - a."b.c" => a, QuotedKey("b.c") if . is any of the special characters: $}[]:=+#`^?!@*&.
         - "a" => a
         - a.b."c" => a, b, c (special case)
         :param str:
         :return:
         """
-        tokens = re.findall(r'"[^"]+"|[^\.]+', string)
-        return [token if '.' in token else token.strip('"') for token in tokens]
+        special_characters = '$}[]:=+#`^?!@*&.'
+        tokens = re.findall(r'"[^"]+"|[^'+re.escape(special_characters)+r']+', string)
+
+        def contains_special_character(token):
+            if any((c in special_characters) for c in token):
+                return True
+            return False
+        return [token if contains_special_character(token) else token.strip('"') for token in tokens]
 
     def put(self, key, value, append=False):
         """Put a value in the tree (dot separated)
