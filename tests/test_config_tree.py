@@ -315,8 +315,8 @@ class TestConfigTree(object):
         special_characters = '$}[]:=+#`^?!@*&.'
         for char in special_characters:
             config_tree = ConfigTree()
-            escaped_key = f"\"test{char}key\""
-            key = f"a.b.{escaped_key}"
+            escaped_key = "\"test{char}key\"".format(char=char)
+            key = "a.b.{escaped_key}".format(escaped_key=escaped_key)
             config_tree.put(key, "value")
             hocon_tree = HOCONConverter.to_hocon(config_tree)
             assert escaped_key in hocon_tree
