@@ -184,9 +184,8 @@ class ConfigTree(OrderedDict):
         tokens = re.findall(r'"[^"]+"|[^{special_characters}]+'.format(special_characters=re.escape(special_characters)), string)
 
         def contains_special_character(token):
-            if any((c in special_characters) for c in token):
-                return True
-            return False
+            return any((c in special_characters) for c in token)
+
         return [token if contains_special_character(token) else token.strip('"') for token in tokens]
 
     def put(self, key, value, append=False):

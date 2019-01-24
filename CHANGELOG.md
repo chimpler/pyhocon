@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.50
+
+* Do not unquote keys containing special characters (@Tommassino) [#198]
+
 # Version 0.3.49
 
 * Return None instead of NoneValue when using items() method (@roee-allegro) [#196]

@@ -356,6 +356,7 @@ Java properties mapping                                    | :x:
   - Christophe Duong [@ChristopheDuong](https://github.com/ChristopheDuong)
   - lune* [@lune-sta](https://github.com/lune-sta)
   - Sascha [@ElkMonster](https://github.com/ElkMonster)
+  - Tomas Witzany [@Tommassino](https://github.com/Tommassino)
 
 ### Thanks
 
