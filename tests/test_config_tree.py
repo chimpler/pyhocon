@@ -3,6 +3,8 @@ from collections import OrderedDict
 from pyhocon.config_tree import ConfigTree, NoneValue
 from pyhocon.exceptions import (
     ConfigMissingException, ConfigWrongTypeException, ConfigException)
+from pyhocon.config_parser import ConfigFactory
+from pyhocon.tool import HOCONConverter
 
 
 class TestConfigTree(object):
@@ -308,3 +310,15 @@ class TestConfigTree(object):
         ]:
             with pytest.raises(ConfigMissingException):
                 assert getter('missing_key')
+
+    def test_config_tree_special_characters(self):
+        special_characters = '$}[]:=+#`^?!@*&.'
+        for char in special_characters:
+            config_tree = ConfigTree()
+            escaped_key = "\"test{char}key\"".format(char=char)
+            key = "a.b.{escaped_key}".format(escaped_key=escaped_key)
+            config_tree.put(key, "value")
+            hocon_tree = HOCONConverter.to_hocon(config_tree)
+            assert escaped_key in hocon_tree
+            parsed_tree = ConfigFactory.parse_string(hocon_tree)
+            assert parsed_tree.get(key) == "value"
