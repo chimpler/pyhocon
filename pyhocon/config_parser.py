@@ -234,7 +234,6 @@ class ConfigParser(object):
             arguments = dict(zip((parsed_unit,), (duration,)))
             return timedelta(**arguments)
 
-
         # ${path} or ${?path} for optional substitution
         SUBSTITUTION_PATTERN = r"\$\{(?P<optional>\?)?(?P<variable>[^}]+)\}(?P<ws>[ \t]*)"
 
@@ -325,9 +324,9 @@ class ConfigParser(object):
             number_expr = Regex(r'[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE][+\-]?\d+)?(?=$|[ \t]*([\$\}\],#\n\r]|//))',
                                 re.DOTALL).setParseAction(convert_number)
 
-            period_expr = Regex(
-                r'(?P<duration>\d+)\s+(?P<unit>' + '|'.join(itertools.chain.from_iterable(ConfigParser.period_identifiers.values())) +
-                ')$').setParseAction(convert_period)
+            duration_types = itertools.chain.from_iterable(ConfigParser.period_identifiers.values())
+            period_expr = Regex(r'(?P<duration>\d+)\s+(?P<unit>' + '|'.join(duration_types) + ')$'
+                                ).setParseAction(convert_period)
             # multi line string using """
             # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
             multiline_string = Regex('""".*?"*"""', re.DOTALL | re.UNICODE).setParseAction(parse_multi_string)
