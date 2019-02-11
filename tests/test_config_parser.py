@@ -84,8 +84,10 @@ class TestConfigParser(object):
 
     @pytest.mark.parametrize('durations', [
         ('a: 1 minutes', timedelta(minutes=1)),
+        ('a: 1minutes', timedelta(minutes=1)),
         ('a: 2 minute', timedelta(minutes=2)),
         ('a: 3 m', timedelta(minutes=3)),
+        ('a: 3m', timedelta(minutes=3)),
 
         ('a: 4 seconds', timedelta(seconds=4)),
         ('a: 5 second', timedelta(seconds=5)),

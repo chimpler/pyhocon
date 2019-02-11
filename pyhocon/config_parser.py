@@ -325,7 +325,7 @@ class ConfigParser(object):
                                 re.DOTALL).setParseAction(convert_number)
 
             duration_types = itertools.chain.from_iterable(ConfigParser.period_identifiers.values())
-            period_expr = Regex(r'(?P<duration>\d+)\s+(?P<unit>' + '|'.join(duration_types) + ')$'
+            period_expr = Regex(r'(?P<duration>\d+)\s*(?P<unit>' + '|'.join(duration_types) + ')$'
                                 ).setParseAction(convert_period)
             # multi line string using """
             # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
