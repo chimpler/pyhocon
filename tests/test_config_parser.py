@@ -88,10 +88,12 @@ class TestConfigParser(object):
         ('a: 2 minute', timedelta(minutes=2)),
         ('a: 3 m', timedelta(minutes=3)),
         ('a: 3m', timedelta(minutes=3)),
+        ('a: 3 min', '3 min'),
 
         ('a: 4 seconds', timedelta(seconds=4)),
         ('a: 5 second', timedelta(seconds=5)),
         ('a: 6 s', timedelta(seconds=6)),
+        ('a: 6 sec', '6 sec'),
 
         ('a: 7 hours', timedelta(hours=7)),
         ('a: 8 hour', timedelta(hours=8)),
