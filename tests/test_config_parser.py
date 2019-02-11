@@ -2,6 +2,8 @@
 
 import json
 import os
+from datetime import timedelta
+
 import mock
 import tempfile
 from collections import OrderedDict
@@ -79,6 +81,44 @@ class TestConfigParser(object):
         )
 
         assert config.get_string('a.b') == '5'
+
+    @pytest.mark.parametrize('durations', [
+        ('a: 1 minutes', timedelta(minutes=1)),
+        ('a: 2 minute', timedelta(minutes=2)),
+        ('a: 3 m', timedelta(minutes=3)),
+
+        ('a: 4 seconds', timedelta(seconds=4)),
+        ('a: 5 second', timedelta(seconds=5)),
+        ('a: 6 s', timedelta(seconds=6)),
+
+        ('a: 7 hours', timedelta(hours=7)),
+        ('a: 8 hour', timedelta(hours=8)),
+        ('a: 9 h', timedelta(hours=9)),
+
+        ('a: 10 weeks', timedelta(weeks=10)),
+        ('a: 11 week', timedelta(weeks=11)),
+        ('a: 12 w', timedelta(weeks=12)),
+
+        ('a: 10 days', timedelta(days=10)),
+        ('a: 11 day', timedelta(days=11)),
+        ('a: 12 d', timedelta(days=12)),
+
+        ('a: 110 microseconds', timedelta(microseconds=110)),
+        ('a: 111 microsecond', timedelta(microseconds=111)),
+        ('a: 112 micros', timedelta(microseconds=112)),
+        ('a: 113 micro', timedelta(microseconds=113)),
+        ('a: 114 us', timedelta(microseconds=114)),
+
+        ('a: 110 milliseconds', timedelta(milliseconds=110)),
+        ('a: 111 millisecond', timedelta(milliseconds=111)),
+        ('a: 112 millis', timedelta(milliseconds=112)),
+        ('a: 113 milli', timedelta(milliseconds=113)),
+        ('a: 114 ms', timedelta(milliseconds=114)),
+    ])
+    def test_parse_string_with_duration(self, durations):
+        config = ConfigFactory.parse_string(durations[0])
+
+        assert config['a'] == durations[1]
 
     def test_parse_with_enclosing_square_bracket(self):
         config = ConfigFactory.parse_string("[1, 2, 3]")

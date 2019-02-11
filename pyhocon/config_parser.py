@@ -1,8 +1,10 @@
+import itertools
 import re
 import os
 import socket
 import contextlib
 import codecs
+from datetime import timedelta
 
 from pyparsing import Forward, Keyword, QuotedString, Word, Literal, Suppress, Regex, Optional, SkipTo, ZeroOrMore, \
     Group, lineno, col, TokenConverter, replaceWith, alphanums, alphas8bit, ParseSyntaxException, StringEnd
@@ -169,6 +171,20 @@ class ConfigParser(object):
         '\\"': '"',
     }
 
+    # commented out units are in hocon spec but unsupported in timedelta
+    period_identifiers = {
+        # 'nanoseond': ['ns', 'nano', 'nanos', 'nanosecond', 'nanoseconds'],
+        'microseconds': ['us', 'micro', 'micros', 'microsecond', 'microseconds'],
+        'milliseconds': ['ms', 'milli', 'millis', 'millisecond', 'milliseconds'],
+        'seconds': ['s', 'second', 'seconds'],
+        'minutes': ['m', 'minute', 'minutes'],
+        'hours': ['h', 'hour', 'hours'],
+        'weeks': ['w', 'week', 'weeks'],
+        'days': ['d', 'day', 'days'],
+        # 'month': ['m', 'mo', 'month', 'months'],
+        # 'year': ['y', 'year', 'years']
+    }
+
     @classmethod
     def parse(cls, content, basedir=None, resolve=True, unresolved_value=DEFAULT_SUBSTITUTION):
         """parse a HOCON content
@@ -206,6 +222,18 @@ class ConfigParser(object):
                 return int(n, 10)
             except ValueError:
                 return float(n)
+
+        def convert_period(tokens):
+            duration = int(tokens.duration)
+            unit = tokens.unit
+
+            parsed_unit = [single_unit for single_unit, values
+                           in ConfigParser.period_identifiers.items()
+                           if unit in values][0]
+
+            arguments = dict(zip((parsed_unit,), (duration,)))
+            return timedelta(**arguments)
+
 
         # ${path} or ${?path} for optional substitution
         SUBSTITUTION_PATTERN = r"\$\{(?P<optional>\?)?(?P<variable>[^}]+)\}(?P<ws>[ \t]*)"
@@ -297,6 +325,9 @@ class ConfigParser(object):
             number_expr = Regex(r'[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE][+\-]?\d+)?(?=$|[ \t]*([\$\}\],#\n\r]|//))',
                                 re.DOTALL).setParseAction(convert_number)
 
+            period_expr = Regex(
+                r'(?P<duration>\d+)\s+(?P<unit>' + '|'.join(itertools.chain.from_iterable(ConfigParser.period_identifiers.values())) +
+                ')$').setParseAction(convert_period)
             # multi line string using """
             # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
             multiline_string = Regex('""".*?"*"""', re.DOTALL | re.UNICODE).setParseAction(parse_multi_string)
@@ -311,7 +342,7 @@ class ConfigParser(object):
             substitution_expr = Regex(r'[ \t]*\$\{[^\}]+\}[ \t]*').setParseAction(create_substitution)
             string_expr = multiline_string | quoted_string | unquoted_string
 
-            value_expr = number_expr | true_expr | false_expr | null_expr | string_expr
+            value_expr = period_expr | number_expr | true_expr | false_expr | null_expr | string_expr
 
             include_content = (quoted_string | ((Keyword('url') | Keyword('file')) - Literal('(').suppress() - quoted_string - Literal(')').suppress()))
             include_expr = (
