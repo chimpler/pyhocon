@@ -203,7 +203,7 @@ class ConfigParser(object):
     }
 
     optional_period_type_map = {
-        'months': ['m', 'mo', 'month', 'months'],
+        'months': ['mo', 'month', 'months'],  # 'm' from hocon spec removed. conflicts with minutes syntax.
         'years': ['y', 'year', 'years']
     }
 
