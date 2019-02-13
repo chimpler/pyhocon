@@ -54,6 +54,24 @@ class STR_SUBSTITUTION(object):
     pass
 
 
+def period(period_value, period_unit):
+    try:
+        from dateutil.relativedelta import relativedelta as period_impl
+    except:
+        from datetime import timedelta as period_impl
+
+    if period_unit == 'nanoseconds':
+        period_unit = 'microseconds'
+        period_value = period_value / 1000
+
+    arguments = dict(zip((period_unit,), (period_value,)))
+
+    if period_unit == 'milliseconds':
+        return timedelta(**arguments)
+
+    return period_impl(**arguments)
+
+
 class ConfigFactory(object):
 
     @classmethod
@@ -171,9 +189,9 @@ class ConfigParser(object):
         '\\"': '"',
     }
 
-    # commented out units are in hocon spec but unsupported in timedelta
-    period_identifiers = {
-        # 'nanoseond': ['ns', 'nano', 'nanos', 'nanosecond', 'nanoseconds'],
+    period_type_map = {
+        'nanoseonds': ['ns', 'nano', 'nanos', 'nanosecond', 'nanoseconds'],
+
         'microseconds': ['us', 'micro', 'micros', 'microsecond', 'microseconds'],
         'milliseconds': ['ms', 'milli', 'millis', 'millisecond', 'milliseconds'],
         'seconds': ['s', 'second', 'seconds'],
@@ -181,8 +199,12 @@ class ConfigParser(object):
         'hours': ['h', 'hour', 'hours'],
         'weeks': ['w', 'week', 'weeks'],
         'days': ['d', 'day', 'days'],
-        # 'month': ['m', 'mo', 'month', 'months'],
-        # 'year': ['y', 'year', 'years']
+
+    }
+
+    optional_period_type_map = {
+        'months': ['m', 'mo', 'month', 'months'],
+        'years': ['y', 'year', 'years']
     }
 
     @classmethod
@@ -224,15 +246,15 @@ class ConfigParser(object):
                 return float(n)
 
         def convert_period(tokens):
-            duration = int(tokens.duration)
-            unit = tokens.unit
 
-            parsed_unit = [single_unit for single_unit, values
-                           in ConfigParser.period_identifiers.items()
-                           if unit in values][0]
+            period_value = int(tokens.value)
+            period_identifier = tokens.unit
 
-            arguments = dict(zip((parsed_unit,), (duration,)))
-            return timedelta(**arguments)
+            period_unit = [single_unit for single_unit, values
+                           in get_supported_period_type_map().items()
+                           if period_identifier in values][0]
+
+            return period(period_value, period_unit)
 
         # ${path} or ${?path} for optional substitution
         SUBSTITUTION_PATTERN = r"\$\{(?P<optional>\?)?(?P<variable>[^}]+)\}(?P<ws>[ \t]*)"
@@ -302,6 +324,18 @@ class ConfigParser(object):
 
             return ConfigInclude(obj if isinstance(obj, list) else obj.items())
 
+        def get_supported_period_type_map():
+            supported_period_types = {}
+            supported_period_types.update(ConfigParser.period_type_map)
+
+            try:
+                from dateutil import relativedelta
+
+                supported_period_types.update(ConfigParser.optional_period_type_map)
+            except:
+                pass
+            return supported_period_types
+
         @contextlib.contextmanager
         def set_default_white_spaces():
             default = ParserElement.DEFAULT_WHITE_CHARS
@@ -324,9 +358,10 @@ class ConfigParser(object):
             number_expr = Regex(r'[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE][+\-]?\d+)?(?=$|[ \t]*([\$\}\],#\n\r]|//))',
                                 re.DOTALL).setParseAction(convert_number)
 
-            duration_types = itertools.chain.from_iterable(ConfigParser.period_identifiers.values())
-            period_expr = Regex(r'(?P<duration>\d+)\s*(?P<unit>' + '|'.join(duration_types) + ')$'
+            period_types = itertools.chain.from_iterable(get_supported_period_type_map().values())
+            period_expr = Regex(r'(?P<value>\d+)\s*(?P<unit>' + '|'.join(period_types) + ')$'
                                 ).setParseAction(convert_period)
+
             # multi line string using """
             # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
             multiline_string = Regex('""".*?"*"""', re.DOTALL | re.UNICODE).setParseAction(parse_multi_string)

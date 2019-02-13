@@ -49,6 +49,9 @@ setup(
         'pyhocon',
     ],
     install_requires=['pyparsing>=2.0.3'],
+    extras_require={
+        'Duration': ['python-dateutil>=2.8.0']
+    },
     tests_require=['pytest', 'mock'],
     entry_points={
         'console_scripts': [
