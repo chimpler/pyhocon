@@ -57,7 +57,7 @@ class STR_SUBSTITUTION(object):
 def period(period_value, period_unit):
     try:
         from dateutil.relativedelta import relativedelta as period_impl
-    except:
+    except Exception:
         from datetime import timedelta as period_impl
 
     if period_unit == 'nanoseconds':
