@@ -5,7 +5,7 @@ import os
 
 try:
     from dateutil.relativedelta import relativedelta as period
-except:
+except Exception:
     from datetime import timedelta as period
 
 from datetime import timedelta

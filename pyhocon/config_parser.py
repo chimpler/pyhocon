@@ -331,9 +331,12 @@ class ConfigParser(object):
             try:
                 from dateutil import relativedelta
 
-                supported_period_types.update(ConfigParser.optional_period_type_map)
-            except:
+                if relativedelta is not None:
+
+                    supported_period_types.update(ConfigParser.optional_period_type_map)
+            except Exception:
                 pass
+
             return supported_period_types
 
         @contextlib.contextmanager
