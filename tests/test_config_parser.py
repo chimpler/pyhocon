@@ -124,6 +124,13 @@ class TestConfigParser(object):
         ('a: 112 millis', timedelta(milliseconds=112)),
         ('a: 113 milli', timedelta(milliseconds=113)),
         ('a: 114 ms', timedelta(milliseconds=114)),
+
+        ('a: 110 nanoseconds', period(microseconds=0)),
+        ('a: 11000 nanoseconds', period(microseconds=11)),
+        ('a: 1110000 nanosecond', period(microseconds=1110)),
+        ('a: 1120000 nanos', period(microseconds=1120)),
+        ('a: 1130000 nano', period(microseconds=1130)),
+        ('a: 1140000 ns', period(microseconds=1140)),
     ])
     def test_parse_string_with_duration(self, data_set):
         config = ConfigFactory.parse_string(data_set[0])

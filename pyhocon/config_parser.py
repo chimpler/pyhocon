@@ -62,7 +62,7 @@ def period(period_value, period_unit):
 
     if period_unit == 'nanoseconds':
         period_unit = 'microseconds'
-        period_value = period_value / 1000
+        period_value = int(period_value / 1000)
 
     arguments = dict(zip((period_unit,), (period_value,)))
 
@@ -190,7 +190,7 @@ class ConfigParser(object):
     }
 
     period_type_map = {
-        'nanoseonds': ['ns', 'nano', 'nanos', 'nanosecond', 'nanoseconds'],
+        'nanoseconds': ['ns', 'nano', 'nanos', 'nanosecond', 'nanoseconds'],
 
         'microseconds': ['us', 'micro', 'micros', 'microsecond', 'microseconds'],
         'milliseconds': ['ms', 'milli', 'millis', 'millisecond', 'milliseconds'],
