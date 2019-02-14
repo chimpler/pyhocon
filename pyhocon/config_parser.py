@@ -207,6 +207,24 @@ class ConfigParser(object):
         'years': ['y', 'year', 'years']
     }
 
+    supported_period_map = None
+
+    @classmethod
+    def get_supported_period_type_map(cls):
+        if cls.supported_period_map is None:
+            cls.supported_period_map = {}
+            cls.supported_period_map.update(cls.period_type_map)
+
+            try:
+                from dateutil import relativedelta
+
+                if relativedelta is not None:
+                    cls.supported_period_map.update(cls.optional_period_type_map)
+            except Exception:
+                pass
+
+        return cls.supported_period_map
+
     @classmethod
     def parse(cls, content, basedir=None, resolve=True, unresolved_value=DEFAULT_SUBSTITUTION):
         """parse a HOCON content
@@ -251,7 +269,7 @@ class ConfigParser(object):
             period_identifier = tokens.unit
 
             period_unit = next((single_unit for single_unit, values
-                                in get_supported_period_type_map().items()
+                                in cls.get_supported_period_type_map().items()
                                 if period_identifier in values))
 
             return period(period_value, period_unit)
@@ -324,21 +342,6 @@ class ConfigParser(object):
 
             return ConfigInclude(obj if isinstance(obj, list) else obj.items())
 
-        def get_supported_period_type_map():
-            supported_period_types = {}
-            supported_period_types.update(ConfigParser.period_type_map)
-
-            try:
-                from dateutil import relativedelta
-
-                if relativedelta is not None:
-
-                    supported_period_types.update(ConfigParser.optional_period_type_map)
-            except Exception:
-                pass
-
-            return supported_period_types
-
         @contextlib.contextmanager
         def set_default_white_spaces():
             default = ParserElement.DEFAULT_WHITE_CHARS
@@ -361,7 +364,7 @@ class ConfigParser(object):
             number_expr = Regex(r'[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE][+\-]?\d+)?(?=$|[ \t]*([\$\}\],#\n\r]|//))',
                                 re.DOTALL).setParseAction(convert_number)
 
-            period_types = itertools.chain.from_iterable(get_supported_period_type_map().values())
+            period_types = itertools.chain.from_iterable(cls.get_supported_period_type_map().values())
             period_expr = Regex(r'(?P<value>\d+)\s*(?P<unit>' + '|'.join(period_types) + ')$'
                                 ).setParseAction(convert_period)
 
