@@ -250,9 +250,9 @@ class ConfigParser(object):
             period_value = int(tokens.value)
             period_identifier = tokens.unit
 
-            period_unit = [single_unit for single_unit, values
-                           in get_supported_period_type_map().items()
-                           if period_identifier in values][0]
+            period_unit = next((single_unit for single_unit, values
+                                in get_supported_period_type_map().items()
+                                if period_identifier in values))
 
             return period(period_value, period_unit)
 
