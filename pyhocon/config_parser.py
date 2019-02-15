@@ -1,8 +1,10 @@
+import itertools
 import re
 import os
 import socket
 import contextlib
 import codecs
+from datetime import timedelta
 
 from pyparsing import Forward, Keyword, QuotedString, Word, Literal, Suppress, Regex, Optional, SkipTo, ZeroOrMore, \
     Group, lineno, col, TokenConverter, replaceWith, alphanums, alphas8bit, ParseSyntaxException, StringEnd
@@ -50,6 +52,24 @@ class NO_SUBSTITUTION(object):
 
 class STR_SUBSTITUTION(object):
     pass
+
+
+def period(period_value, period_unit):
+    try:
+        from dateutil.relativedelta import relativedelta as period_impl
+    except Exception:
+        from datetime import timedelta as period_impl
+
+    if period_unit == 'nanoseconds':
+        period_unit = 'microseconds'
+        period_value = int(period_value / 1000)
+
+    arguments = dict(zip((period_unit,), (period_value,)))
+
+    if period_unit == 'milliseconds':
+        return timedelta(**arguments)
+
+    return period_impl(**arguments)
 
 
 class ConfigFactory(object):
@@ -169,6 +189,42 @@ class ConfigParser(object):
         '\\"': '"',
     }
 
+    period_type_map = {
+        'nanoseconds': ['ns', 'nano', 'nanos', 'nanosecond', 'nanoseconds'],
+
+        'microseconds': ['us', 'micro', 'micros', 'microsecond', 'microseconds'],
+        'milliseconds': ['ms', 'milli', 'millis', 'millisecond', 'milliseconds'],
+        'seconds': ['s', 'second', 'seconds'],
+        'minutes': ['m', 'minute', 'minutes'],
+        'hours': ['h', 'hour', 'hours'],
+        'weeks': ['w', 'week', 'weeks'],
+        'days': ['d', 'day', 'days'],
+
+    }
+
+    optional_period_type_map = {
+        'months': ['mo', 'month', 'months'],  # 'm' from hocon spec removed. conflicts with minutes syntax.
+        'years': ['y', 'year', 'years']
+    }
+
+    supported_period_map = None
+
+    @classmethod
+    def get_supported_period_type_map(cls):
+        if cls.supported_period_map is None:
+            cls.supported_period_map = {}
+            cls.supported_period_map.update(cls.period_type_map)
+
+            try:
+                from dateutil import relativedelta
+
+                if relativedelta is not None:
+                    cls.supported_period_map.update(cls.optional_period_type_map)
+            except Exception:
+                pass
+
+        return cls.supported_period_map
+
     @classmethod
     def parse(cls, content, basedir=None, resolve=True, unresolved_value=DEFAULT_SUBSTITUTION):
         """parse a HOCON content
@@ -206,6 +262,17 @@ class ConfigParser(object):
                 return int(n, 10)
             except ValueError:
                 return float(n)
+
+        def convert_period(tokens):
+
+            period_value = int(tokens.value)
+            period_identifier = tokens.unit
+
+            period_unit = next((single_unit for single_unit, values
+                                in cls.get_supported_period_type_map().items()
+                                if period_identifier in values))
+
+            return period(period_value, period_unit)
 
         # ${path} or ${?path} for optional substitution
         SUBSTITUTION_PATTERN = r"\$\{(?P<optional>\?)?(?P<variable>[^}]+)\}(?P<ws>[ \t]*)"
@@ -297,6 +364,10 @@ class ConfigParser(object):
             number_expr = Regex(r'[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE][+\-]?\d+)?(?=$|[ \t]*([\$\}\],#\n\r]|//))',
                                 re.DOTALL).setParseAction(convert_number)
 
+            period_types = itertools.chain.from_iterable(cls.get_supported_period_type_map().values())
+            period_expr = Regex(r'(?P<value>\d+)\s*(?P<unit>' + '|'.join(period_types) + ')$'
+                                ).setParseAction(convert_period)
+
             # multi line string using """
             # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
             multiline_string = Regex('""".*?"*"""', re.DOTALL | re.UNICODE).setParseAction(parse_multi_string)
@@ -311,7 +382,7 @@ class ConfigParser(object):
             substitution_expr = Regex(r'[ \t]*\$\{[^\}]+\}[ \t]*').setParseAction(create_substitution)
             string_expr = multiline_string | quoted_string | unquoted_string
 
-            value_expr = number_expr | true_expr | false_expr | null_expr | string_expr
+            value_expr = period_expr | number_expr | true_expr | false_expr | null_expr | string_expr
 
             include_content = (quoted_string | ((Keyword('url') | Keyword('file')) - Literal('(').suppress() - quoted_string - Literal(')').suppress()))
             include_expr = (

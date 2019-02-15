@@ -265,6 +265,14 @@ Then evaluating animals.conf will result in the followings:
 
 As you can see, the attributes in cat.conf were merged to the ones in dog.conf. Note that the attribute "say" in dog.conf got overwritten by the one in cat.conf.
 
+## Duration/Period support
+
+### Difference from HOCON spec
+
+* **nanoseconds** supported only in the sense that it is converted to **microseconds** with lowered accuracy (divided by 1000 and rounded to int).
+* **m** suffix only applies to **minutes**. Spec specifies that **m** can also be applied to **months**, but that would cause a conflict in syntax.
+* **months** and **years** only available if dateutils is installed (relativedelta is used instead of timedelta).
+
 ## Misc
 
 ### with_fallback

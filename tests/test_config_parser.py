@@ -2,6 +2,14 @@
 
 import json
 import os
+
+try:
+    from dateutil.relativedelta import relativedelta as period
+except Exception:
+    from datetime import timedelta as period
+
+from datetime import timedelta
+
 import mock
 import tempfile
 from collections import OrderedDict
@@ -79,6 +87,55 @@ class TestConfigParser(object):
         )
 
         assert config.get_string('a.b') == '5'
+
+    @pytest.mark.parametrize('data_set', [
+        ('a: 1 minutes', period(minutes=1)),
+        ('a: 1minutes', period(minutes=1)),
+        ('a: 2 minute', period(minutes=2)),
+        ('a: 3 m', period(minutes=3)),
+        ('a: 3m', period(minutes=3)),
+        ('a: 3 min', '3 min'),
+
+        ('a: 4 seconds', period(seconds=4)),
+        ('a: 5 second', period(seconds=5)),
+        ('a: 6 s', period(seconds=6)),
+        ('a: 6 sec', '6 sec'),
+
+        ('a: 7 hours', period(hours=7)),
+        ('a: 8 hour', period(hours=8)),
+        ('a: 9 h', period(hours=9)),
+
+        ('a: 10 weeks', period(weeks=10)),
+        ('a: 11 week', period(weeks=11)),
+        ('a: 12 w', period(weeks=12)),
+
+        ('a: 10 days', period(days=10)),
+        ('a: 11 day', period(days=11)),
+        ('a: 12 d', period(days=12)),
+
+        ('a: 110 microseconds', period(microseconds=110)),
+        ('a: 111 microsecond', period(microseconds=111)),
+        ('a: 112 micros', period(microseconds=112)),
+        ('a: 113 micro', period(microseconds=113)),
+        ('a: 114 us', period(microseconds=114)),
+
+        ('a: 110 milliseconds', timedelta(milliseconds=110)),
+        ('a: 111 millisecond', timedelta(milliseconds=111)),
+        ('a: 112 millis', timedelta(milliseconds=112)),
+        ('a: 113 milli', timedelta(milliseconds=113)),
+        ('a: 114 ms', timedelta(milliseconds=114)),
+
+        ('a: 110 nanoseconds', period(microseconds=0)),
+        ('a: 11000 nanoseconds', period(microseconds=11)),
+        ('a: 1110000 nanosecond', period(microseconds=1110)),
+        ('a: 1120000 nanos', period(microseconds=1120)),
+        ('a: 1130000 nano', period(microseconds=1130)),
+        ('a: 1140000 ns', period(microseconds=1140)),
+    ])
+    def test_parse_string_with_duration(self, data_set):
+        config = ConfigFactory.parse_string(data_set[0])
+
+        assert config['a'] == data_set[1]
 
     def test_parse_with_enclosing_square_bracket(self):
         config = ConfigFactory.parse_string("[1, 2, 3]")
@@ -2240,3 +2297,29 @@ www.example-ö.com {
         config = ConfigFactory.parse_string(source)
         assert config == expected
         assert config == json.loads(source)
+
+
+try:
+    from dateutil.relativedelta import relativedelta
+
+    @pytest.mark.parametrize('data_set', [
+        ('a: 1 months', relativedelta(months=1)),
+        ('a: 1months', relativedelta(months=1)),
+        ('a: 2 month', relativedelta(months=2)),
+        ('a: 3 mo', relativedelta(months=3)),
+        ('a: 3mo', relativedelta(months=3)),
+        ('a: 3 mon', '3 mon'),
+
+        ('a: 1 years', relativedelta(years=1)),
+        ('a: 1years', relativedelta(years=1)),
+        ('a: 2 year', relativedelta(years=2)),
+        ('a: 3 y', relativedelta(years=3)),
+        ('a: 3y', relativedelta(years=3)),
+
+    ])
+    def test_parse_string_with_duration_optional_units(data_set):
+        config = ConfigFactory.parse_string(data_set[0])
+
+        assert config['a'] == data_set[1]
+except Exception:
+    pass
