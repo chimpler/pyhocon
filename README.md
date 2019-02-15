@@ -365,6 +365,7 @@ Java properties mapping                                    | :x:
   - lune* [@lune-sta](https://github.com/lune-sta)
   - Sascha [@ElkMonster](https://github.com/ElkMonster)
   - Tomas Witzany [@Tommassino](https://github.com/Tommassino)
+  - Gabriel Shaar [@gabis-precog](https://github.com/gabis-precog)
 
 ### Thanks
 

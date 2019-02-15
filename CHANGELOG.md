@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.51
+
+* Added partial implementation of hocon duration and period recommended api (@gabis-precog) [#199]
+
 # Version 0.3.50
 
 * Do not unquote keys containing special characters (@Tommassino) [#198]
