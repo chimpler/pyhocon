@@ -48,7 +48,7 @@ class HOCONConverter(object):
                 lines += ',\n'.join(bet_lines)
                 lines += '\n{indent}]'.format(indent=''.rjust(level * indent, ' '))
         elif isinstance(config, basestring):
-            lines = '{value}'.format(value=json.dumps(config))
+            lines = json.dumps(config)
         elif config is None or isinstance(config, NoneValue):
             lines = 'null'
         elif config is True:
