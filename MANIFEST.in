@@ -1,3 +1,5 @@
 include tox.ini
 # If your tests aren't part of the distributed package, make sure to include them
 recursive-include tests *
+# Samples are used in test
+recursive-include samples *
