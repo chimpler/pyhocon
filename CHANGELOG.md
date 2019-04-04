@@ -1,5 +1,10 @@
 # Changelog
 
+# Version 0.3.52
+
+* Add samples to MANIFEST.in/sdist (@chreekat) [#203]
+* Use std json library to fix json string escaping (@bdmartin) [#202]
+
 # Version 0.3.51
 
 * Added partial implementation of hocon duration and period recommended api (@gabis-precog) [#199]

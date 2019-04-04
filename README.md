@@ -4,6 +4,7 @@ pyhocon
 [![pypi](http://img.shields.io/pypi/v/pyhocon.png)](https://pypi.python.org/pypi/pyhocon)
 [![Supported Python Versions](https://img.shields.io/pypi/pyversions/Pyhocon.svg)](https://pypi.python.org/pypi/pyhocon/)
 [![Build Status](https://travis-ci.org/chimpler/pyhocon.svg)](https://travis-ci.org/chimpler/pyhocon)
+[![Downloads](https://pypistats.org/packages/pyhocon)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/684cdd4d82734702ac612bf8b25fc5a0)](https://www.codacy.com/app/francois-dangngoc/pyhocon?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=chimpler/pyhocon&amp;utm_campaign=Badge_Grade)
 [![License](https://img.shields.io/pypi/l/Pyhocon.svg)](https://pypi.python.org/pypi/pyhocon/)
 [![Coverage Status](https://coveralls.io/repos/chimpler/pyhocon/badge.svg)](https://coveralls.io/r/chimpler/pyhocon)
@@ -366,6 +367,9 @@ Java properties mapping                                    | :x:
   - Sascha [@ElkMonster](https://github.com/ElkMonster)
   - Tomas Witzany [@Tommassino](https://github.com/Tommassino)
   - Gabriel Shaar [@gabis-precog](https://github.com/gabis-precog)
+  - Brandon Martin [@bdmartin](https://github.com/bdmartin)
+  - Bryan Richter [@chreekat](https://github.com/chreekat)
+
 
 ### Thanks
 
