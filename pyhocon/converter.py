@@ -1,4 +1,5 @@
 import json
+import re
 import sys
 
 from pyhocon import ConfigFactory
@@ -110,10 +111,10 @@ class HOCONConverter(object):
                 lines += '\n'.join(bet_lines)
                 lines += '\n{indent}]'.format(indent=''.rjust((level - 1) * indent, ' '))
         elif isinstance(config, basestring):
-            if '\n' in config:
+            if '\n' in config and len(config) > 1:
                 lines = '"""{value}"""'.format(value=config)  # multilines
             else:
-                lines = '"{value}"'.format(value=config.replace('\n', '\\n').replace('"', '\\"'))
+                lines = '"{value}"'.format(value=cls.__escape_string(config))
         elif isinstance(config, ConfigValues):
             lines = ''.join(cls.to_hocon(o, compact, indent, level) for o in config.tokens)
         elif isinstance(config, ConfigSubstitution):
@@ -122,10 +123,10 @@ class HOCONConverter(object):
                 lines += '?'
             lines += config.variable + '}' + config.ws
         elif isinstance(config, ConfigQuotedString):
-            if '\n' in config.value:
+            if '\n' in config.value and len(config.value) > 1:
                 lines = '"""{value}"""'.format(value=config.value)  # multilines
             else:
-                lines = '"{value}"'.format(value=config.value.replace('\n', '\\n').replace('"', '\\"'))
+                lines = '"{value}"'.format(value=cls.__escape_string(config))
         elif config is None or isinstance(config, NoneValue):
             lines = 'null'
         elif config is True:
@@ -255,3 +256,20 @@ class HOCONConverter(object):
         else:
             with open(output_file, "w") as fd:
                 fd.write(res)
+
+    @classmethod
+    def __escape_match(cls, match):
+        char = match.group(0)
+        return {
+            '\b': r'\b',
+            '\t': r'\t',
+            '\n': r'\n',
+            '\f': r'\f',
+            '\r': r'\r',
+            '"': r'\"',
+            '\\': r'\\',
+        }.get(char) or (r'\u%04x' % ord(char))
+
+    @classmethod
+    def __escape_string(cls, string):
+        return re.sub(r'[\x00-\x1F"\\]', cls.__escape_match, string)
