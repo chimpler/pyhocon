@@ -126,7 +126,7 @@ class HOCONConverter(object):
             if '\n' in config.value and len(config.value) > 1:
                 lines = '"""{value}"""'.format(value=config.value)  # multilines
             else:
-                lines = '"{value}"'.format(value=cls.__escape_string(config))
+                lines = '"{value}"'.format(value=cls.__escape_string(config.value))
         elif config is None or isinstance(config, NoneValue):
             lines = 'null'
         elif config is True:
