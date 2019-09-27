@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.53
+
+* Fix JSON and HOCON string escaping (@dtarakanov1) [#209]
+
 # Version 0.3.52
 
 * Add samples to MANIFEST.in/sdist (@chreekat) [#203]

@@ -369,6 +369,7 @@ Java properties mapping                                    | :x:
   - Gabriel Shaar [@gabis-precog](https://github.com/gabis-precog)
   - Brandon Martin [@bdmartin](https://github.com/bdmartin)
   - Bryan Richter [@chreekat](https://github.com/chreekat)
+  - dtarakanov1 [@dtarakanov](https://github.com/dtarakanov)
 
 
 ### Thanks
