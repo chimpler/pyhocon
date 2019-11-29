@@ -1287,6 +1287,23 @@ class TestConfigParser(object):
             assert config['x'] == 42
             assert config['y'] == 42
 
+    @pytest.mark.xfail
+    def test_include_substitution2(self):
+        with tempfile.NamedTemporaryFile('w') as fdin:
+            fdin.write('{ x : 10, y : ${x} }')
+            fdin.flush()
+
+            config = ConfigFactory.parse_string(
+                """
+                {
+                    a : { include """ + '"' + fdin.name + """" }
+                    a : { x : 42 }
+                }
+                """
+            )
+            assert config['a']['x'] == 42
+            assert config['a']['y'] == 42
+
     def test_var_with_include_keyword(self):
         config = ConfigFactory.parse_string(
             """
