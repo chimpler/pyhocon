@@ -2106,6 +2106,26 @@ test2 = test
             'string_from_env': 'value_from_environment'
         }
 
+    @mock.patch.dict(os.environ, STRING_VAR='value_from_environment')
+    def test_string_from_environment_self_ref(self):
+        config = ConfigFactory.parse_string(
+            """
+            STRING_VAR = ${STRING_VAR}
+            """)
+        assert config == {
+            'STRING_VAR': 'value_from_environment'
+        }
+
+    @mock.patch.dict(os.environ, STRING_VAR='value_from_environment')
+    def test_string_from_environment_self_ref_optional(self):
+        config = ConfigFactory.parse_string(
+            """
+            STRING_VAR = ${?STRING_VAR}
+            """)
+        assert config == {
+            'STRING_VAR': 'value_from_environment'
+        }
+
     @mock.patch.dict(os.environ, TRUE_OR_FALSE='false')
     def test_bool_from_environment(self):
         config = ConfigFactory.parse_string(
