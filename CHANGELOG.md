@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.54
+
+* Fix self references when environment variables exist (@anujkumar93) [#219]
+
 # Version 0.3.53
 
 * Fix JSON and HOCON string escaping (@dtarakanov1) [#209]

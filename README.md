@@ -370,7 +370,7 @@ Java properties mapping                                    | :x:
   - Brandon Martin [@bdmartin](https://github.com/bdmartin)
   - Bryan Richter [@chreekat](https://github.com/chreekat)
   - dtarakanov1 [@dtarakanov](https://github.com/dtarakanov)
-
+  - Anuj Kumar [@anujkumar93](https://github.com/anujkumar93)
 
 ### Thanks
 
