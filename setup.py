@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
@@ -49,7 +50,7 @@ setup(
     packages=[
         'pyhocon',
     ],
-    install_requires=['pyparsing>=2.0.3'],
+    install_requires=['pyparsing>=2.0.3', 'asset'],
     extras_require={
         'Duration': ['python-dateutil>=2.8.0']
     },

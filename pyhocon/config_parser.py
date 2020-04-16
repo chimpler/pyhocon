@@ -1,19 +1,25 @@
-import itertools
-import re
-import os
-import socket
-import contextlib
 import codecs
+import contextlib
+import copy
+import itertools
+import logging
+import os
+import re
+import socket
 from datetime import timedelta
 
-from pyparsing import Forward, Keyword, QuotedString, Word, Literal, Suppress, Regex, Optional, SkipTo, ZeroOrMore, \
-    Group, lineno, col, TokenConverter, replaceWith, alphanums, alphas8bit, ParseSyntaxException, StringEnd
-from pyparsing import ParserElement
-from pyhocon.config_tree import ConfigTree, ConfigSubstitution, ConfigList, ConfigValues, ConfigUnquotedString, \
-    ConfigInclude, NoneValue, ConfigQuotedString
-from pyhocon.exceptions import ConfigSubstitutionException, ConfigMissingException, ConfigException
-import logging
-import copy
+from pyparsing import (Forward, Group, Keyword, Literal, Optional,
+                       ParserElement, ParseSyntaxException, QuotedString,
+                       Regex, SkipTo, StringEnd, Suppress, TokenConverter,
+                       Word, ZeroOrMore, alphanums, alphas8bit, col, lineno,
+                       replaceWith)
+
+import asset
+from pyhocon.config_tree import (ConfigInclude, ConfigList, ConfigQuotedString,
+                                 ConfigSubstitution, ConfigTree,
+                                 ConfigUnquotedString, ConfigValues, NoneValue)
+from pyhocon.exceptions import (ConfigException, ConfigMissingException,
+                                ConfigSubstitutionException)
 
 use_urllib2 = False
 try:
@@ -317,6 +323,8 @@ class ConfigParser(object):
                 value = final_tokens[1].value if isinstance(token[1], ConfigQuotedString) else final_tokens[1]
                 if final_tokens[0] == 'url':
                     url = value
+                elif final_tokens[0] == 'package':
+                    file = asset.load(value).filename
                 else:
                     file = value
 
@@ -384,7 +392,7 @@ class ConfigParser(object):
 
             value_expr = period_expr | number_expr | true_expr | false_expr | null_expr | string_expr
 
-            include_content = (quoted_string | ((Keyword('url') | Keyword('file')) - Literal('(').suppress() - quoted_string - Literal(')').suppress()))
+            include_content = (quoted_string | ((Keyword('url') | Keyword('file') | Keyword('package')) - Literal('(').suppress() - quoted_string - Literal(')').suppress()))
             include_expr = (
                 Keyword("include", caseless=True).suppress() + (
                     include_content | (

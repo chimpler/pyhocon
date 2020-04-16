@@ -201,6 +201,7 @@ We support the include semantics using one of the followings:
     include url("http://abc.com/test.conf")
     include url("https://abc.com/test.conf")
     include url("file://abc.com/test.conf")
+    include package("package:assets/test.conf")
 
 When one uses a relative path (e.g., test.conf), we use the same directory as the file that includes the new file as a base directory. If
 the standard input is used, we use the current directory as a base directory.
@@ -294,43 +295,43 @@ assert config == d
 
 ## TODO
 
-Items                                  | Status
--------------------------------------- | :-----:
-Comments                               | :white_check_mark:
-Omit root braces                       | :white_check_mark:
-Key-value separator                    | :white_check_mark:
-Commas                                 | :white_check_mark:
-Whitespace                             | :white_check_mark:
-Duplicate keys and object merging      | :white_check_mark:
-Unquoted strings                       | :white_check_mark:
-Multi-line strings                     | :white_check_mark:
-String value concatenation             | :white_check_mark:
-Array concatenation                    | :white_check_mark:
-Object concatenation                   | :white_check_mark:
-Arrays without commas                  | :white_check_mark:
-Path expressions                       | :white_check_mark:
-Paths as keys                          | :white_check_mark:
-Substitutions                          | :white_check_mark:
-Self-referential substitutions         | :white_check_mark:
-The `+=` separator                     | :white_check_mark:
-Includes                               | :white_check_mark:
-Include semantics: merging             | :white_check_mark:
-Include semantics: substitution        | :white_check_mark:
-Include semantics: missing files       | :x:
-Include semantics: file formats and extensions     | :x:
-Include semantics: locating resources              | :x:
-Include semantics: preventing cycles               | :x:
-Conversion of numerically-index objects to arrays  | :white_check_mark:
+| Items                                             |       Status       |
+| ------------------------------------------------- | :----------------: |
+| Comments                                          | :white_check_mark: |
+| Omit root braces                                  | :white_check_mark: |
+| Key-value separator                               | :white_check_mark: |
+| Commas                                            | :white_check_mark: |
+| Whitespace                                        | :white_check_mark: |
+| Duplicate keys and object merging                 | :white_check_mark: |
+| Unquoted strings                                  | :white_check_mark: |
+| Multi-line strings                                | :white_check_mark: |
+| String value concatenation                        | :white_check_mark: |
+| Array concatenation                               | :white_check_mark: |
+| Object concatenation                              | :white_check_mark: |
+| Arrays without commas                             | :white_check_mark: |
+| Path expressions                                  | :white_check_mark: |
+| Paths as keys                                     | :white_check_mark: |
+| Substitutions                                     | :white_check_mark: |
+| Self-referential substitutions                    | :white_check_mark: |
+| The `+=` separator                                | :white_check_mark: |
+| Includes                                          | :white_check_mark: |
+| Include semantics: merging                        | :white_check_mark: |
+| Include semantics: substitution                   | :white_check_mark: |
+| Include semantics: missing files                  |        :x:         |
+| Include semantics: file formats and extensions    |        :x:         |
+| Include semantics: locating resources             |        :x:         |
+| Include semantics: preventing cycles              |        :x:         |
+| Conversion of numerically-index objects to arrays | :white_check_mark: |
 
-API Recommendations                                        | Status
----------------------------------------------------------- | :----:
-Conversion of numerically-index objects to arrays          | :x:
-Automatic type conversions                                 | :x:
-Units format                                               | :x:
-Duration format                                            | :x:
-Size in bytes format                                       | :x:
-Config object merging and file merging                     | :x:
-Java properties mapping                                    | :x:
+| API Recommendations                               | Status |
+| ------------------------------------------------- | :----: |
+| Conversion of numerically-index objects to arrays |  :x:   |
+| Automatic type conversions                        |  :x:   |
+| Units format                                      |  :x:   |
+| Duration format                                   |  :x:   |
+| Size in bytes format                              |  :x:   |
+| Config object merging and file merging            |  :x:   |
+| Java properties mapping                           |  :x:   |
 
 ### Contributors
 
