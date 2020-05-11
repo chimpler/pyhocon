@@ -1217,6 +1217,16 @@ class TestConfigParser(object):
         }
         assert expected == config
 
+        config2 = ConfigFactory.parse_string(
+            """
+            a {
+                include required(file("samples/cat.conf"))
+                t = 2
+            }
+            """
+        )
+        assert expected == config2
+
     def test_include_missing_required_file(self):
         with pytest.raises(IOError):
             ConfigFactory.parse_string(

@@ -314,7 +314,7 @@ class ConfigParser(object):
                 else:
                     file = value
             elif len(final_tokens) == 2:  # include url("test") or file("test")
-                value = final_tokens[1].value if isinstance(token[1], ConfigQuotedString) else final_tokens[1]
+                value = final_tokens[1].value if isinstance(final_tokens[1], ConfigQuotedString) else final_tokens[1]
                 if final_tokens[0] == 'url':
                     url = value
                 else:
