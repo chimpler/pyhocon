@@ -580,6 +580,9 @@ class ConfigSubstitution(object):
         self.instring = instring
         self.loc = loc
 
+    def raw_str(self):
+        return self.variable
+
     def __repr__(self):  # pragma: no cover
         return '[ConfigSubstitution: ' + self.variable + ']'
 
