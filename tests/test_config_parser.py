@@ -2,21 +2,26 @@
 
 import json
 import os
+import tempfile
+from collections import OrderedDict
+from datetime import timedelta
+
+from pyparsing import ParseBaseException, ParseException, ParseSyntaxException
+
+import asset
+import mock
+import pytest
+from pyhocon import (ConfigFactory, ConfigParser, ConfigSubstitutionException,
+                     ConfigTree)
+from pyhocon.exceptions import (ConfigException, ConfigMissingException,
+                                ConfigWrongTypeException)
 
 try:
     from dateutil.relativedelta import relativedelta as period
 except Exception:
     from datetime import timedelta as period
 
-from datetime import timedelta
 
-import mock
-import tempfile
-from collections import OrderedDict
-from pyparsing import ParseSyntaxException, ParseException, ParseBaseException
-import pytest
-from pyhocon import ConfigFactory, ConfigSubstitutionException, ConfigTree, ConfigParser
-from pyhocon.exceptions import ConfigMissingException, ConfigWrongTypeException, ConfigException
 
 
 class TestConfigParser(object):
@@ -1238,6 +1243,37 @@ class TestConfigParser(object):
                 ]
                 """
             )
+
+    def test_include_asset_file(self, monkeypatch):
+
+        expected = {
+            'a': {
+                'garfield': {
+                    'say': 'meow'
+                },
+                't': 2
+            }
+        }
+
+        with tempfile.NamedTemporaryFile('w') as fdin:
+            fdin.write('{a: 1, b: 2}')
+            fdin.flush()
+
+            def load(*args, **kwargs):
+                print(*args, **kwargs)
+                class File:
+                    def __init__(self, filename):
+                        self.filename = filename
+                return File(fdin.name)
+
+            monkeypatch.setattr(asset, "load", load)
+
+            config = ConfigFactory.parse_string(
+                """
+                include package("dotted.name:asset/config_file")
+                """
+            )
+            assert config['a'] == 1
 
     def test_include_dict(self):
         expected_res = {
