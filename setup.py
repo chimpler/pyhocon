@@ -26,7 +26,7 @@ class PyTestCommand(TestCommand):
 
 setup(
     name='pyhocon',
-    version='0.3.54',
+    version='0.3.55',
     description='HOCON parser for Python',
     long_description='pyhocon is a HOCON parser for Python. Additionally we provide a tool (pyhocon) to convert any HOCON '
                      'content into json, yaml and properties format.',
@@ -54,7 +54,7 @@ setup(
     extras_require={
         'Duration': ['python-dateutil>=2.8.0']
     },
-    tests_require=['pytest', 'mock'],
+    tests_require=['pytest', 'mock==3.0.5'],
     entry_points={
         'console_scripts': [
             'pyhocon=pyhocon.tool:main'

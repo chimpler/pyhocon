@@ -1,5 +1,14 @@
 # Changelog
 
+# Version 0.3.55
+
+* Add test for include substitution (@gpoulin) [#217]
+* Fix self references when environment variables exist (@anujkumar93) [#219]
+* Remove inactive Gitter channel from README (@scottj97) [#255]
+* Fix STR_SUBSTITUTION, because ConfigSubstitution has no function raw_str (@manso92) [#227]
+* Add support for package include (@mrijken) [#228]
+* Fix required(file()) syntax (@jrouly) [#229]
+
 # Version 0.3.54
 
 * Fix self references when environment variables exist (@anujkumar93) [#219]

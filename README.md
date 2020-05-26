@@ -371,6 +371,11 @@ assert config == d
   - Bryan Richter [@chreekat](https://github.com/chreekat)
   - dtarakanov1 [@dtarakanov](https://github.com/dtarakanov)
   - Anuj Kumar [@anujkumar93](https://github.com/anujkumar93)
+  - Guillaume Poulin [@gpoulin](https://github.com/gpoulin)
+  - Scott Johnson [@scottj97](https://github.com/scottj97)
+  - Pablo Manso [@manso92](https://github.com/manso92)
+  - Marc Rijken [@mrijken](https://github.com/mrijken)
+  - Michel Rouly [@jrouly](https://github.com/jrouly)
 
 ### Thanks
 
