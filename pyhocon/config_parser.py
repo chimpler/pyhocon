@@ -392,7 +392,9 @@ class ConfigParser(object):
 
             value_expr = period_expr | number_expr | true_expr | false_expr | null_expr | string_expr
 
-            include_content = (quoted_string | ((Keyword('url') | Keyword('file') | Keyword('package')) - Literal('(').suppress() - quoted_string - Literal(')').suppress()))
+            include_content = (
+                quoted_string | ((Keyword('url') | Keyword('file') | Keyword('package')) - Literal('(').suppress() - quoted_string - Literal(')').suppress())
+            )
             include_expr = (
                 Keyword("include", caseless=True).suppress() + (
                     include_content | (

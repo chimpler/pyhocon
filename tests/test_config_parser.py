@@ -1246,7 +1246,6 @@ class TestConfigParser(object):
             fdin.flush()
 
             def load(*args, **kwargs):
-                print(*args, **kwargs)
 
                 class File(object):
                     def __init__(self, filename):
