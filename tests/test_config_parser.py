@@ -5,23 +5,19 @@ import os
 import tempfile
 from collections import OrderedDict
 from datetime import timedelta
-
 from pyparsing import ParseBaseException, ParseException, ParseSyntaxException
-
 import asset
 import mock
 import pytest
-from pyhocon import (ConfigFactory, ConfigParser, ConfigSubstitutionException,
-                     ConfigTree)
+from pyhocon import (ConfigFactory, ConfigParser, ConfigSubstitutionException, ConfigTree)
 from pyhocon.exceptions import (ConfigException, ConfigMissingException,
                                 ConfigWrongTypeException)
+
 
 try:
     from dateutil.relativedelta import relativedelta as period
 except Exception:
     from datetime import timedelta as period
-
-
 
 
 class TestConfigParser(object):
@@ -52,7 +48,7 @@ class TestConfigParser(object):
         assert config.get('t.e.y.f') == 7
         assert config.get('t.e.y.g') == 'hey dude!'
         assert config.get('t.e.y.h') == 'hey man'
-        assert [l.strip() for l in config.get('t.e.y.i').split('\n')] == ['', '"first line"', '"second" line', '']
+        assert [v.strip() for v in config.get('t.e.y.i').split('\n')] == ['', '"first line"', '"second" line', '']
         assert config.get_bool('t.d') is True
         assert config.get_int('t.e.y.f') == 7
         assert config.get('t.j') == [1, 2, 3]
@@ -1245,23 +1241,14 @@ class TestConfigParser(object):
             )
 
     def test_include_asset_file(self, monkeypatch):
-
-        expected = {
-            'a': {
-                'garfield': {
-                    'say': 'meow'
-                },
-                't': 2
-            }
-        }
-
         with tempfile.NamedTemporaryFile('w') as fdin:
             fdin.write('{a: 1, b: 2}')
             fdin.flush()
 
             def load(*args, **kwargs):
                 print(*args, **kwargs)
-                class File:
+
+                class File(object):
                     def __init__(self, filename):
                         self.filename = filename
                 return File(fdin.name)
