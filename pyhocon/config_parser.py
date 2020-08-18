@@ -369,7 +369,7 @@ class ConfigParser(object):
                     logger.debug(f"%s Loading following configs: %s", _prefix, paths)
                     for p in paths:
                         obj = _merge(obj, _load(p))
-                        logger.critical(f"{_prefix} Partial result: {obj}")
+                        logger.debug(f"%s Partial result: %s", _prefix, obj)
                     logger.debug(f"%s Result: %s", _prefix, obj)
             else:
                 raise ConfigException('No file or URL specified at: {loc}: {instring}', loc=loc, instring=instring)
