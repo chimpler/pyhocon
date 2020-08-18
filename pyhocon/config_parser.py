@@ -338,13 +338,39 @@ class ConfigParser(object):
                 )
             elif file is not None:
                 path = file if basedir is None else os.path.join(basedir, file)
-                logger.debug('Loading config from file %s', path)
-                obj = ConfigFactory.parse_file(
-                    path,
-                    resolve=False,
-                    required=required,
-                    unresolved_value=NO_SUBSTITUTION
-                )
+                def _make_prefix(path):
+                    return ('<root>' if path is None else f'[{path}]').ljust(55).replace('\\', '/')
+                _prefix = _make_prefix(path)
+                def _load(path):
+                    _prefix = _make_prefix(path)
+                    logger.debug("%s Loading config from file %r", _prefix, path)
+                    obj = ConfigFactory.parse_file(
+                        path,
+                        resolve=False,
+                        required=required,
+                        unresolved_value=NO_SUBSTITUTION
+                    )
+                    logger.debug(f"%s Result: %s", _prefix, obj)
+                    return obj
+    
+                if ('*' in path or '?' in path):
+                    from glob import glob
+                    paths = glob(path, recursive=True)
+                    obj = None
+                    def _merge(a, b):
+                        if (a is None or b is None):
+                            return a or b
+                        elif (isinstance(a, ConfigTree) and isinstance(b, ConfigTree)):
+                            return ConfigTree.merge_configs(a, b)
+                        elif (isinstance(a, list) and isinstance(b, list)):
+                            return a + b
+                        else:
+                            raise ConfigException("Unable to make such include (merging unexpected types: {a} and {b}", a=type(a), b=type(b))
+                    logger.debug(f"%s Loading following configs: %s", _prefix, paths)
+                    for p in paths:
+                        obj = _merge(obj, _load(p))
+                        logger.critical(f"{_prefix} Partial result: {obj}")
+                    logger.debug(f"%s Result: %s", _prefix, obj)
             else:
                 raise ConfigException('No file or URL specified at: {loc}: {instring}', loc=loc, instring=instring)
 
