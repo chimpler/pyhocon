@@ -352,7 +352,7 @@ class ConfigParser(object):
                     )
                     logger.debug(f"%s Result: %s", _prefix, obj)
                     return obj
-    
+
                 if ('*' in path or '?' in path):
                     from glob import glob
                     paths = glob(path, recursive=True)
@@ -371,6 +371,11 @@ class ConfigParser(object):
                         obj = _merge(obj, _load(p))
                         logger.debug(f"%s Partial result: %s", _prefix, obj)
                     logger.debug(f"%s Result: %s", _prefix, obj)
+
+                else:
+                    logger.debug(f"%s Loading single config: %s", _prefix, path)
+                    obj = _load(path)
+
             else:
                 raise ConfigException('No file or URL specified at: {loc}: {instring}', loc=loc, instring=instring)
 
