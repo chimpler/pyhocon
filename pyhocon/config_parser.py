@@ -371,10 +371,15 @@ class ConfigParser(object):
             comment_no_comma_eol = (comment | eol).suppress()
             number_expr = Regex(r'[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE][+\-]?\d+)?(?=$|[ \t]*([\$\}\],#\n\r]|//))',
                                 re.DOTALL).setParseAction(convert_number)
-
-            period_types = itertools.chain.from_iterable(cls.get_supported_period_type_map().values())
-            period_expr = Regex(r'(?P<value>\d+)\s*(?P<unit>' + '|'.join(period_types) + ')$'
-                                ).setParseAction(convert_period)
+            # Must be sorted from longest to shortest otherwise 'weeks' will match 'w' and 'eeks'
+            # will be parsed as a general string.
+            period_types = sorted(
+                itertools.chain.from_iterable(cls.get_supported_period_type_map().values()),
+                key=lambda x: len(x), reverse=True)
+            period_expr = Regex(
+                r'(?P<value>\d+)\s*(?P<unit>' + '|'.join(period_types) + ')$',
+                flags=re.MULTILINE,
+            ).setParseAction(convert_period)
 
             # multi line string using """
             # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969

@@ -138,6 +138,16 @@ class TestConfigParser(object):
 
         assert config['a'] == data_set[1]
 
+    def test_parse_string_with_duration_with_long_unit_name(self):
+        config = ConfigFactory.parse_string(
+            """
+            a: foo
+            b: 10 weeks
+            c: bar
+            """
+        )
+        assert config['b'] == period(weeks=10)
+
     def test_parse_with_enclosing_square_bracket(self):
         config = ConfigFactory.parse_string("[1, 2, 3]")
         assert config == [1, 2, 3]
