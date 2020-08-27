@@ -670,7 +670,7 @@ class TestConfigParser(object):
     def test_substitution_list_with_append(self):
         config = ConfigFactory.parse_string(
             """
-            application.foo = 128m
+            application.foo = 128mm
             application.large-jvm-opts = ["-XX:+UseParNewGC"] [-Xm16g, ${application.foo}]
             application.large-jvm-opts2 = [-Xm16g, ${application.foo}] ["-XX:+UseParNewGC"]
             """)
@@ -678,19 +678,19 @@ class TestConfigParser(object):
         assert config["application.large-jvm-opts"] == [
             '-XX:+UseParNewGC',
             '-Xm16g',
-            '128m'
+            '128mm'
         ]
 
         assert config["application.large-jvm-opts2"] == [
             '-Xm16g',
-            '128m',
+            '128mm',
             '-XX:+UseParNewGC',
         ]
 
     def test_substitution_list_with_append_substitution(self):
         config = ConfigFactory.parse_string(
             """
-            application.foo = 128m
+            application.foo = 128mm
             application.default-jvm-opts = ["-XX:+UseParNewGC"]
             application.large-jvm-opts = ${application.default-jvm-opts} [-Xm16g, ${application.foo}]
             application.large-jvm-opts2 = [-Xm16g, ${application.foo}] ${application.default-jvm-opts}
@@ -699,12 +699,12 @@ class TestConfigParser(object):
         assert config["application.large-jvm-opts"] == [
             '-XX:+UseParNewGC',
             '-Xm16g',
-            '128m'
+            '128mm'
         ]
 
         assert config["application.large-jvm-opts2"] == [
             '-Xm16g',
-            '128m',
+            '128mm',
             '-XX:+UseParNewGC'
         ]
 
