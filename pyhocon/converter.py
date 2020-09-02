@@ -32,10 +32,18 @@ class HOCONConverter(object):
                 lines += '{\n'
                 bet_lines = []
                 for key, item in config.items():
+                    new_key = key.strip('"')  # for dotted keys enclosed with "" to not be interpreted as nested key
+                    if isinstance(new_key, unicode):
+                        new_key = new_key.encode('utf-8')
+
+                    new_value = cls.to_json(item, compact, indent, level + 1)
+                    if isinstance(new_value, unicode):
+                        new_value = new_value.encode('utf-8')
+
                     bet_lines.append('{indent}"{key}": {value}'.format(
                         indent=''.rjust((level + 1) * indent, ' '),
-                        key=key.strip('"'),  # for dotted keys enclosed with "" to not be interpreted as nested key
-                        value=cls.to_json(item, compact, indent, level + 1))
+                        key=new_key,
+                        value=new_value)
                     )
                 lines += ',\n'.join(bet_lines)
                 lines += '\n{indent}}}'.format(indent=''.rjust(level * indent, ' '))
@@ -53,7 +61,7 @@ class HOCONConverter(object):
                 lines += ',\n'.join(bet_lines)
                 lines += '\n{indent}]'.format(indent=''.rjust(level * indent, ' '))
         elif isinstance(config, basestring):
-            lines = json.dumps(config)
+            lines = json.dumps(config, ensure_ascii=False)
         elif config is None or isinstance(config, NoneValue):
             lines = 'null'
         elif config is True:
