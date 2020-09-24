@@ -138,6 +138,16 @@ class TestConfigParser(object):
 
         assert config['a'] == data_set[1]
 
+    def test_parse_string_with_duration_with_long_unit_name(self):
+        config = ConfigFactory.parse_string(
+            """
+            a: foo
+            b: 10 weeks
+            c: bar
+            """
+        )
+        assert config['b'] == period(weeks=10)
+
     def test_parse_with_enclosing_square_bracket(self):
         config = ConfigFactory.parse_string("[1, 2, 3]")
         assert config == [1, 2, 3]
@@ -660,7 +670,7 @@ class TestConfigParser(object):
     def test_substitution_list_with_append(self):
         config = ConfigFactory.parse_string(
             """
-            application.foo = 128m
+            application.foo = 128mm
             application.large-jvm-opts = ["-XX:+UseParNewGC"] [-Xm16g, ${application.foo}]
             application.large-jvm-opts2 = [-Xm16g, ${application.foo}] ["-XX:+UseParNewGC"]
             """)
@@ -668,19 +678,19 @@ class TestConfigParser(object):
         assert config["application.large-jvm-opts"] == [
             '-XX:+UseParNewGC',
             '-Xm16g',
-            '128m'
+            '128mm'
         ]
 
         assert config["application.large-jvm-opts2"] == [
             '-Xm16g',
-            '128m',
+            '128mm',
             '-XX:+UseParNewGC',
         ]
 
     def test_substitution_list_with_append_substitution(self):
         config = ConfigFactory.parse_string(
             """
-            application.foo = 128m
+            application.foo = 128mm
             application.default-jvm-opts = ["-XX:+UseParNewGC"]
             application.large-jvm-opts = ${application.default-jvm-opts} [-Xm16g, ${application.foo}]
             application.large-jvm-opts2 = [-Xm16g, ${application.foo}] ${application.default-jvm-opts}
@@ -689,12 +699,12 @@ class TestConfigParser(object):
         assert config["application.large-jvm-opts"] == [
             '-XX:+UseParNewGC',
             '-Xm16g',
-            '128m'
+            '128mm'
         ]
 
         assert config["application.large-jvm-opts2"] == [
             '-Xm16g',
-            '128m',
+            '128mm',
             '-XX:+UseParNewGC'
         ]
 
