@@ -102,12 +102,12 @@ class ConfigFactory(object):
         :type required: boolean
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
-        :param unresolved_value: assigned value value to unresolved substitution.
-        If overriden with a default value, it will replace all unresolved value to the default value.
-        If it is set to to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
+        :param unresolved_value: assigned value to unresolved substitution.
+        If overriden with a default value, it will replace all unresolved values by the default value.
+        If it is set to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
         :type unresolved_value: class
-        :return: Config object
-        :type return: Config
+        :return: Config object or []
+        :type return: Config or list
         """
         try:
             with codecs.open(filename, 'r', encoding=encoding) as fd:
@@ -127,10 +127,10 @@ class ConfigFactory(object):
         :type url: basestring
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
-        :param unresolved_value: assigned value value to unresolved substitution.
-        If overriden with a default value, it will replace all unresolved value to the default value.
-        If it is set to to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
-        :type unresolved_value: boolean
+        :param unresolved_value: assigned value to unresolved substitution.
+        If overriden with a default value, it will replace all unresolved values by the default value.
+        If it is set to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
+        :type unresolved_value: class
         :return: Config object or []
         :type return: Config or list
         """
@@ -149,17 +149,16 @@ class ConfigFactory(object):
 
     @classmethod
     def parse_string(cls, content, basedir=None, resolve=True, unresolved_value=DEFAULT_SUBSTITUTION):
-        """Parse URL
+        """Parse string
 
         :param content: content to parse
         :type content: basestring
-        :param resolve: If true, resolve substitutions
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
-        :param unresolved_value: assigned value value to unresolved substitution.
-        If overriden with a default value, it will replace all unresolved value to the default value.
-        If it is set to to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
-        :type unresolved_value: boolean
+        :param unresolved_value: assigned value to unresolved substitution.
+        If overriden with a default value, it will replace all unresolved values by the default value.
+        If it is set to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
+        :type unresolved_value: class
         :return: Config object
         :type return: Config
         """
@@ -249,9 +248,9 @@ class ConfigParser(object):
         :type content: basestring
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
-        :param unresolved_value: assigned value value to unresolved substitution.
-        If overriden with a default value, it will replace all unresolved value to the default value.
-        If it is set to to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
+        :param unresolved_value: assigned value to unresolved substitution.
+        If overriden with a default value, it will replace all unresolved values by the default value.
+        If it is set to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
         :type unresolved_value: boolean
         :return: a ConfigTree or a list
         """
