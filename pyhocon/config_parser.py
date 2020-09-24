@@ -6,7 +6,9 @@ import logging
 import os
 import re
 import socket
+import sys
 from datetime import timedelta
+from glob import glob
 
 from pyparsing import (Forward, Group, Keyword, Literal, Optional,
                        ParserElement, ParseSyntaxException, QuotedString,
@@ -36,6 +38,14 @@ try:
 except NameError:  # pragma: no cover
     basestring = str
     unicode = str
+
+if sys.version_info < (3, 5):
+    def glob(pathname, recursive=False):
+        if recursive and '**' in pathname:
+            import warnings
+            warnings.warn('This version of python (%s) does not support recursive import' % sys.version)
+        from glob import glob as _glob
+        return _glob(pathname)
 
 logger = logging.getLogger(__name__)
 
@@ -338,13 +348,45 @@ class ConfigParser(object):
                 )
             elif file is not None:
                 path = file if basedir is None else os.path.join(basedir, file)
-                logger.debug('Loading config from file %s', path)
-                obj = ConfigFactory.parse_file(
-                    path,
-                    resolve=False,
-                    required=required,
-                    unresolved_value=NO_SUBSTITUTION
-                )
+
+                def _make_prefix(path):
+                    return ('<root>' if path is None else '[%s]' % path).ljust(55).replace('\\', '/')
+                _prefix = _make_prefix(path)
+
+                def _load(path):
+                    _prefix = _make_prefix(path)
+                    logger.debug('%s Loading config from file %r', _prefix, path)
+                    obj = ConfigFactory.parse_file(
+                        path,
+                        resolve=False,
+                        required=required,
+                        unresolved_value=NO_SUBSTITUTION
+                    )
+                    logger.debug('%s Result: %s', _prefix, obj)
+                    return obj
+
+                if '*' in path or '?' in path:
+                    paths = glob(path, recursive=True)
+                    obj = None
+
+                    def _merge(a, b):
+                        if a is None or b is None:
+                            return a or b
+                        elif isinstance(a, ConfigTree) and isinstance(b, ConfigTree):
+                            return ConfigTree.merge_configs(a, b)
+                        elif isinstance(a, list) and isinstance(b, list):
+                            return a + b
+                        else:
+                            raise ConfigException('Unable to make such include (merging unexpected types: {a} and {b}', a=type(a), b=type(b))
+                    logger.debug('%s Loading following configs: %s', _prefix, paths)
+                    for p in paths:
+                        obj = _merge(obj, _load(p))
+                    logger.debug('%s Result: %s', _prefix, obj)
+
+                else:
+                    logger.debug('%s Loading single config: %s', _prefix, path)
+                    obj = _load(path)
+
             else:
                 raise ConfigException('No file or URL specified at: {loc}: {instring}', loc=loc, instring=instring)
 

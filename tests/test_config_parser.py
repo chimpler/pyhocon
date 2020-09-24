@@ -1066,6 +1066,19 @@ class TestConfigParser(object):
         assert config.get('cat.garfield.say') == 'meow'
         assert config.get('dog.mutt.hates.garfield.say') == 'meow'
 
+    def test_include_glob_dict_from_samples(self):
+        config = ConfigFactory.parse_file("samples/all_animals.conf")
+        assert config.get('animals.garfield.say') == 'meow'
+        assert config.get('animals.mutt.hates.garfield.say') == 'meow'
+
+    def test_include_glob_list_from_samples(self):
+        config = ConfigFactory.parse_file("samples/all_bars.conf")
+        bars = config.get_list('bars')
+        assert len(bars) == 10
+        assert bars[0].get('name') == 'Bloody Mary'
+        assert bars[5].get('name') == 'Homer\'s favorite coffee'
+        assert bars[9].get('type') == 'milk'
+
     def test_list_of_dicts(self):
         config = ConfigFactory.parse_string(
             """
@@ -1203,7 +1216,7 @@ class TestConfigParser(object):
         config = ConfigFactory.parse_string(
             """
             a {
-                include required("samples/cat.conf")
+                include required("samples/animals.d/cat.conf")
                 t = 2
             }
             """
@@ -1221,7 +1234,7 @@ class TestConfigParser(object):
         config2 = ConfigFactory.parse_string(
             """
             a {
-                include required(file("samples/cat.conf"))
+                include required(file("samples/animals.d/cat.conf"))
                 t = 2
             }
             """
