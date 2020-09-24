@@ -1,5 +1,12 @@
 # Changelog
 
+# Version 0.3.56
+
+* fix include error with chinese strings (@xinghaixu) [#240]
+* Glob-pattern Includes (@USSX-Hares) [#236]
+* Fix parsing of durations/periods (@olii) [#237]
+* Fix config_parser.py docstrings (@LysanderGG) [#235]
+
 # Version 0.3.55
 
 * Add test for include substitution (@gpoulin) [#217]

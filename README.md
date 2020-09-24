@@ -376,6 +376,10 @@ assert config == d
   - Pablo Manso [@manso92](https://github.com/manso92)
   - Marc Rijken [@mrijken](https://github.com/mrijken)
   - Michel Rouly [@jrouly](https://github.com/jrouly)
+  - Xing Hai Xu [@xinghaixu](https://github.com/xinghaixu)
+  - Peter Zaitcev [@USSX-Hares](https://github.com/USSX-Hares)
+  - Oliver Nemček [@olii](https://github.com/olii)
+  - Guillaume George [@LysanderGG](https://github.com/LysanderGG)
 
 ### Thanks
 
