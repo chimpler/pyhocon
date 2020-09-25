@@ -11,18 +11,6 @@ from datetime import timedelta
 
 import pyparsing
 
-class ParseResults(pyparsing.ParseResults):
-    def __getattr__(self, item):
-        if item == '__deepcopy__':
-            raise AttributeError(item)
-        try:
-            return self[item]
-        except KeyError:
-            return ""
-
-
-pyparsing.ParseResults = ParseResults
-
 from pyparsing import (Forward, Group, Keyword, Literal, Optional,
                        ParserElement, ParseSyntaxException, QuotedString,
                        Regex, SkipTo, StringEnd, Suppress, TokenConverter,
@@ -36,6 +24,19 @@ from pyhocon.config_tree import (ConfigInclude, ConfigList, ConfigQuotedString,
                                  ConfigUnquotedString, ConfigValues, NoneValue)
 from pyhocon.exceptions import (ConfigException, ConfigMissingException,
                                 ConfigSubstitutionException)
+
+
+class ParseResults(pyparsing.ParseResults):
+    def __getattr__(self, item):
+        if item == '__deepcopy__':
+            raise AttributeError(item)
+        try:
+            return self[item]
+        except KeyError:
+            return ""
+
+
+pyparsing.ParseResults = ParseResults
 
 use_urllib2 = False
 try:
