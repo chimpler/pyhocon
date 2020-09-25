@@ -8,13 +8,27 @@ import re
 import socket
 import sys
 from datetime import timedelta
-from glob import glob
+
+import pyparsing
+
+class ParseResults(pyparsing.ParseResults):
+    def __getattr__(self, item):
+        if item == '__deepcopy__':
+            raise AttributeError(item)
+        try:
+            return self[item]
+        except KeyError:
+            return ""
+
+
+pyparsing.ParseResults = ParseResults
 
 from pyparsing import (Forward, Group, Keyword, Literal, Optional,
                        ParserElement, ParseSyntaxException, QuotedString,
                        Regex, SkipTo, StringEnd, Suppress, TokenConverter,
                        Word, ZeroOrMore, alphanums, alphas8bit, col, lineno,
                        replaceWith)
+
 
 import asset
 from pyhocon.config_tree import (ConfigInclude, ConfigList, ConfigQuotedString,
@@ -46,6 +60,8 @@ if sys.version_info < (3, 5):
             warnings.warn('This version of python (%s) does not support recursive import' % sys.version)
         from glob import glob as _glob
         return _glob(pathname)
+else:
+    from glob import glob
 
 logger = logging.getLogger(__name__)
 

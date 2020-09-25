@@ -1,4 +1,17 @@
 from collections import OrderedDict
+
+import pyparsing
+class ParseResults(pyparsing.ParseResults):
+    class ParseResults(pyparsing.ParseResults):
+        def __getattr__(self, item):
+            if item == '__deepcopy__':
+                raise AttributeError(item)
+            try:
+                return self[item]
+            except KeyError:
+                return ""
+
+
 from pyparsing import lineno
 from pyparsing import col
 try:

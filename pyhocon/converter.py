@@ -14,6 +14,7 @@ try:
     basestring
 except NameError:
     basestring = str
+    unicode = str
 
 
 class HOCONConverter(object):
