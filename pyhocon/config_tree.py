@@ -394,10 +394,8 @@ class ConfigTree(OrderedDict):
         :return: new config with fallback on config
         """
         if isinstance(config, ConfigTree):
-            print('MOOOOO1****')
             result = ConfigTree.merge_configs(copy.deepcopy(config), copy.deepcopy(self))
         else:
-            print('MOOOOO2****')
             from . import ConfigFactory
             result = ConfigTree.merge_configs(ConfigFactory.parse_file(config, resolve=False), copy.deepcopy(self))
 
