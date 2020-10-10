@@ -1,8 +1,5 @@
 from collections import OrderedDict
-
-import pyparsing
-from pyparsing import lineno
-from pyparsing import col
+from pyparsing import col, lineno
 import re
 import copy
 from pyhocon.exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
@@ -12,17 +9,6 @@ try:
 except NameError:  # pragma: no cover
     basestring = str
     unicode = str
-
-
-class ParseResults(pyparsing.ParseResults):
-    class ParseResults(pyparsing.ParseResults):
-        def __getattr__(self, item):
-            if item == '__deepcopy__':
-                raise AttributeError(item)
-            try:
-                return self[item]
-            except KeyError:
-                return ""
 
 
 class UndefinedKey(object):
@@ -408,8 +394,10 @@ class ConfigTree(OrderedDict):
         :return: new config with fallback on config
         """
         if isinstance(config, ConfigTree):
+            print('MOOOOO1****')
             result = ConfigTree.merge_configs(copy.deepcopy(config), copy.deepcopy(self))
         else:
+            print('MOOOOO2****')
             from . import ConfigFactory
             result = ConfigTree.merge_configs(ConfigFactory.parse_file(config, resolve=False), copy.deepcopy(self))
 
