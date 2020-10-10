@@ -1,15 +1,14 @@
 from collections import OrderedDict
-from pyparsing import lineno
-from pyparsing import col
+from pyparsing import col, lineno
+import re
+import copy
+from pyhocon.exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
+
 try:
     basestring
 except NameError:  # pragma: no cover
     basestring = str
     unicode = str
-
-import re
-import copy
-from pyhocon.exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
 
 
 class UndefinedKey(object):
@@ -148,7 +147,8 @@ class ConfigTree(OrderedDict):
 
         if elt is UndefinedKey:
             if default is UndefinedKey:
-                raise ConfigMissingException(u"No configuration setting found for key {key}".format(key='.'.join(key_path[:key_index + 1])))
+                raise ConfigMissingException(
+                    u"No configuration setting found for key {key}".format(key='.'.join(key_path[:key_index + 1])))
             else:
                 return default
 
@@ -181,7 +181,8 @@ class ConfigTree(OrderedDict):
         :return:
         """
         special_characters = '$}[]:=+#`^?!@*&.'
-        tokens = re.findall(r'"[^"]+"|[^{special_characters}]+'.format(special_characters=re.escape(special_characters)), string)
+        tokens = re.findall(
+            r'"[^"]+"|[^{special_characters}]+'.format(special_characters=re.escape(special_characters)), string)
 
         def contains_special_character(token):
             return any((c in special_characters) for c in token)
@@ -414,6 +415,7 @@ class ConfigTree(OrderedDict):
         :return: this config as an OrderedDict
         :type return: OrderedDict
         """
+
         def plain_value(v):
             if isinstance(v, list):
                 return [plain_value(e) for e in v]

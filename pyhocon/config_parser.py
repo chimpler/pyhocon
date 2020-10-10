@@ -8,7 +8,8 @@ import re
 import socket
 import sys
 from datetime import timedelta
-from glob import glob
+
+import pyparsing
 
 from pyparsing import (Forward, Group, Keyword, Literal, Optional,
                        ParserElement, ParseSyntaxException, QuotedString,
@@ -16,12 +17,25 @@ from pyparsing import (Forward, Group, Keyword, Literal, Optional,
                        Word, ZeroOrMore, alphanums, alphas8bit, col, lineno,
                        replaceWith)
 
+# Fix deepcopy issue with pyparsing
+if sys.version_info >= (3, 8):
+    def fixed_get_attr(self, item):
+        if item == '__deepcopy__':
+            raise AttributeError(item)
+        try:
+            return self[item]
+        except KeyError:
+            return ""
+
+    pyparsing.ParseResults.__getattr__ = fixed_get_attr
+
 import asset
 from pyhocon.config_tree import (ConfigInclude, ConfigList, ConfigQuotedString,
                                  ConfigSubstitution, ConfigTree,
                                  ConfigUnquotedString, ConfigValues, NoneValue)
 from pyhocon.exceptions import (ConfigException, ConfigMissingException,
                                 ConfigSubstitutionException)
+
 
 use_urllib2 = False
 try:
@@ -46,6 +60,8 @@ if sys.version_info < (3, 5):
             warnings.warn('This version of python (%s) does not support recursive import' % sys.version)
         from glob import glob as _glob
         return _glob(pathname)
+else:
+    from glob import glob
 
 logger = logging.getLogger(__name__)
 
@@ -350,6 +366,7 @@ class ConfigParser(object):
 
                 def _make_prefix(path):
                     return ('<root>' if path is None else '[%s]' % path).ljust(55).replace('\\', '/')
+
                 _prefix = _make_prefix(path)
 
                 def _load(path):
@@ -376,7 +393,9 @@ class ConfigParser(object):
                         elif isinstance(a, list) and isinstance(b, list):
                             return a + b
                         else:
-                            raise ConfigException('Unable to make such include (merging unexpected types: {a} and {b}', a=type(a), b=type(b))
+                            raise ConfigException('Unable to make such include (merging unexpected types: {a} and {b}',
+                                                  a=type(a), b=type(b))
+
                     logger.debug('%s Loading following configs: %s', _prefix, paths)
                     for p in paths:
                         obj = _merge(obj, _load(p))

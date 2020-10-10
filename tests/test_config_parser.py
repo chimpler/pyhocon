@@ -5,6 +5,7 @@ import os
 import tempfile
 from collections import OrderedDict
 from datetime import timedelta
+
 from pyparsing import ParseBaseException, ParseException, ParseSyntaxException
 import asset
 import mock
@@ -12,7 +13,6 @@ import pytest
 from pyhocon import (ConfigFactory, ConfigParser, ConfigSubstitutionException, ConfigTree)
 from pyhocon.exceptions import (ConfigException, ConfigMissingException,
                                 ConfigWrongTypeException)
-
 
 try:
     from dateutil.relativedelta import relativedelta as period
@@ -1085,9 +1085,13 @@ class TestConfigParser(object):
         config = ConfigFactory.parse_file("samples/all_bars.conf")
         bars = config.get_list('bars')
         assert len(bars) == 10
-        assert bars[0].get('name') == 'Bloody Mary'
-        assert bars[5].get('name') == 'Homer\'s favorite coffee'
-        assert bars[9].get('type') == 'milk'
+
+        names = {bar['name'] for bar in bars}
+        types = {bar['type'] for bar in bars if 'type' in bar}
+        print(types, '(((((')
+        assert 'Bloody Mary' in names
+        assert 'Homer\'s favorite coffee' in names
+        assert 'milk' in types
 
     def test_list_of_dicts(self):
         config = ConfigFactory.parse_string(
@@ -1269,10 +1273,10 @@ class TestConfigParser(object):
             fdin.flush()
 
             def load(*args, **kwargs):
-
                 class File(object):
                     def __init__(self, filename):
                         self.filename = filename
+
                 return File(fdin.name)
 
             monkeypatch.setattr(asset, "load", load)
