@@ -713,7 +713,7 @@ class ConfigParser(object):
         return has_unresolved
 
     @classmethod
-    def resolve_package_path(cls, package_path: str) -> str:
+    def resolve_package_path(cls, package_path):
         """
         Resolve the path to a file inside a Python package. Expected format: "PACKAGE:PATH"
 
@@ -726,7 +726,7 @@ class ConfigParser(object):
         """
         if ':' not in package_path:
             raise ValueError("Expected format is 'PACKAGE:PATH'")
-        package_name, path_relative = package_path.split(':', maxsplit=1)
+        package_name, path_relative = package_path.split(':', 1)
         package_dir = imp.find_module(package_name)[1]
         path_abs = os.path.join(package_dir, path_relative)
         return path_abs

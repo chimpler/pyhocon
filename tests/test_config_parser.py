@@ -2,6 +2,7 @@
 
 import json
 import os
+import shutil
 import tempfile
 from collections import OrderedDict
 from datetime import timedelta
@@ -1279,8 +1280,8 @@ class TestConfigParser(object):
             ConfigParser.resolve_package_path("non_existent_module:foo.py")
 
     def test_include_package_file(self, monkeypatch):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            # define paths
+        temp_dir = tempfile.mkdtemp()
+        try:
             module_dir = os.path.join(temp_dir, 'my_module')
             module_conf = os.path.join(module_dir, 'my.conf')
             # create the module folder and necessary files (__init__ and config)
@@ -1300,6 +1301,8 @@ class TestConfigParser(object):
             )
             # check that the contents of both config files are available
             assert dict(config.as_plain_ordered_dict()) == {'a': 1, 'b': 2, 'c': 3}
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
     def test_include_dict(self):
         expected_res = {
