@@ -30,7 +30,6 @@ if sys.version_info >= (3, 8):
 
     pyparsing.ParseResults.__getattr__ = fixed_get_attr
 
-import asset
 from pyhocon.config_tree import (ConfigInclude, ConfigList, ConfigQuotedString,
                                  ConfigSubstitution, ConfigTree,
                                  ConfigUnquotedString, ConfigValues, NoneValue)
