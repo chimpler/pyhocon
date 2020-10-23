@@ -1,6 +1,7 @@
 import codecs
 import contextlib
 import copy
+import imp
 import itertools
 import logging
 import os
@@ -349,7 +350,7 @@ class ConfigParser(object):
                 if final_tokens[0] == 'url':
                     url = value
                 elif final_tokens[0] == 'package':
-                    file = asset.load(value).filename
+                    file = cls.resolve_package_path(value)
                 else:
                     file = value
 
@@ -711,6 +712,25 @@ class ConfigParser(object):
 
         cls._final_fixup(config)
         return has_unresolved
+
+    @classmethod
+    def resolve_package_path(cls, package_path: str) -> str:
+        """
+        Resolve the path to a file inside a Python package. Expected format: "PACKAGE:PATH"
+
+        Example: "my_package:foo/bar.conf" will resolve file 'bar.conf' in folder 'foo'
+        inside package 'my_package', which could result in a path like
+        '/path/to/.venv/lib/python3.7/site-packages/my_package/foo/bar.conf'
+
+        :param package_path: the package path, formatted as "PACKAGE:PATH"
+        :return: the absolute path to the specified file inside the specified package
+        """
+        if ':' not in package_path:
+            raise ValueError("Expected format is 'PACKAGE:PATH'")
+        package_name, path_relative = package_path.split(':', maxsplit=1)
+        package_dir = imp.find_module(package_name)[1]
+        path_abs = os.path.join(package_dir, path_relative)
+        return path_abs
 
 
 class ListParser(TokenConverter):
