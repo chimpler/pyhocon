@@ -2,12 +2,12 @@
 
 import json
 import os
+import shutil
 import tempfile
 from collections import OrderedDict
 from datetime import timedelta
 
 from pyparsing import ParseBaseException, ParseException, ParseSyntaxException
-import asset
 import mock
 import pytest
 from pyhocon import (ConfigFactory, ConfigParser, ConfigSubstitutionException, ConfigTree)
@@ -1267,26 +1267,42 @@ class TestConfigParser(object):
                 """
             )
 
-    def test_include_asset_file(self, monkeypatch):
-        with tempfile.NamedTemporaryFile('w') as fdin:
-            fdin.write('{a: 1, b: 2}')
-            fdin.flush()
+    def test_resolve_package_path(self):
+        path = ConfigParser.resolve_package_path("pyhocon:config_parser.py")
+        assert os.path.exists(path)
 
-            def load(*args, **kwargs):
-                class File(object):
-                    def __init__(self, filename):
-                        self.filename = filename
+    def test_resolve_package_path_format(self):
+        with pytest.raises(ValueError):
+            ConfigParser.resolve_package_path("pyhocon/config_parser.py")
 
-                return File(fdin.name)
+    def test_resolve_package_path_missing(self):
+        with pytest.raises(ImportError):
+            ConfigParser.resolve_package_path("non_existent_module:foo.py")
 
-            monkeypatch.setattr(asset, "load", load)
-
+    def test_include_package_file(self, monkeypatch):
+        temp_dir = tempfile.mkdtemp()
+        try:
+            module_dir = os.path.join(temp_dir, 'my_module')
+            module_conf = os.path.join(module_dir, 'my.conf')
+            # create the module folder and necessary files (__init__ and config)
+            os.mkdir(module_dir)
+            open(os.path.join(module_dir, '__init__.py'), 'a').close()
+            with open(module_conf, 'w') as fdin:
+                fdin.write("{c: 3}")
+            # add the temp dir to sys.path so that 'my_module' can be discovered
+            monkeypatch.syspath_prepend(temp_dir)
+            # load the config and include the other config file from 'my_module'
             config = ConfigFactory.parse_string(
                 """
-                include package("dotted.name:asset/config_file")
+                a: 1
+                b: 2
+                include package("my_module:my.conf")
                 """
             )
-            assert config['a'] == 1
+            # check that the contents of both config files are available
+            assert dict(config.as_plain_ordered_dict()) == {'a': 1, 'b': 2, 'c': 3}
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
     def test_include_dict(self):
         expected_res = {
