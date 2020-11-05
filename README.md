@@ -380,6 +380,7 @@ assert config == d
   - Peter Zaitcev [@USSX-Hares](https://github.com/USSX-Hares)
   - Oliver Nemček [@olii](https://github.com/olii)
   - Guillaume George [@LysanderGG](https://github.com/LysanderGG)
+  - Sebastian Straub [@klamann](https://github.com/klamann)
 
 ### Thanks
 

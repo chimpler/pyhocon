@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.57
+
+* Rewrite the logic to resolve package-relative paths so we can remove the "asset" library (@klamann) [#247]
+
 # Version 0.3.56
 
 * fix include error with chinese strings (@xinghaixu) [#240]
