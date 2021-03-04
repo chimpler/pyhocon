@@ -16,7 +16,7 @@ from pyparsing import (Forward, Group, Keyword, Literal, Optional,
                        ParserElement, ParseSyntaxException, QuotedString,
                        Regex, SkipTo, StringEnd, Suppress, TokenConverter,
                        Word, ZeroOrMore, alphanums, alphas8bit, col, lineno,
-                       replaceWith)
+                       replaceWith, Or, nums, White, WordEnd)
 
 # Fix deepcopy issue with pyparsing
 if sys.version_info >= (3, 8):
@@ -295,7 +295,6 @@ class ConfigParser(object):
                 return float(n)
 
         def convert_period(tokens):
-
             period_value = int(tokens.value)
             period_identifier = tokens.unit
 
@@ -431,14 +430,17 @@ class ConfigParser(object):
             comment_no_comma_eol = (comment | eol).suppress()
             number_expr = Regex(r'[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE][+\-]?\d+)?(?=$|[ \t]*([\$\}\],#\n\r]|//))',
                                 re.DOTALL).setParseAction(convert_number)
-            # Must be sorted from longest to shortest otherwise 'weeks' will match 'w' and 'eeks'
-            # will be parsed as a general string.
-            period_types = sorted(
-                itertools.chain.from_iterable(cls.get_supported_period_type_map().values()),
-                key=lambda x: len(x), reverse=True)
-            period_expr = Regex(
-                r'(?P<value>\d+)\s*(?P<unit>' + '|'.join(period_types) + ')$',
-                flags=re.MULTILINE,
+
+            # Flatten the list of lists with unit strings.
+            period_types = list(itertools.chain(*cls.get_supported_period_type_map().values()))
+            # `Or()` tries to match the longest expression if more expressions
+            # are matching. We employ this to match e.g.: 'weeks' so that we
+            # don't end up with 'w' and 'eeks'. Note that 'weeks' but also 'w'
+            # are valid unit identifiers.
+            # Allow only spaces as a valid separator between value and unit.
+            # E.g. \t as a separator is invalid: '10<TAB>weeks'.
+            period_expr = (
+                Word(nums)('value') + ZeroOrMore(White(ws=' ')).suppress() + Or(period_types)('unit') + WordEnd(alphanums).suppress()
             ).setParseAction(convert_period)
 
             # multi line string using """
