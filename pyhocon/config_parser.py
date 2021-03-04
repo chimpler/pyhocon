@@ -1,7 +1,6 @@
 import codecs
 import contextlib
 import copy
-import imp
 import itertools
 import logging
 import os
@@ -62,6 +61,27 @@ if sys.version_info < (3, 5):
         return _glob(pathname)
 else:
     from glob import glob
+
+
+# Fix deprecated warning with 'imp' library and Python 3.4+.
+# See: https://github.com/chimpler/pyhocon/issues/248
+if sys.version_info >= (3, 4):
+    import importlib.util
+
+    def find_package_dir(name):
+        spec = importlib.util.find_spec(name)
+        # When `imp.find_module()` cannot find a package it raises ImportError.
+        # Here we should simulate it to keep the compatibility with older
+        # versions.
+        if not spec:
+            raise ImportError('No module named {!r}'.format(name))
+        return os.path.dirname(spec.origin)
+else:
+    import imp
+
+    def find_package_dir(name):
+        return imp.find_module(name)[1]
+
 
 logger = logging.getLogger(__name__)
 
@@ -727,7 +747,7 @@ class ConfigParser(object):
         if ':' not in package_path:
             raise ValueError("Expected format is 'PACKAGE:PATH'")
         package_name, path_relative = package_path.split(':', 1)
-        package_dir = imp.find_module(package_name)[1]
+        package_dir = find_package_dir(package_name)
         path_abs = os.path.join(package_dir, path_relative)
         return path_abs
 
