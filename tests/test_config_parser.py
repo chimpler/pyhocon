@@ -148,6 +148,16 @@ class TestConfigParser(object):
         )
         assert config['b'] == period(weeks=10)
 
+    def test_parse_with_list_mixed_types_with_durations_and_trailing_comma(self):
+        config = ConfigFactory.parse_string(
+            """
+            a: foo
+            b: [a, 1, 10 weeks, 5 minutes,]
+            c: bar
+            """
+        )
+        assert config['b'] == ['a', 1, period(weeks=10), period(minutes=5)]
+
     def test_parse_with_enclosing_square_bracket(self):
         config = ConfigFactory.parse_string("[1, 2, 3]")
         assert config == [1, 2, 3]
