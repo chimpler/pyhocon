@@ -10,6 +10,7 @@ from pyhocon.config_tree import ConfigTree
 from pyhocon.config_tree import ConfigValues
 from pyhocon.config_tree import NoneValue
 
+
 try:
     basestring
 except NameError:
@@ -278,14 +279,14 @@ class HOCONConverter(object):
     def __escape_match(cls, match):
         char = match.group(0)
         return {
-                   '\b': r'\b',
-                   '\t': r'\t',
-                   '\n': r'\n',
-                   '\f': r'\f',
-                   '\r': r'\r',
-                   '"': r'\"',
-                   '\\': r'\\',
-               }.get(char) or (r'\u%04x' % ord(char))
+            '\b': r'\b',
+            '\t': r'\t',
+            '\n': r'\n',
+            '\f': r'\f',
+            '\r': r'\r',
+            '"': r'\"',
+            '\\': r'\\',
+        }.get(char) or (r'\u%04x' % ord(char))
 
     @classmethod
     def __escape_string(cls, string):
