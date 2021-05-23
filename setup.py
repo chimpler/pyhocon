@@ -55,7 +55,7 @@ setup(
     extras_require={
         'Duration': ['python-dateutil>=2.8.0']
     },
-    tests_require=['pytest<=4.6.11', 'mock==3.0.5'],
+    tests_require=['pytest', 'mock==3.0.5'],
     entry_points={
         'console_scripts': [
             'pyhocon=pyhocon.tool:main'
