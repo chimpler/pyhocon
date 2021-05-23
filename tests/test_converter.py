@@ -1,16 +1,8 @@
 # -*- encoding: utf-8 -*-
 from datetime import timedelta
 
-import pytest
-
 from pyhocon import ConfigTree
 from pyhocon.converter import HOCONConverter
-
-try:
-    from dateutil.relativedelta import relativedelta
-except Exception:
-    def relativedelta(**kwargs):
-        return None
 
 
 def to_json(obj):
@@ -116,28 +108,23 @@ class TestConverterToHocon(object):
         assert 'a = """b\n"""' == to_hocon({'a': 'b\n'})
         assert 'a = """\n\n"""' == to_hocon({'a': '\n\n'})
 
-    @pytest.mark.parametrize('time_delta, expected_result',
-                             (
-                                     (timedelta(days=0), 'td = 0 seconds'),
-                                     (timedelta(days=5), 'td = 5 days'),
-                                     (timedelta(seconds=51), 'td = 51 seconds'),
-                                     (timedelta(microseconds=786), 'td = 786 microseconds'),
-                             )
-                             )
-    def test_format_time_delta(self, time_delta, expected_result):
-        assert expected_result == to_hocon({'td': time_delta})
+    def test_format_time_delta(self):
+        for time_delta, expected_result in ((timedelta(days=0), 'td = 0 seconds'),
+                                            (timedelta(days=5), 'td = 5 days'),
+                                            (timedelta(seconds=51), 'td = 51 seconds'),
+                                            (timedelta(microseconds=786), 'td = 786 microseconds')):
+            assert expected_result == to_hocon({'td': time_delta})
 
-    @pytest.mark.parametrize('time_delta, expected_result',
-                             (
-                                     (relativedelta(seconds=0), 'td = 0 seconds'),
-                                     (relativedelta(hours=0), 'td = 0 seconds'),
-                                     (relativedelta(days=5), 'td = 5 days'),
-                                     (relativedelta(weeks=3), 'td = 21 days'),
-                                     (relativedelta(hours=2), 'td = 2 hours'),
-                                     (relativedelta(minutes=43), 'td = 43 minutes'),
+    def test_format_relativedelta(self):
+        try:
+            from dateutil.relativedelta import relativedelta
+        except Exception:
+            return
 
-                             )
-                             )
-    @pytest.mark.skipif(relativedelta(hours=1) is None, reason='dateutils.relativedelta not available')
-    def test_format_relativedelta(self, time_delta, expected_result):
-        assert expected_result == to_hocon({'td': time_delta})
+        for time_delta, expected_result in ((relativedelta(seconds=0), 'td = 0 seconds'),
+                                            (relativedelta(hours=0), 'td = 0 seconds'),
+                                            (relativedelta(days=5), 'td = 5 days'),
+                                            (relativedelta(weeks=3), 'td = 21 days'),
+                                            (relativedelta(hours=2), 'td = 2 hours'),
+                                            (relativedelta(minutes=43), 'td = 43 minutes'),):
+            assert expected_result == to_hocon({'td': time_delta})
