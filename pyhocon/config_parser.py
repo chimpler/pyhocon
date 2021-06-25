@@ -1,7 +1,7 @@
 import codecs
 import contextlib
 import copy
-import imp
+import importlib.util
 import itertools
 import logging
 import os
@@ -727,10 +727,16 @@ class ConfigParser(object):
         if ':' not in package_path:
             raise ValueError("Expected format is 'PACKAGE:PATH'")
         package_name, path_relative = package_path.split(':', 1)
-        package_dir = imp.find_module(package_name)[1]
-        path_abs = os.path.join(package_dir, path_relative)
-        return path_abs
-
+        spec = importlib.util.find_spec(package_name)
+        if spec:
+            search_locations = spec.submodule_search_locations
+            for package_dir in search_locations:
+                path_abs = os.path.join(package_dir, path_relative)
+                if os.path.exists(path_abs):
+                    return path_abs
+        raise ImportError("Can't find {path_relative} in package:{package_name}".format(
+            path_relative=path_relative, 
+            package_name=package_name))
 
 class ListParser(TokenConverter):
     """Parse a list [elt1, etl2, ...]
