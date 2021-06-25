@@ -729,8 +729,7 @@ class ConfigParser(object):
         package_name, path_relative = package_path.split(':', 1)
         spec = importlib.util.find_spec(package_name)
         if spec:
-            search_locations = spec.submodule_search_locations
-            for package_dir in search_locations:
+            for package_dir in spec.submodule_search_locations:
                 path_abs = os.path.join(package_dir, path_relative)
                 if os.path.exists(path_abs):
                     return path_abs
