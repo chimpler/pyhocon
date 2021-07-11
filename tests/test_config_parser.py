@@ -1437,6 +1437,20 @@ class TestConfigParser(object):
         assert config['database.name'] == 'peopledb'
         assert config['database.pass'] == 'peoplepass'
 
+    def test_substitution_multiple_override(self):
+        config = ConfigFactory.parse_string(
+            """
+            a: 1
+            b: foo
+            c: ${a} ${b}
+            c: ${b} ${a}
+            d: ${a} ${b}
+            d: ${a} bar
+            """)
+
+        assert config['c'] == 'foo 1'
+        assert config['d'] == '1 bar'
+
     def test_substitution_nested_override(self):
         config = ConfigFactory.parse_string(
             """

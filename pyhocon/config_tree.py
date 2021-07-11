@@ -473,9 +473,12 @@ class ConfigValues(object):
         return len(self.get_substitutions()) > 0
 
     def get_substitutions(self):
+        # Returns a list of ConfigSubstitution tokens, in string order
         lst = []
         node = self
         while node:
+            # walking up the override chain and append overrides to the front.
+            # later, parent overrides will be processed first, followed by children
             lst = [token for token in node.tokens if isinstance(token, ConfigSubstitution)] + lst
             if hasattr(node, 'overriden_value'):
                 node = node.overriden_value

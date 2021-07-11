@@ -641,9 +641,10 @@ class ConfigParser(object):
                 if transformation is None and not is_optional_resolved \
                 else transformation
 
+            # When the result is None, remove the key.
             if result is None and config_values.key in config_values.parent:
                 del config_values.parent[config_values.key]
-            else:
+            elif result is not None:
                 config_values.parent[config_values.key] = result
                 s = cls._find_substitutions(result)
                 if s:
@@ -692,6 +693,12 @@ class ConfigParser(object):
                 _substitutions = substitutions[:]
 
                 for substitution in _substitutions:
+                    # If this substitution is an override, and the parent is still being processed,
+                    # skip this entry, it will be processed on the next loop.
+                    if substitution.parent.overriden_value:
+                        if substitution.parent.overriden_value in [s.parent for s in substitutions]:
+                            continue
+
                     is_optional_resolved, resolved_value = cls._resolve_variable(config, substitution)
 
                     # if the substitution is optional
@@ -717,6 +724,8 @@ class ConfigParser(object):
 
                     unresolved, new_substitutions, result = cls._do_substitute(substitution, resolved_value, is_optional_resolved)
                     any_unresolved = unresolved or any_unresolved
+                    # Detected substitutions may already be listed to process
+                    new_substitutions = [n for n in new_substitutions if n not in substitutions]
                     substitutions.extend(new_substitutions)
                     if not isinstance(result, ConfigValues):
                         substitutions.remove(substitution)
