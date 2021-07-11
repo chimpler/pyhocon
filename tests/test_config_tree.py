@@ -3,7 +3,7 @@ from collections import OrderedDict
 from pyhocon.config_tree import ConfigTree, NoneValue
 from pyhocon.exceptions import (
     ConfigMissingException, ConfigWrongTypeException, ConfigException)
-from pyhocon.config_parser import ConfigFactory, NO_SUBSTITUTION
+from pyhocon.config_parser import ConfigFactory
 from pyhocon.tool import HOCONConverter
 
 
@@ -331,7 +331,7 @@ class TestConfigTree(object):
                 value = ${nested.sub}
             }
             """,
-            resolve = False
+            resolve=False
         )
 
         substitudeConfig = ConfigFactory.parse_string(

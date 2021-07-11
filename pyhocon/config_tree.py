@@ -67,7 +67,6 @@ class ConfigTree(OrderedDict):
 
         return a
 
-
     def resolve(self, other):
         """Merge config b into a
         :param self: target config
@@ -77,6 +76,7 @@ class ConfigTree(OrderedDict):
         :return: resolved config
         """
         copyA = copy.deepcopy(self)
+
         def loop(tree):
             for key, value in tree.items():
                 if isinstance(value, ConfigTree):
