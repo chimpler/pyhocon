@@ -67,6 +67,8 @@ else:
 # Fix deprecated warning with 'imp' library and Python 3.4+.
 # See: https://github.com/chimpler/pyhocon/issues/248
 if sys.version_info >= (3, 4):
+    import importlib.util
+    
     def find_package_dir(name):
         spec = importlib.util.find_spec(name)
         # When `imp.find_module()` cannot find a package it raises ImportError.
@@ -77,6 +79,7 @@ if sys.version_info >= (3, 4):
         return os.path.dirname(spec.origin)
 else:
     import imp
+    import importlib
 
     def find_package_dir(name):
         return imp.find_module(name)[1]
