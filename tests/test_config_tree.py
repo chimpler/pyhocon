@@ -322,3 +322,31 @@ class TestConfigTree(object):
             assert escaped_key in hocon_tree
             parsed_tree = ConfigFactory.parse_string(hocon_tree)
             assert parsed_tree.get(key) == "value"
+
+    def test_config_tree_resolve(self):
+        config = ConfigFactory.parse_string(
+            """
+            a = ${sub}
+            nested {
+                value = ${nested.sub}
+            }
+            """,
+            resolve=False
+        )
+
+        substitudeConfig = ConfigFactory.parse_string(
+            """
+            sub = 100
+            nested {
+                sub = {
+                    a: "string"
+                    b: 10
+                }
+            }
+            """
+        )
+        result = config.resolve(substitudeConfig)
+        assert result.get_int('a') == 100
+        assert result.get_string('nested.value.a') == "string"
+        assert result.get_int('nested.value.b') == 10
+        assert config != result

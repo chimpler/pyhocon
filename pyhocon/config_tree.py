@@ -67,6 +67,32 @@ class ConfigTree(OrderedDict):
 
         return a
 
+    def resolve(self, other):
+        """Merge config b into a
+        :param self: target config
+        :type self: ConfigTree
+        :param other: providing config
+        :type other: ConfigTree
+        :return: resolved config
+        """
+        copyA = copy.deepcopy(self)
+
+        def loop(tree):
+            for key, value in tree.items():
+                if isinstance(value, ConfigTree):
+                    loop(tree[key])
+                else:
+                    if isinstance(value, ConfigValues):
+                        for token in value.tokens:
+                            if isinstance(token, ConfigSubstitution):
+                                v = other.get(token.variable, NoneValue)
+                                if v is not None:
+                                    tree[key] = copy.deepcopy(v)
+                                if isinstance(tree[key], ConfigTree):
+                                    tree[key].parent = tree
+            return tree
+        return loop(copyA)
+
     def _put(self, key_path, value, append=False):
         key_elt = key_path[0]
         if len(key_path) == 1:
@@ -473,9 +499,12 @@ class ConfigValues(object):
         return len(self.get_substitutions()) > 0
 
     def get_substitutions(self):
+        # Returns a list of ConfigSubstitution tokens, in string order
         lst = []
         node = self
         while node:
+            # walking up the override chain and append overrides to the front.
+            # later, parent overrides will be processed first, followed by children
             lst = [token for token in node.tokens if isinstance(token, ConfigSubstitution)] + lst
             if hasattr(node, 'overriden_value'):
                 node = node.overriden_value

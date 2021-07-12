@@ -16,7 +16,7 @@ from pyparsing import (Forward, Group, Keyword, Literal, Optional,
                        ParserElement, ParseSyntaxException, QuotedString,
                        Regex, SkipTo, StringEnd, Suppress, TokenConverter,
                        Word, ZeroOrMore, alphanums, alphas8bit, col, lineno,
-                       replaceWith)
+                       replaceWith, Or, nums, White, WordEnd)
 
 # Fix deepcopy issue with pyparsing
 if sys.version_info >= (3, 8):
@@ -62,6 +62,27 @@ if sys.version_info < (3, 5):
         return _glob(pathname)
 else:
     from glob import glob
+
+
+# Fix deprecated warning with 'imp' library and Python 3.4+.
+# See: https://github.com/chimpler/pyhocon/issues/248
+if sys.version_info >= (3, 4):
+    import importlib.util
+
+    def find_package_dir(name):
+        spec = importlib.util.find_spec(name)
+        # When `imp.find_module()` cannot find a package it raises ImportError.
+        # Here we should simulate it to keep the compatibility with older
+        # versions.
+        if not spec:
+            raise ImportError('No module named {!r}'.format(name))
+        return os.path.dirname(spec.origin)
+else:
+    import imp
+
+    def find_package_dir(name):
+        return imp.find_module(name)[1]
+
 
 logger = logging.getLogger(__name__)
 
@@ -295,7 +316,6 @@ class ConfigParser(object):
                 return float(n)
 
         def convert_period(tokens):
-
             period_value = int(tokens.value)
             period_identifier = tokens.unit
 
@@ -431,14 +451,17 @@ class ConfigParser(object):
             comment_no_comma_eol = (comment | eol).suppress()
             number_expr = Regex(r'[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE][+\-]?\d+)?(?=$|[ \t]*([\$\}\],#\n\r]|//))',
                                 re.DOTALL).setParseAction(convert_number)
-            # Must be sorted from longest to shortest otherwise 'weeks' will match 'w' and 'eeks'
-            # will be parsed as a general string.
-            period_types = sorted(
-                itertools.chain.from_iterable(cls.get_supported_period_type_map().values()),
-                key=lambda x: len(x), reverse=True)
-            period_expr = Regex(
-                r'(?P<value>\d+)\s*(?P<unit>' + '|'.join(period_types) + ')$',
-                flags=re.MULTILINE,
+
+            # Flatten the list of lists with unit strings.
+            period_types = list(itertools.chain(*cls.get_supported_period_type_map().values()))
+            # `Or()` tries to match the longest expression if more expressions
+            # are matching. We employ this to match e.g.: 'weeks' so that we
+            # don't end up with 'w' and 'eeks'. Note that 'weeks' but also 'w'
+            # are valid unit identifiers.
+            # Allow only spaces as a valid separator between value and unit.
+            # E.g. \t as a separator is invalid: '10<TAB>weeks'.
+            period_expr = (
+                Word(nums)('value') + ZeroOrMore(White(ws=' ')).suppress() + Or(period_types)('unit') + WordEnd(alphanums).suppress()
             ).setParseAction(convert_period)
 
             # multi line string using """
@@ -619,9 +642,10 @@ class ConfigParser(object):
                 if transformation is None and not is_optional_resolved \
                 else transformation
 
+            # When the result is None, remove the key.
             if result is None and config_values.key in config_values.parent:
                 del config_values.parent[config_values.key]
-            else:
+            elif result is not None:
                 config_values.parent[config_values.key] = result
                 s = cls._find_substitutions(result)
                 if s:
@@ -670,6 +694,12 @@ class ConfigParser(object):
                 _substitutions = substitutions[:]
 
                 for substitution in _substitutions:
+                    # If this substitution is an override, and the parent is still being processed,
+                    # skip this entry, it will be processed on the next loop.
+                    if substitution.parent.overriden_value:
+                        if substitution.parent.overriden_value in [s.parent for s in substitutions]:
+                            continue
+
                     is_optional_resolved, resolved_value = cls._resolve_variable(config, substitution)
 
                     # if the substitution is optional
@@ -695,6 +725,8 @@ class ConfigParser(object):
 
                     unresolved, new_substitutions, result = cls._do_substitute(substitution, resolved_value, is_optional_resolved)
                     any_unresolved = unresolved or any_unresolved
+                    # Detected substitutions may already be listed to process
+                    new_substitutions = [n for n in new_substitutions if n not in substitutions]
                     substitutions.extend(new_substitutions)
                     if not isinstance(result, ConfigValues):
                         substitutions.remove(substitution)
@@ -737,6 +769,7 @@ class ConfigParser(object):
             path_relative=path_relative, 
             package_name=package_name))
 
+        
 class ListParser(TokenConverter):
     """Parse a list [elt1, etl2, ...]
     """
@@ -753,9 +786,26 @@ class ListParser(TokenConverter):
         :param token_list:
         :return:
         """
-        cleaned_token_list = [token for tokens in (token.tokens if isinstance(token, ConfigInclude) else [token]
-                                                   for token in token_list if token != '')
-                              for token in tokens]
+        cleaned_token_list = []
+        # Note that a token can be a duration value object:
+        # >>> relativedelta(hours = 1) == ''
+        # False
+        # >>> relativedelta(hours = 1) != ''
+        # False
+        # relativedelta.__eq__() raises NotImplemented if it is compared with
+        # a different object type so Python falls back to identity comparison.
+        # We cannot compare this object to a string object.
+        for token in token_list:
+            if isinstance(token, str) and token == '':
+                # This is the case when there was a trailing comma in the list.
+                # The last token is just an empty string so we can safely ignore
+                # it.
+                continue
+            if isinstance(token, ConfigInclude):
+                cleaned_token_list.extend(token.tokens)
+            else:
+                cleaned_token_list.append(token)
+
         config_list = ConfigList(cleaned_token_list)
         return [config_list]
 
