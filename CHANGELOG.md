@@ -1,5 +1,14 @@
 # Changelog
 
+# Version 0.3.58
+
+* Adding the resolve method to resolve substitution keys in 1 config tree with another config tree (@borissmidt) [#266]
+* Support serializing timedelta and relativedelta to string (hocon, json etc.) (@gabis-precog) [#263]
+* Upgrade to GitHub-native Dependabot (@dependabot-preview) [#260]
+* Process substitution overrides in order (@JettJones) [#257]
+* Fix duration parsing in lists (@olii) [#255]
+* Add support for Python 3.9 and fix deprecation warning (@olii) [#254]
+
 # Version 0.3.57
 
 * Rewrite the logic to resolve package-relative paths so we can remove the "asset" library (@klamann) [#247]
