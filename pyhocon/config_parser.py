@@ -1,7 +1,6 @@
 import codecs
 import contextlib
 import copy
-import importlib.util
 import itertools
 import logging
 import os
@@ -766,10 +765,10 @@ class ConfigParser(object):
                 if os.path.exists(path_abs):
                     return path_abs
         raise ImportError("Can't find {path_relative} in package:{package_name}".format(
-            path_relative=path_relative, 
+            path_relative=path_relative,
             package_name=package_name))
 
-        
+
 class ListParser(TokenConverter):
     """Parse a list [elt1, etl2, ...]
     """
