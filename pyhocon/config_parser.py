@@ -7,7 +7,6 @@ import os
 import re
 import socket
 import sys
-import importlib.util
 from datetime import timedelta
 
 import pyparsing
@@ -68,7 +67,7 @@ else:
 # See: https://github.com/chimpler/pyhocon/issues/248
 if sys.version_info >= (3, 4):
     import importlib.util
-    
+
     def find_package_dir(name):
         spec = importlib.util.find_spec(name)
         # When `imp.find_module()` cannot find a package it raises ImportError.
