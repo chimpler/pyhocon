@@ -68,20 +68,20 @@ else:
 if sys.version_info >= (3, 4):
     import importlib.util
 
-    def find_package_dir(name):
+    def find_package_dirs(name):
         spec = importlib.util.find_spec(name)
         # When `imp.find_module()` cannot find a package it raises ImportError.
         # Here we should simulate it to keep the compatibility with older
         # versions.
         if not spec:
             raise ImportError('No module named {!r}'.format(name))
-        return os.path.dirname(spec.origin)
+        return spec.submodule_search_locations
 else:
     import imp
     import importlib
 
-    def find_package_dir(name):
-        return imp.find_module(name)[1]
+    def find_package_dirs(name):
+        return [imp.find_module(name)[1]]
 
 
 logger = logging.getLogger(__name__)
@@ -759,12 +759,11 @@ class ConfigParser(object):
         if ':' not in package_path:
             raise ValueError("Expected format is 'PACKAGE:PATH'")
         package_name, path_relative = package_path.split(':', 1)
-        spec = importlib.util.find_spec(package_name)
-        if spec:
-            for package_dir in spec.submodule_search_locations:
-                path_abs = os.path.join(package_dir, path_relative)
-                if os.path.exists(path_abs):
-                    return path_abs
+        package_dirs = find_package_dirs(package_name)
+        for package_dir in package_dirs:
+            path_abs = os.path.join(package_dir, path_relative)
+            if os.path.exists(path_abs):
+                return path_abs
         raise ImportError("Can't find {path_relative} in package:{package_name}".format(
             path_relative=path_relative,
             package_name=package_name))
