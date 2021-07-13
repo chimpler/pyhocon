@@ -19,6 +19,7 @@ class TestHOCONConverter(object):
             h = null
             i = {}
             "a.b" = 2
+            td_days = 4 days
         """
 
     CONFIG = ConfigFactory.parse_string(CONFIG_STRING)
@@ -41,7 +42,8 @@ class TestHOCONConverter(object):
               "g": [],
               "h": null,
               "i": {},
-              "a.b": 2
+              "a.b": 2,
+              "td_days": 345600000
             }
         """
 
@@ -63,6 +65,7 @@ class TestHOCONConverter(object):
               h = null
               i {}
               "a.b" = 2
+              td_days = 4 days
         """
 
     EXPECTED_COMPACT_HOCON = \
@@ -81,6 +84,7 @@ class TestHOCONConverter(object):
               h = null
               i {}
               "a.b" = 2
+              td_days = 4 days
         """
 
     EXPECTED_YAML = \
@@ -102,6 +106,7 @@ class TestHOCONConverter(object):
             h: null
             i:
             a.b: 2
+            td_days: 345600000
         """
 
     EXPECTED_PROPERTIES = \
@@ -117,6 +122,7 @@ class TestHOCONConverter(object):
             f1 = true
             f2 = false
             a.b = 2
+            td_days = 345600000
         """
 
     def test_to_json(self):

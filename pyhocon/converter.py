@@ -1,6 +1,7 @@
 import json
 import re
 import sys
+from datetime import timedelta
 
 from pyhocon import ConfigFactory
 from pyhocon.config_tree import ConfigQuotedString
@@ -15,6 +16,11 @@ try:
 except NameError:
     basestring = str
     unicode = str
+
+try:
+    from dateutil.relativedelta import relativedelta
+except Exception:
+    relativedelta = None
 
 
 class HOCONConverter(object):
@@ -55,6 +61,8 @@ class HOCONConverter(object):
                     )
                 lines += ',\n'.join(bet_lines)
                 lines += '\n{indent}]'.format(indent=''.rjust(level * indent, ' '))
+        elif cls._is_timedelta_like(config):
+            lines += cls._timedelta_to_str(config)
         elif isinstance(config, basestring):
             lines = json.dumps(config, ensure_ascii=False)
         elif config is None or isinstance(config, NoneValue):
@@ -130,6 +138,8 @@ class HOCONConverter(object):
                 lines = '"""{value}"""'.format(value=config.value)  # multilines
             else:
                 lines = '"{value}"'.format(value=cls.__escape_string(config.value))
+        elif cls._is_timedelta_like(config):
+            lines += cls._timedelta_to_hocon(config)
         elif config is None or isinstance(config, NoneValue):
             lines = 'null'
         elif config is True:
@@ -171,6 +181,8 @@ class HOCONConverter(object):
                     bet_lines.append('{indent}- {value}'.format(indent=''.rjust(level * indent, ' '),
                                                                 value=cls.to_yaml(item, compact, indent, level + 1)))
                 lines += '\n'.join(bet_lines)
+        elif cls._is_timedelta_like(config):
+            lines += cls._timedelta_to_str(config)
         elif isinstance(config, basestring):
             # if it contains a \n then it's multiline
             lines = config.split('\n')
@@ -189,13 +201,14 @@ class HOCONConverter(object):
         return lines
 
     @classmethod
-    def to_properties(cls, config, compact=False, indent=2, key_stack=[]):
+    def to_properties(cls, config, compact=False, indent=2, key_stack=None):
         """Convert HOCON input into a .properties output
 
         :return: .properties string representation
         :type return: basestring
         :return:
         """
+        key_stack = key_stack or []
 
         def escape_value(value):
             return value.replace('=', '\\=').replace('!', '\\!').replace('#', '\\#').replace('\n', '\\\n')
@@ -210,6 +223,8 @@ class HOCONConverter(object):
             for index, item in enumerate(config):
                 if item is not None:
                     lines.append(cls.to_properties(item, compact, indent, stripped_key_stack + [str(index)]))
+        elif cls._is_timedelta_like(config):
+            lines.append('.'.join(stripped_key_stack) + ' = ' + cls._timedelta_to_str(config))
         elif isinstance(config, basestring):
             lines.append('.'.join(stripped_key_stack) + ' = ' + escape_value(config))
         elif config is True:
@@ -276,3 +291,46 @@ class HOCONConverter(object):
     @classmethod
     def __escape_string(cls, string):
         return re.sub(r'[\x00-\x1F"\\]', cls.__escape_match, string)
+
+    @classmethod
+    def _is_timedelta_like(cls, config):
+        return isinstance(config, timedelta) or relativedelta is not None and isinstance(config, relativedelta)
+
+    @classmethod
+    def _timedelta_to_str(cls, config):
+        if isinstance(config, relativedelta):
+            time_delta = cls._relative_delta_to_timedelta(config)
+        else:
+            time_delta = config
+        return str(int(time_delta.total_seconds() * 1000))
+
+    @classmethod
+    def _timedelta_to_hocon(cls, config):
+        """
+        :type config: timedelta
+        """
+        if relativedelta is not None and isinstance(config, relativedelta):
+            if config.hours > 0:
+                return str(config.hours) + ' hours'
+            elif config.minutes > 0:
+                return str(config.minutes) + ' minutes'
+
+        if config.days > 0:
+            return str(config.days) + ' days'
+        elif config.seconds > 0:
+            return str(config.seconds) + ' seconds'
+        elif config.microseconds > 0:
+            return str(config.microseconds) + ' microseconds'
+        else:
+            return '0 seconds'
+
+    @classmethod
+    def _relative_delta_to_timedelta(cls, relative_delta):
+        """
+        :type relative_delta: relativedelta
+        """
+        return timedelta(days=relative_delta.days,
+                         hours=relative_delta.hours,
+                         minutes=relative_delta.minutes,
+                         seconds=relative_delta.seconds,
+                         microseconds=relative_delta.microseconds)

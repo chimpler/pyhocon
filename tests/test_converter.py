@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+from datetime import timedelta
 
 from pyhocon import ConfigTree
 from pyhocon.converter import HOCONConverter
@@ -106,3 +107,24 @@ class TestConverterToHocon(object):
         assert 'a = """\nc"""' == to_hocon({'a': '\nc'})
         assert 'a = """b\n"""' == to_hocon({'a': 'b\n'})
         assert 'a = """\n\n"""' == to_hocon({'a': '\n\n'})
+
+    def test_format_time_delta(self):
+        for time_delta, expected_result in ((timedelta(days=0), 'td = 0 seconds'),
+                                            (timedelta(days=5), 'td = 5 days'),
+                                            (timedelta(seconds=51), 'td = 51 seconds'),
+                                            (timedelta(microseconds=786), 'td = 786 microseconds')):
+            assert expected_result == to_hocon({'td': time_delta})
+
+    def test_format_relativedelta(self):
+        try:
+            from dateutil.relativedelta import relativedelta
+        except Exception:
+            return
+
+        for time_delta, expected_result in ((relativedelta(seconds=0), 'td = 0 seconds'),
+                                            (relativedelta(hours=0), 'td = 0 seconds'),
+                                            (relativedelta(days=5), 'td = 5 days'),
+                                            (relativedelta(weeks=3), 'td = 21 days'),
+                                            (relativedelta(hours=2), 'td = 2 hours'),
+                                            (relativedelta(minutes=43), 'td = 43 minutes'),):
+            assert expected_result == to_hocon({'td': time_delta})
