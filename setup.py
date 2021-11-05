@@ -52,7 +52,7 @@ setup(
     packages=[
         'pyhocon',
     ],
-    install_requires=['pyparsing>=2.0.3'],
+    install_requires=['pyparsing~=2.0'],
     extras_require={
         'Duration': ['python-dateutil>=2.8.0']
     },
