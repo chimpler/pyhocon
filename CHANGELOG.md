@@ -1,5 +1,10 @@
 # Changelog
 
+# Version 0.3.59
+
+* Resolve namespace package (@yifeitao) [#264]
+* Update pyparsing requires lock to be more strict [#275]
+
 # Version 0.3.58
 
 * Adding the resolve method to resolve substitution keys in 1 config tree with another config tree (@borissmidt) [#266]
