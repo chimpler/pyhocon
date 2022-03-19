@@ -22,17 +22,12 @@ optional_period_type_map = {
 }
 
 try:
-    from dateutil import relativedelta
-
-    if relativedelta is not None:
-        period_type_map.update(optional_period_type_map)
-except Exception:
-    pass
-
-try:
     from dateutil.relativedelta import relativedelta as period_impl
-except Exception:
-    from datetime import timedelta as period_impl
+
+    if period_impl is not None:
+        period_type_map.update(optional_period_type_map)
+except ImportError:
+    period_impl = timedelta
 
 
 def convert_period(tokens):

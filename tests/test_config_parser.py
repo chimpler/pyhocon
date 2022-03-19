@@ -2457,5 +2457,5 @@ try:
         config = ConfigFactory.parse_string(data_set[0])
 
         assert config['a'] == data_set[1]
-except Exception:
+except ImportError:
     pass

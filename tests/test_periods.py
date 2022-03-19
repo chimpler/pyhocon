@@ -7,8 +7,8 @@ from pyhocon.period_serializer import timedelta_to_hocon
 
 try:
     from dateutil.relativedelta import relativedelta as period
-except Exception:
-    from datetime import timedelta as period
+except ImportError:
+    period = timedelta
 
 
 @pytest.mark.parametrize('data_set', [
@@ -61,8 +61,6 @@ def test_parse_string_with_duration(data_set):
 
 try:
     from dateutil.relativedelta import relativedelta
-
-
     @pytest.mark.parametrize('data_set', [
         ('1 months', relativedelta(months=1)),
         ('1months', relativedelta(months=1)),
@@ -81,7 +79,7 @@ try:
         parsed = parse_period(data_set[0])
 
         assert parsed == data_set[1]
-except Exception:
+except ImportError:
     pass
 
 
@@ -96,7 +94,7 @@ def test_format_time_delta():
 def test_format_relativedelta():
     try:
         from dateutil.relativedelta import relativedelta
-    except Exception:
+    except ImportError:
         return
 
     for time_delta, expected_result in ((relativedelta(seconds=0), '0 seconds'),
