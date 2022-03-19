@@ -11,9 +11,8 @@ def is_timedelta_like(config):
 
 
 def timedelta_to_hocon(config):
-    """
-    :type config: timedelta|relativedelta
-    """
+    """:type config: timedelta|relativedelta"""
+
     if relativedelta is not None and isinstance(config, relativedelta):
         if config.hours > 0:
             return str(config.hours) + ' hours'
