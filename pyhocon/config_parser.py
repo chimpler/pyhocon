@@ -698,7 +698,13 @@ class ConfigParser(object):
                     # skip this entry, it will be processed on the next loop.
                     if substitution.parent.overriden_value:
                         if substitution.parent.overriden_value in [s.parent for s in substitutions]:
+                            unresolved = True
                             continue
+                    # If this substitution variable is still being processed,
+                    # skip this entry, it will be processed on the next loop.
+                    elif substitution.variable in [s.parent.key for s in substitutions]:
+                        unresolved = True
+                        continue
 
                     is_optional_resolved, resolved_value = cls._resolve_variable(config, substitution)
 

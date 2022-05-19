@@ -1039,6 +1039,17 @@ class TestConfigParser(object):
         )
         assert config.get("a") == {'b': 3, 'c': [1, 2], 'd': {'foo': 'bar'}}
 
+    def test_sequential_self_ref_concat_string(self):
+        config = ConfigFactory.parse_string(
+            """
+            string = abc
+            string += def
+            string = ${string}ghi
+            string += jkl
+            """
+        )
+        assert config.get("string") == 'abc defghi jkl'
+
     def test_concat_multi_line_string(self):
         config = ConfigFactory.parse_string(
             """
@@ -1450,6 +1461,21 @@ class TestConfigParser(object):
 
         assert config['c'] == 'foo 1'
         assert config['d'] == '1 bar'
+
+    def test_substitution_multiple_override2(self):
+        config = ConfigFactory.parse_string(
+            """
+            common = common
+            original = ${common}/original
+            result = ${original}
+            result2 = ${original}
+            replaced = ${common}/replaced
+            result = ${replaced}
+            copy = ${result}
+            """)
+
+        assert config['result'] == 'common/replaced'
+        assert config['copy'] == 'common/replaced'
 
     def test_substitution_nested_override(self):
         config = ConfigFactory.parse_string(
