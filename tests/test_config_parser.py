@@ -1468,7 +1468,6 @@ class TestConfigParser(object):
             common = common
             original = ${common}/original
             result = ${original}
-            result2 = ${original}
             replaced = ${common}/replaced
             result = ${replaced}
             copy = ${result}
@@ -1476,6 +1475,22 @@ class TestConfigParser(object):
 
         assert config['result'] == 'common/replaced'
         assert config['copy'] == 'common/replaced'
+
+
+    def test_substitution_multiple_override3(self):
+        config = ConfigFactory.parse_string(
+            """
+            parent.child = ""
+            result = ${parent.child}
+            var1 = val1
+            var2 = val2
+            parent.child = ${var1} ${var2}
+            parent.child = ${var1} ${var2} testval
+            """)
+
+        assert "testval" in config['parent.child']
+        assert "testval" in config['result']
+
 
     def test_substitution_nested_override(self):
         config = ConfigFactory.parse_string(

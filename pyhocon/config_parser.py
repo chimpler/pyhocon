@@ -734,7 +734,7 @@ class ConfigParser(object):
                     # Detected substitutions may already be listed to process
                     new_substitutions = [n for n in new_substitutions if n not in substitutions]
                     substitutions.extend(new_substitutions)
-                    if not isinstance(result, ConfigValues):
+                    if not isinstance(resolved_value, ConfigValues):
                         substitutions.remove(substitution)
 
             cls._final_fixup(config)
