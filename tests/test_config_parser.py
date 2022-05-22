@@ -1477,6 +1477,21 @@ class TestConfigParser(object):
         assert config['copy'] == 'common/replaced'
 
 
+    def test_substitution_multiple_override2a(self):
+        config = ConfigFactory.parse_string(
+            """
+            common = common
+            original = ${common}/original
+            var.result = ${original}
+            replaced = ${common}/replaced
+            var.result = ${replaced}
+            copy = ${var.result}
+            """)
+
+        assert config['var.result'] == 'common/replaced'
+        assert config['copy'] == 'common/replaced'
+
+
     def test_substitution_multiple_override3(self):
         config = ConfigFactory.parse_string(
             """
