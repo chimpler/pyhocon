@@ -1482,14 +1482,14 @@ class TestConfigParser(object):
             """
             common = common
             original = ${common}/original
-            var.result = ${original}
+            var.result = var/${original}
             replaced = ${common}/replaced
-            var.result = ${replaced}
+            var.result = var/${replaced}
             copy = ${var.result}
             """)
 
-        assert config['var.result'] == 'common/replaced'
-        assert config['copy'] == 'common/replaced'
+        assert config['var.result'] == 'var/common/replaced'
+        assert config['copy'] == 'var/common/replaced'
 
 
     def test_substitution_multiple_override3(self):
