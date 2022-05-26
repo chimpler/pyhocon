@@ -692,44 +692,21 @@ class ConfigParser(object):
                 _substitutions = substitutions[:]
 
                 for substitution in _substitutions:
-                    if substitution not in substitutions:
-                        continue
-
+                    overriden_value = substitution.parent.overriden_value
                     # If this substitution is an override, and the parent is still being processed,
                     # skip this entry, it will be processed on the next loop.
-                    if substitution.parent.overriden_value:
-                        if substitution.parent.overriden_value in [s.parent for s in substitutions]:
+                    if overriden_value:
+                        if overriden_value in [s.parent for s in substitutions]:
                             continue
-
-                    # if isinstance(resolved_value, ConfigValues):
-                    #     parents = cache.get(resolved_value)
-                    #     if parents is None:
-                    #         parents = []
-                    #         link = resolved_value
-                    #         while isinstance(link, ConfigValues):
-                    #             parents.append(link)
-                    #             link = link.overriden_value
-                    #         cache[resolved_value] = parents
-                    #
-                    # if isinstance(resolved_value, ConfigValues) \
-                    #    and substitution.parent in parents \
-                    #    and hasattr(substitution.parent, 'overriden_value') \
-                    #    and substitution.parent.overriden_value:
-                    #
-                    #     # self resolution, backtrack
-                    #     resolved_value = substitution.parent.overriden_value
-
-                    # new_substitutions = []
-                    # result = None
 
                     is_optional_resolved, resolved_value = cls._resolve_variable(config, substitution)
 
-                    if isinstance(resolved_value, ConfigValues):
+                    if isinstance(resolved_value, ConfigValues) and isinstance(overriden_value, ConfigValues):
                         any_unresolved = True
                         continue
 
                     cache_values = []
-                    if substitution.parent.overriden_value and isinstance(substitution.parent.overriden_value, ConfigValues):
+                    if overriden_value and isinstance(overriden_value, ConfigValues):
                         cache_values = cache.get(substitution)
                         if cache_values is None:
                             continue
@@ -741,7 +718,6 @@ class ConfigParser(object):
                             values = cache.get(o) if cache.get(o) is not None else []
                             values.extend(cache_values)
                             cache[o] = values
-                        # cache[overrides[0]] = cache_values
                         substitutions.remove(substitution)
                         continue
 
