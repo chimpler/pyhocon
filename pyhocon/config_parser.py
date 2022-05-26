@@ -684,61 +684,82 @@ class ConfigParser(object):
         cls._fixup_self_references(config, accept_unresolved)
         substitutions = cls._find_substitutions(config)
         if len(substitutions) > 0:
-            unresolved = True
             any_unresolved = True
             _substitutions = []
             cache = {}
             while any_unresolved and len(substitutions) > 0 and set(substitutions) != set(_substitutions):
-                unresolved = False
-                any_unresolved = True
+                any_unresolved = False
                 _substitutions = substitutions[:]
 
                 for substitution in _substitutions:
+                    if substitution not in substitutions:
+                        continue
+
                     # If this substitution is an override, and the parent is still being processed,
                     # skip this entry, it will be processed on the next loop.
                     if substitution.parent.overriden_value:
                         if substitution.parent.overriden_value in [s.parent for s in substitutions]:
-                            unresolved = True
                             continue
-                    # If this substitution variable is still being processed,
-                    # skip this entry, it will be processed on the next loop.
-                    elif substitution.variable in [s.parent.key for s in substitutions]:
-                        unresolved = True
-                        continue
+
+                    # if isinstance(resolved_value, ConfigValues):
+                    #     parents = cache.get(resolved_value)
+                    #     if parents is None:
+                    #         parents = []
+                    #         link = resolved_value
+                    #         while isinstance(link, ConfigValues):
+                    #             parents.append(link)
+                    #             link = link.overriden_value
+                    #         cache[resolved_value] = parents
+                    #
+                    # if isinstance(resolved_value, ConfigValues) \
+                    #    and substitution.parent in parents \
+                    #    and hasattr(substitution.parent, 'overriden_value') \
+                    #    and substitution.parent.overriden_value:
+                    #
+                    #     # self resolution, backtrack
+                    #     resolved_value = substitution.parent.overriden_value
+
+                    # new_substitutions = []
+                    # result = None
 
                     is_optional_resolved, resolved_value = cls._resolve_variable(config, substitution)
 
-                    # if the substitution is optional
-                    if not is_optional_resolved and substitution.optional:
-                        resolved_value = None
                     if isinstance(resolved_value, ConfigValues):
-                        parents = cache.get(resolved_value)
-                        if parents is None:
-                            parents = []
-                            link = resolved_value
-                            while isinstance(link, ConfigValues):
-                                parents.append(link)
-                                link = link.overriden_value
-                            cache[resolved_value] = parents
+                        any_unresolved = True
+                        continue
 
-                    if isinstance(resolved_value, ConfigValues) \
-                       and substitution.parent in parents \
-                       and hasattr(substitution.parent, 'overriden_value') \
-                       and substitution.parent.overriden_value:
+                    cache_values = []
+                    if substitution.parent.overriden_value and isinstance(substitution.parent.overriden_value, ConfigValues):
+                        cache_values = cache.get(substitution)
+                        if cache_values is None:
+                            continue
+                    cache_values.append(substitution)
 
-                        # self resolution, backtrack
-                        resolved_value = substitution.parent.overriden_value
-
-                    unresolved, new_substitutions, result = cls._do_substitute(substitution, resolved_value, is_optional_resolved)
-                    any_unresolved = unresolved or any_unresolved
-                    # Detected substitutions may already be listed to process
-                    new_substitutions = [n for n in new_substitutions if n not in substitutions]
-                    substitutions.extend(new_substitutions)
-                    if not isinstance(resolved_value, ConfigValues):
+                    overrides = [s for s in substitutions if s.parent.overriden_value == substitution.parent]
+                    if len(overrides) > 0:
+                        for o in overrides:
+                            values = cache.get(o) if cache.get(o) is not None else []
+                            values.extend(cache_values)
+                            cache[o] = values
+                        # cache[overrides[0]] = cache_values
                         substitutions.remove(substitution)
+                        continue
+
+                    for s in cache_values:
+                        is_optional_resolved, resolved_value = cls._resolve_variable(config, s)
+                        # if the substitution is optional
+                        if not is_optional_resolved and s.optional:
+                            resolved_value = None
+                        unresolved, new_subs, result = cls._do_substitute(s, resolved_value, is_optional_resolved)
+                        any_unresolved = unresolved or any_unresolved
+                        if not unresolved and s in substitutions:
+                            substitutions.remove(s)
+                        # Detected substitutions may already be listed to process
+                        new_subs = [n for n in new_subs if n not in substitutions]
+                        substitutions.extend(new_subs)
 
             cls._final_fixup(config)
-            if unresolved:
+            if any_unresolved:
                 has_unresolved = True
                 if not accept_unresolved:
                     raise ConfigSubstitutionException("Cannot resolve {variables}. Check for cycles.".format(
