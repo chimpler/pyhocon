@@ -515,7 +515,7 @@ class ConfigParser(object):
             assign_expr << Group(
                 key - ZeroOrMore(comment_no_comma_eol) - (
                         dict_expr | (Literal('=') | Literal(':') | Literal('+=')) - ZeroOrMore(
-                    comment_no_comma_eol) - ConcatenatedValueParser(multi_value_expr))
+                            comment_no_comma_eol) - ConcatenatedValueParser(multi_value_expr))
             )
 
             # the file can be { ... } where {} can be omitted or []
@@ -664,7 +664,7 @@ class ConfigParser(object):
                     new_substitutions = s
                     unresolved = True
 
-        return (unresolved, new_substitutions, result)
+        return unresolved, new_substitutions, result
 
     @classmethod
     def _final_fixup(cls, item):
