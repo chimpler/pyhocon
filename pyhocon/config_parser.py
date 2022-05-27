@@ -463,7 +463,7 @@ class ConfigParser(object):
             # E.g. \t as a separator is invalid: '10<TAB>weeks'.
             period_expr = (
                     Word(nums)('value') + ZeroOrMore(White(ws=' ')).suppress() + Or(period_types)('unit') + WordEnd(
-                        alphanums).suppress()
+                alphanums).suppress()
             ).setParseAction(convert_period)
 
             # multi line string using """
@@ -485,14 +485,14 @@ class ConfigParser(object):
 
             include_content = (
                     quoted_string | ((Keyword('url') | Keyword('file') | Keyword('package')) - Literal(
-                        '(').suppress() - quoted_string - Literal(')').suppress())
+                '(').suppress() - quoted_string - Literal(')').suppress())
             )
             include_expr = (
-                Keyword("include", caseless=True).suppress() + (
+                    Keyword("include", caseless=True).suppress() + (
                     include_content | (
-                        Keyword("required") - Literal('(').suppress() - include_content - Literal(')').suppress()
-                    )
-                )
+                    Keyword("required") - Literal('(').suppress() - include_content - Literal(')').suppress()
+            )
+            )
             ).setParseAction(include_config)
 
             root_dict_expr = Forward()
@@ -515,7 +515,7 @@ class ConfigParser(object):
             assign_expr << Group(
                 key - ZeroOrMore(comment_no_comma_eol) - (
                         dict_expr | (Literal('=') | Literal(':') | Literal('+=')) - ZeroOrMore(
-                            comment_no_comma_eol) - ConcatenatedValueParser(multi_value_expr))
+                    comment_no_comma_eol) - ConcatenatedValueParser(multi_value_expr))
             )
 
             # the file can be { ... } where {} can be omitted or []
@@ -715,8 +715,8 @@ class ConfigParser(object):
                     is_optional_resolved, resolved_value = cls._resolve_variable(config, substitution)
                     if isinstance(resolved_value, ConfigValues) and overridden_value and not isinstance(
                             overridden_value, ConfigValues):
-                        unresolved, new_subs, result = cls._do_substitute(substitution, overridden_value,
-                                                                          is_optional_resolved)
+                        unresolved, new_subs, _ = cls._do_substitute(substitution, overridden_value,
+                                                                     is_optional_resolved)
                         any_unresolved = unresolved or any_unresolved
                         if not unresolved and substitution in substitutions:
                             substitutions.remove(substitution)
@@ -747,7 +747,7 @@ class ConfigParser(object):
                         # if the substitution is optional
                         if not is_optional_resolved and s.optional:
                             resolved_value = None
-                        unresolved, new_subs, result = cls._do_substitute(s, resolved_value, is_optional_resolved)
+                        unresolved, new_subs, _ = cls._do_substitute(s, resolved_value, is_optional_resolved)
                         any_unresolved = unresolved or any_unresolved
                         if not unresolved and s in substitutions:
                             substitutions.remove(s)
