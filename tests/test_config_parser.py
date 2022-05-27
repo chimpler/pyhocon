@@ -1039,6 +1039,25 @@ class TestConfigParser(object):
         )
         assert config.get("a") == {'b': 3, 'c': [1, 2], 'd': {'foo': 'bar'}}
 
+    def test_self_ref_child2(self):
+        config = ConfigFactory.parse_string(
+            """
+                a.b = 3
+                a.b = ${a.b}
+                a.b = ${a.b} foo
+                a.b = ${a.b}
+                a.c = [1,2]
+                a.c = ${a.c}
+                a.d = {foo: bar}
+                a.d = ${a.d}
+                a.e = ${a.b} bar
+            """
+        )
+        assert config.get("a.b") == "3 foo"
+        assert config.get("a.c") == [1, 2]
+        assert config.get("a.d") == {'foo': 'bar'}
+        assert config.get("a.e") == "3 foo bar"
+
     def test_sequential_self_ref_concat_string(self):
         config = ConfigFactory.parse_string(
             """

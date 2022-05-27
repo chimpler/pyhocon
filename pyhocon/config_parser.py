@@ -692,21 +692,29 @@ class ConfigParser(object):
                 _substitutions = substitutions[:]
 
                 for substitution in _substitutions:
-                    overriden_value = substitution.parent.overriden_value
+                    overridden_value = substitution.parent.overriden_value
+                    if isinstance(overridden_value, ConfigValues):
+                        overridden_value = overridden_value.transform()
                     # If this substitution is an override, and the parent is still being processed,
                     # skip this entry, it will be processed on the next loop.
-                    if overriden_value:
-                        if overriden_value in [s.parent for s in substitutions]:
+                    if overridden_value:
+                        if overridden_value in [s.parent for s in substitutions]:
                             continue
 
                     is_optional_resolved, resolved_value = cls._resolve_variable(config, substitution)
+                    if isinstance(resolved_value, ConfigValues) and overridden_value and not isinstance(overridden_value, ConfigValues):
+                        unresolved, new_subs, result = cls._do_substitute(substitution, overridden_value, is_optional_resolved)
+                        any_unresolved = unresolved or any_unresolved
+                        if not unresolved and substitution in substitutions:
+                            substitutions.remove(substitution)
+                        continue
 
-                    if isinstance(resolved_value, ConfigValues) and isinstance(overriden_value, ConfigValues):
+                    if isinstance(resolved_value, ConfigValues) and isinstance(overridden_value, ConfigValues):
                         any_unresolved = True
                         continue
 
                     cache_values = []
-                    if overriden_value and isinstance(overriden_value, ConfigValues):
+                    if overridden_value and isinstance(overridden_value, ConfigValues):
                         cache_values = cache.get(substitution)
                         if cache_values is None:
                             continue
