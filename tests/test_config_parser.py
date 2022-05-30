@@ -1523,6 +1523,20 @@ class TestConfigParser(object):
         assert "testval" in config['parent.child']
         assert "testval" in config['result']
 
+    def test_substitution_multiple_override4(self):
+        config = ConfigFactory.parse_string(
+            """
+            a = a
+            b = b
+            c = c
+            result = ${c} ${b} ${a}
+            d = d
+            e = e
+            result = ${d} ${c} ${e}
+            """)
+
+        assert "a" not in config['result']
+
     def test_substitution_nested_override(self):
         config = ConfigFactory.parse_string(
             """

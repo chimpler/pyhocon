@@ -715,8 +715,7 @@ class ConfigParser(object):
                     is_optional_resolved, resolved_value = cls._resolve_variable(config, substitution)
                     if isinstance(resolved_value, ConfigValues) and overridden_value and not isinstance(
                             overridden_value, ConfigValues):
-                        unresolved, new_subs, _ = cls._do_substitute(substitution, overridden_value,
-                                                                     is_optional_resolved)
+                        unresolved, _, _ = cls._do_substitute(substitution, overridden_value, is_optional_resolved)
                         any_unresolved = unresolved or any_unresolved
                         if not unresolved and substitution in substitutions:
                             substitutions.remove(substitution)
@@ -731,7 +730,8 @@ class ConfigParser(object):
                         cache_values = cache.get(substitution)
                         if cache_values is None:
                             continue
-                    cache_values.append(substitution)
+                    if not isinstance(resolved_value, ConfigValues):
+                        cache_values.append(substitution)
 
                     overrides = [s for s in substitutions if s.parent.overriden_value == substitution.parent]
                     if len(overrides) > 0:
@@ -749,14 +749,16 @@ class ConfigParser(object):
                             resolved_value = None
                         unresolved, new_subs, _ = cls._do_substitute(s, resolved_value, is_optional_resolved)
                         any_unresolved = unresolved or any_unresolved
-                        if not unresolved and s in substitutions:
+                        if s in substitutions:
                             substitutions.remove(s)
                         # Detected substitutions may already be listed to process
-                        new_subs = [n for n in new_subs if n not in substitutions]
+                        new_subs = [n for n in new_subs if n not in (substitutions, cache_values)]
                         substitutions.extend(new_subs)
+                    if len(cache_values) == 0:
+                        any_unresolved = True
 
             cls._final_fixup(config)
-            if any_unresolved:
+            if any_unresolved or len(substitutions) > 0:
                 has_unresolved = True
                 if not accept_unresolved:
                     raise ConfigSubstitutionException("Cannot resolve {variables}. Check for cycles.".format(
