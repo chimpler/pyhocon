@@ -1537,6 +1537,21 @@ class TestConfigParser(object):
 
         assert "a" not in config['result']
 
+    def test_substitution_multiple_override5(self):
+        config = ConfigFactory.parse_string(
+            """
+            address1 = ${host}":"${port1}
+            address2 = ${host}":"${port2}
+            address = ${address1}
+            address = ${address2}
+            host=${my_host}
+            port1=111
+            port2=222
+            my_host = myhost.com
+            """)
+
+        assert "222" in config['address']
+
     def test_substitution_nested_override(self):
         config = ConfigFactory.parse_string(
             """
