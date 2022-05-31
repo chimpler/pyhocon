@@ -757,7 +757,7 @@ class ConfigParser(object):
                         any_unresolved = True
 
             cls._final_fixup(config)
-            if any_unresolved or len(substitutions) > 0:
+            if any_unresolved:
                 has_unresolved = True
                 if not accept_unresolved:
                     raise ConfigSubstitutionException("Cannot resolve {variables}. Check for cycles.".format(
