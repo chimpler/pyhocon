@@ -704,6 +704,7 @@ class ConfigParser(object):
                 _substitutions = substitutions[:]
 
                 for substitution in _substitutions:
+                    unresolved = False
                     overridden_value = substitution.parent.overriden_value
                     if isinstance(overridden_value, ConfigValues):
                         overridden_value = overridden_value.transform()
@@ -747,12 +748,13 @@ class ConfigParser(object):
                         if not is_optional_resolved and s.optional:
                             resolved_value = None
                         unresolved, new_subs, _ = cls._do_substitute(s, resolved_value, is_optional_resolved)
-                        any_unresolved = unresolved or any_unresolved
                         if s in substitutions:
                             substitutions.remove(s)
                         # Detected substitutions may already be listed to process
                         new_subs = [n for n in new_subs if n not in (substitutions, cache_values)]
                         substitutions.extend(new_subs)
+                    any_unresolved = unresolved or any_unresolved
+
                     if len(cache_values) == 0:
                         any_unresolved = True
 
