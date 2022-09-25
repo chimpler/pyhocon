@@ -807,7 +807,7 @@ class TestConfigParser(object):
         )
         assert config.get("x") == [-3, -2, -1, 0, 1, 2, 3, 4, 5, 6]
 
-    def test_self_append_array(self):
+    def test_self_extend_array(self):
         config = ConfigFactory.parse_string(
             """
             x = [1,2]
@@ -816,7 +816,16 @@ class TestConfigParser(object):
         )
         assert config.get("x") == [1, 2, 3, 4]
 
-    def test_self_append_array_inside_dict(self):
+    def test_self_append_array(self):
+        config = ConfigFactory.parse_string(
+            """
+            x = [1,2]
+            x += 3
+            """
+        )
+        assert config.get("x") == [1, 2, 3]
+
+    def test_self_extend_array_inside_dict(self):
         config = ConfigFactory.parse_string(
             """
             d {
@@ -826,6 +835,17 @@ class TestConfigParser(object):
             """
         )
         assert config.get("d.x") == [1, 2, 3, 4]
+
+    def test_self_append_array_inside_dict(self):
+        config = ConfigFactory.parse_string(
+            """
+            d {
+                x = [1,2]
+                x += 3
+            }
+            """
+        )
+        assert config.get("d.x") == [1, 2, 3]
 
     def test_self_append_string(self):
         '''
@@ -868,13 +888,21 @@ class TestConfigParser(object):
         )
         assert config.get("x") == " def"
 
-    def test_self_append_nonexistent_array(self):
+    def test_self_extend_nonexistent_array(self):
         config = ConfigFactory.parse_string(
             """
             x += [1,2]
             """
         )
         assert config.get("x") == [1, 2]
+
+    def test_self_append_nonexistent_array(self):
+        config = ConfigFactory.parse_string(
+            """
+            x += 1
+            """
+        )
+        assert config.get("x") == [1]
 
     def test_self_append_object(self):
         config = ConfigFactory.parse_string(
