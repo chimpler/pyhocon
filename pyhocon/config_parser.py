@@ -535,7 +535,10 @@ class ConfigParser(object):
         """
         variable = substitution.variable
         try:
-            return True, config.get(variable)
+            if substitution.self_ref:
+                return True, substitution.parent.overriden_value
+            else:
+                return True, config.get(variable)
         except ConfigMissingException:
             # default to environment variable
             value = os.environ.get(variable)
@@ -859,10 +862,10 @@ class ConfigTreeParser(TokenConverter):
                 else:
                     value = values[0]
                     if isinstance(value, list) and operator == "+=":
-                        value = ConfigValues([ConfigSubstitution(key, True, '', False, loc), value], False, loc)
+                        value = ConfigValues([ConfigSubstitution(key, True, '', False, loc, self_ref=True), value], False, loc)
                         config_tree.put(key, value, False)
                     elif isinstance(value, unicode) and operator == "+=":
-                        value = ConfigValues([ConfigSubstitution(key, True, '', True, loc), ' ' + value], True, loc)
+                        value = ConfigValues([ConfigSubstitution(key, True, '', True, loc, self_ref=True), ' ' + value], True, loc)
                         config_tree.put(key, value, False)
                     elif isinstance(value, list):
                         config_tree.put(key, value, False)
