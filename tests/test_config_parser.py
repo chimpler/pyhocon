@@ -7,10 +7,17 @@ import tempfile
 from collections import OrderedDict
 from datetime import timedelta
 
+try:
+    # Python 3
+    from urllib.request import pathname2url
+except ImportError:
+    # Python 2
+    from urllib import pathname2url
+
 from pyparsing import ParseBaseException, ParseException, ParseSyntaxException
 import mock
 import pytest
-from pyhocon import (ConfigFactory, ConfigParser, ConfigSubstitutionException, ConfigTree)
+from pyhocon import (ConfigFactory, ConfigParser, ConfigSubstitutionException, ConfigTree, HOCONConverter)
 from pyhocon.exceptions import (ConfigException, ConfigMissingException,
                                 ConfigWrongTypeException)
 
@@ -1193,16 +1200,18 @@ class TestConfigParser(object):
             ConfigFactory.parse_string('a = {g}')
 
     def test_include_file(self):
-        with tempfile.NamedTemporaryFile('w') as fdin:
+        with tempfile.NamedTemporaryFile('w', delete=False) as fdin:
             fdin.write('[1, 2]')
             fdin.flush()
+            incl_name = HOCONConverter._escape_string(fdin.name)
 
+        try:
             config1 = ConfigFactory.parse_string(
                 """
                 a: [
                     include "{tmp_file}"
                 ]
-                """.format(tmp_file=fdin.name)
+                """.format(tmp_file=incl_name)
             )
             assert config1['a'] == [1, 2]
 
@@ -1211,18 +1220,21 @@ class TestConfigParser(object):
                 a: [
                     include file("{tmp_file}")
                 ]
-                """.format(tmp_file=fdin.name)
+                """.format(tmp_file=incl_name)
             )
             assert config2['a'] == [1, 2]
 
             config3 = ConfigFactory.parse_string(
                 """
                 a: [
-                    include url("file://{tmp_file}")
+                    include url("file:{tmp_file}")
                 ]
-                """.format(tmp_file=fdin.name)
+                """.format(tmp_file=pathname2url(incl_name))
             )
             assert config3['a'] == [1, 2]
+
+        finally:
+            os.remove(incl_name)
 
     def test_include_missing_file(self):
         config1 = ConfigFactory.parse_string(
@@ -1321,10 +1333,12 @@ class TestConfigParser(object):
             'c': 3,
             'd': 4
         }
-        with tempfile.NamedTemporaryFile('w') as fdin:
+        with tempfile.NamedTemporaryFile('w', delete=False) as fdin:
             fdin.write('{a: 1, b: 2}')
             fdin.flush()
+            incl_name = HOCONConverter._escape_string(fdin.name)
 
+        try:
             config1 = ConfigFactory.parse_string(
                 """
                 a: {{
@@ -1332,7 +1346,7 @@ class TestConfigParser(object):
                     c: 3
                     d: 4
                 }}
-                """.format(tmp_file=fdin.name)
+                """.format(tmp_file=incl_name)
             )
             assert config1['a'] == expected_res
 
@@ -1343,7 +1357,7 @@ class TestConfigParser(object):
                     d: 4
                     include "{tmp_file}"
                 }}
-                """.format(tmp_file=fdin.name)
+                """.format(tmp_file=incl_name)
             )
             assert config2['a'] == expected_res
 
@@ -1354,40 +1368,53 @@ class TestConfigParser(object):
                     include "{tmp_file}"
                     d: 4
                 }}
-                """.format(tmp_file=fdin.name)
+                """.format(tmp_file=incl_name)
             )
             assert config3['a'] == expected_res
+        
+        finally:
+            os.remove(incl_name)
 
     def test_include_substitution(self):
-        with tempfile.NamedTemporaryFile('w') as fdin:
+        with tempfile.NamedTemporaryFile('w', delete=False) as fdin:
             fdin.write('y = ${x}')
             fdin.flush()
+            incl_name = HOCONConverter._escape_string(fdin.name)
 
+        try:
             config = ConfigFactory.parse_string(
                 """
                 include "{tmp_file}"
                 x = 42
-                """.format(tmp_file=fdin.name)
+                """.format(tmp_file=incl_name)
             )
             assert config['x'] == 42
             assert config['y'] == 42
 
+        finally:
+            os.remove(incl_name)
+
     @pytest.mark.xfail
     def test_include_substitution2(self):
-        with tempfile.NamedTemporaryFile('w') as fdin:
+        with tempfile.NamedTemporaryFile('w', delete=False) as fdin:
             fdin.write('{ x : 10, y : ${x} }')
             fdin.flush()
+            incl_name = HOCONConverter._escape_string(fdin.name)
 
+        try:
             config = ConfigFactory.parse_string(
                 """
                 {
-                    a : { include """ + '"' + fdin.name + """" }
+                    a : { include """ + '"' + incl_name + """" }
                     a : { x : 42 }
                 }
                 """
             )
             assert config['a']['x'] == 42
             assert config['a']['y'] == 42
+
+        finally:
+            os.remove(incl_name)
 
     def test_var_with_include_keyword(self):
         config = ConfigFactory.parse_string(
