@@ -239,6 +239,7 @@ class ConfigParser(object):
         '\\#': '#',
         '\\!': '!',
         '\\"': '"',
+        '\/': '/',
     }
 
     period_type_map = {
