@@ -2434,6 +2434,16 @@ www.example-ö.com {
         assert config == expected
         assert config == json.loads(source)
 
+    def test_accept_unresolved(self):
+
+        partially_resolving_config = ConfigFactory.parse_string("""
+        resolvedVal = "hi"
+        unresolvedVal = ${valDoesNotExist}
+        """, resolve=False)
+
+        ConfigParser.resolve_substitutions(partially_resolving_config, accept_unresolved=True)
+
+        assert 'hi' == partially_resolving_config['resolvedVal']
 
 try:
     from dateutil.relativedelta import relativedelta
