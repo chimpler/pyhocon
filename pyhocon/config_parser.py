@@ -527,7 +527,7 @@ class ConfigParser(object):
         return config
 
     @classmethod
-    def _resolve_variable(cls, config, substitution):
+    def _resolve_variable(cls, config, substitution, accept_unresolved):
         """
         :param config:
         :param substitution:
@@ -541,7 +541,7 @@ class ConfigParser(object):
             value = os.environ.get(variable)
 
             if value is None:
-                if substitution.optional:
+                if substitution.optional or accept_unresolved:
                     return False, None
                 else:
                     raise ConfigSubstitutionException(
@@ -700,7 +700,7 @@ class ConfigParser(object):
                         if substitution.parent.overriden_value in [s.parent for s in substitutions]:
                             continue
 
-                    is_optional_resolved, resolved_value = cls._resolve_variable(config, substitution)
+                    is_optional_resolved, resolved_value = cls._resolve_variable(config, substitution, accept_unresolved)
 
                     # if the substitution is optional
                     if not is_optional_resolved and substitution.optional:
