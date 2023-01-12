@@ -3,12 +3,12 @@ import re
 import sys
 from datetime import timedelta
 
-from pyhocon import ConfigFactory
-from pyhocon.config_tree import ConfigQuotedString
-from pyhocon.config_tree import ConfigSubstitution
-from pyhocon.config_tree import ConfigTree
-from pyhocon.config_tree import ConfigValues
-from pyhocon.config_tree import NoneValue
+from . import ConfigFactory
+from config_tree import ConfigQuotedString
+from config_tree import ConfigSubstitution
+from config_tree import ConfigTree
+from config_tree import ConfigValues
+from config_tree import NoneValue
 
 
 try:

@@ -29,10 +29,10 @@ if sys.version_info >= (3, 8):
 
     pyparsing.ParseResults.__getattr__ = fixed_get_attr
 
-from pyhocon.config_tree import (ConfigInclude, ConfigList, ConfigQuotedString,
+from config_tree import (ConfigInclude, ConfigList, ConfigQuotedString,
                                  ConfigSubstitution, ConfigTree,
                                  ConfigUnquotedString, ConfigValues, NoneValue)
-from pyhocon.exceptions import (ConfigException, ConfigMissingException,
+from exceptions import (ConfigException, ConfigMissingException,
                                 ConfigSubstitutionException)
 
 
