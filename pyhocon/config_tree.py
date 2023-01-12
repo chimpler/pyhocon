@@ -461,7 +461,6 @@ class ConfigTree(OrderedDict):
         """
 
         for key in self.keys():
-            print("running - " + key)
             value = self.get(key)
 
             if isinstance(value, ConfigTree):
