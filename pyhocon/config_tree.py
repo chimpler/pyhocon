@@ -2,7 +2,8 @@ from collections import OrderedDict
 from pyparsing import col, lineno
 import re
 import copy
-from pyhocon.exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
+from exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
+from typing import Iterable
 
 try:
     basestring
@@ -453,6 +454,21 @@ class ConfigTree(OrderedDict):
                 return v
 
         return OrderedDict((key.strip('"'), plain_value(value)) for key, value in self.items())
+
+    def iterate_flattened_keys(self) -> Iterable[str]:
+        """
+        returns all the fully qualified dot delimited keys
+        """
+
+        for key in self.keys():
+            value = self.get(key)
+
+            if isinstance(value, ConfigTree):
+                for sub_key in value.iterate_flattened_keys():
+                    yield f"{key}{self.KEY_SEP}{sub_key}"
+            else:
+                yield key
+
 
 
 class ConfigList(list):
