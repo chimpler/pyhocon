@@ -1,0 +1,44 @@
+name: Build the main branch and publish it to artifactory
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: self-hosted
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ 3.7, 3.8 ]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Build
+      run: python -m build
+    - name: Publish
+      run: twine upload --repository-url $ARTIFACTORY_URL dist/* -u $ARTIFACTORY_ROLE -p $ARTIFACTORY_AUTH
+    - name: Slack Status
+      if: always()
+      env:
+        SLACK_WEB_HOOK: ${{ secrets.SLACK_WEB_HOOK }}
+        STATUS: ${{ job.status }}
+        COMMIT_SHA: ${{ github.sha }}
+        ACTOR: ${{ github.actor }}
+      run: |
+        slackMsg() {
+          title=$1
+          color=$2
+          msg="{\"channel\": \"alert-ml\", \"attachments\": [{\"mrkdwn_in\": [\"text\"], \"color\": \"$color\",\"title\": \"$title\",\"fields\": [{\"title\": \"Triggered By\",\"value\": \"$ACTOR\",\"short\": false},{\"title\": \"Commit SHA\",\"value\": \"$COMMIT_SHA\",\"short\": false}]}]}"
+        }
+        if [ "$STATUS" = 'success' ]; then
+          slackMsg "Successfully published new version for stackadapt.ds-pyhocon" "#36b36f"
+        elif [ "$STATUS" = 'cancelled' ]; then
+          slackMsg "Publish of ds-pyhocon canceled" "#EE6F47"
+        else
+          slackMsg "Failed to publish new version for stackadapt.ds-pyhocon" "#FF0000"
+        fi
+        curl -H "Content-type: application/json" -d "$msg" -X POST $SLACK_WEB_HOOK
