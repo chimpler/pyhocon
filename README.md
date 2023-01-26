@@ -27,8 +27,9 @@ It is available on pypi so you can install it as follows:
 The parsed config can be seen as a nested dictionary (with types automatically inferred) where values can be accessed using normal
 dictionary getter (e.g., `conf['a']['b']` or using paths like `conf['a.b']`) or via the methods `get`, `get_int` (throws an exception
 if it is not an int), `get_string`, `get_list`, `get_float`, `get_bool`, `get_config`.
+
 ```python
-from pyhocon import ConfigFactory
+from ds_pyhocon import ConfigFactory
 
 conf = ConfigFactory.parse_file('samples/database.conf')
 host = conf.get_string('databases.mysql.host')
@@ -38,7 +39,7 @@ same_host = conf['databases']['mysql.host']
 port = conf['databases.mysql.port']
 username = conf['databases']['mysql']['username']
 password = conf.get_config('databases')['mysql.password']
-password = conf.get('databases.mysql.password', 'default_password') #  use default value if key not found
+password = conf.get('databases.mysql.password', 'default_password')  # use default value if key not found
 ```
 
 ## Example of HOCON file

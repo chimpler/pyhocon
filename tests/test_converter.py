@@ -1,8 +1,8 @@
 # -*- encoding: utf-8 -*-
 from datetime import timedelta
 
-from pyhocon import ConfigTree
-from pyhocon.converter import HOCONConverter
+from ds_pyhocon import ConfigTree
+from ds_pyhocon.converter import HOCONConverter
 
 
 def to_json(obj):

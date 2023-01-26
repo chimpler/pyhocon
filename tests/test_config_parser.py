@@ -10,9 +10,9 @@ from datetime import timedelta
 from pyparsing import ParseBaseException, ParseException, ParseSyntaxException
 import mock
 import pytest
-from pyhocon import (ConfigFactory, ConfigParser, ConfigSubstitutionException, ConfigTree)
-from pyhocon.exceptions import (ConfigException, ConfigMissingException,
-                                ConfigWrongTypeException)
+from ds_pyhocon import (ConfigFactory, ConfigParser, ConfigSubstitutionException, ConfigTree)
+from ds_pyhocon.exceptions import (ConfigException, ConfigMissingException,
+                                   ConfigWrongTypeException)
 
 try:
     from dateutil.relativedelta import relativedelta as period
@@ -1278,12 +1278,12 @@ class TestConfigParser(object):
             )
 
     def test_resolve_package_path(self):
-        path = ConfigParser.resolve_package_path("pyhocon:config_parser.py")
+        path = ConfigParser.resolve_package_path("ds_pyhocon:config_parser.py")
         assert os.path.exists(path)
 
     def test_resolve_package_path_format(self):
         with pytest.raises(ValueError):
-            ConfigParser.resolve_package_path("pyhocon/config_parser.py")
+            ConfigParser.resolve_package_path("ds_pyhocon/config_parser.py")
 
     def test_resolve_package_path_missing(self):
         with pytest.raises(ImportError):

@@ -141,7 +141,7 @@ class ConfigFactory(object):
         :type resolve: boolean
         :param unresolved_value: assigned value to unresolved substitution.
         If overriden with a default value, it will replace all unresolved values by the default value.
-        If it is set to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
+        If it is set to ds_pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
         :type unresolved_value: class
         :return: Config object or []
         :type return: Config or list
@@ -166,7 +166,7 @@ class ConfigFactory(object):
         :type resolve: boolean
         :param unresolved_value: assigned value to unresolved substitution.
         If overriden with a default value, it will replace all unresolved values by the default value.
-        If it is set to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
+        If it is set to ds_pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
         :type unresolved_value: class
         :return: Config object or []
         :type return: Config or list
@@ -194,7 +194,7 @@ class ConfigFactory(object):
         :type resolve: boolean
         :param unresolved_value: assigned value to unresolved substitution.
         If overriden with a default value, it will replace all unresolved values by the default value.
-        If it is set to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
+        If it is set to ds_pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
         :type unresolved_value: class
         :return: Config object
         :type return: Config
@@ -287,7 +287,7 @@ class ConfigParser(object):
         :type resolve: boolean
         :param unresolved_value: assigned value to unresolved substitution.
         If overriden with a default value, it will replace all unresolved values by the default value.
-        If it is set to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
+        If it is set to ds_pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
         :type unresolved_value: boolean
         :return: a ConfigTree or a list
         """
