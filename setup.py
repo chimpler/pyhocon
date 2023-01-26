@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
 
-NAME = "stackadapt.ds-ds_pyhocon"
+NAME = "stackadapt.ds-pyhocon"
 VERSION = "1.0.00"
 URL = "https://github.com/StackAdapt/ds-pyhocon"
 PACKAGES = find_packages(include=["ds_pyhocon", "ds_pyhocon.*"])
@@ -33,7 +33,7 @@ setup(
     name=NAME,
     version=VERSION,
     description='HOCON parser for Python',
-    long_description='ds_pyhocon is a HOCON parser for Python. Additionally we provide a tool (ds_pyhocon) to convert any HOCON '
+    long_description='ds-pyhocon is a HOCON parser for Python. Additionally we provide a tool (ds_pyhocon) to convert any HOCON '
                      'content into json, yaml and properties format.',
     keywords='hocon parser',
     license='Apache License 2.0',

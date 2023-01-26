@@ -18,9 +18,9 @@ https://github.com/typesafehub/config/blob/master/HOCON.md
 
 # Installation
 
-It is available on pypi so you can install it as follows:
+It is available on StackAdapt's artifactory so you can install it as follows:
 
-    $ pip install pyhocon
+    $ pip install stackadapt.ds-pyhocon
 
 ## Usage
 
