@@ -1,10 +1,10 @@
 import pytest
 from collections import OrderedDict
-from pyhocon.config_tree import ConfigTree, NoneValue
-from pyhocon.exceptions import (
+from ds_pyhocon.config_tree import ConfigTree, NoneValue
+from ds_pyhocon.exceptions import (
     ConfigMissingException, ConfigWrongTypeException, ConfigException)
-from pyhocon.config_parser import ConfigFactory
-from pyhocon.tool import HOCONConverter
+from ds_pyhocon.config_parser import ConfigFactory
+from ds_pyhocon.tool import HOCONConverter
 
 
 class TestConfigTree(object):

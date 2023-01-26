@@ -9,7 +9,7 @@ from setuptools.command.test import test as TestCommand
 NAME = "stackadapt.ds-pyhocon"
 VERSION = "1.0.00"
 URL = "https://github.com/StackAdapt/ds-pyhocon"
-PACKAGES = find_packages(include=["pyhocon", "pyhocon.*"])
+PACKAGES = find_packages(include=["ds_pyhocon", "ds_pyhocon.*"])
 
 class PyTestCommand(TestCommand):
     user_options = [('pytest-args=', 'a', "Arguments to pass to py.test")]
@@ -33,7 +33,7 @@ setup(
     name=NAME,
     version=VERSION,
     description='HOCON parser for Python',
-    long_description='pyhocon is a HOCON parser for Python. Additionally we provide a tool (pyhocon) to convert any HOCON '
+    long_description='ds-pyhocon is a HOCON parser for Python. Additionally we provide a tool (ds_pyhocon) to convert any HOCON '
                      'content into json, yaml and properties format.',
     keywords='hocon parser',
     license='Apache License 2.0',
@@ -58,7 +58,7 @@ setup(
     tests_require=['pytest', 'mock==3.0.5'],
     entry_points={
         'console_scripts': [
-            'pyhocon=pyhocon.tool:main'
+            'ds_pyhocon=ds_pyhocon.tool:main'
         ]
     },
     test_suite='tests',

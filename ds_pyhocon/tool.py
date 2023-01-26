@@ -7,7 +7,7 @@ LOG_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 
 
 def main():  # pragma: no cover
-    parser = argparse.ArgumentParser(description='pyhocon tool')
+    parser = argparse.ArgumentParser(description='ds_pyhocon tool')
     parser.add_argument('-i', '--input', help='input file')
     parser.add_argument('-o', '--output', help='output file')
     parser.add_argument('-c', '--compact', action='store_true', default=False, help='compact format')
