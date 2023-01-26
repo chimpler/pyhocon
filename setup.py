@@ -2,9 +2,14 @@
 
 import sys
 
-from setuptools import setup
+from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
+
+NAME = "stackadapt.ds-pyhocon"
+VERSION = "1.0.00"
+URL = "https://github.com/StackAdapt/ds-pyhocon"
+PACKAGES = find_packages(include=["pyhocon", "pyhocon.*"])
 
 class PyTestCommand(TestCommand):
     user_options = [('pytest-args=', 'a', "Arguments to pass to py.test")]
@@ -25,8 +30,8 @@ class PyTestCommand(TestCommand):
 
 
 setup(
-    name='pyhocon',
-    version='0.3.59',
+    name=NAME,
+    version=VERSION,
     description='HOCON parser for Python',
     long_description='pyhocon is a HOCON parser for Python. Additionally we provide a tool (pyhocon) to convert any HOCON '
                      'content into json, yaml and properties format.',
@@ -34,24 +39,18 @@ setup(
     license='Apache License 2.0',
     author='Francois Dang Ngoc',
     author_email='francois.dangngoc@gmail.com',
-    url='http://github.com/chimpler/pyhocon/',
+    url=URL,
     classifiers=[
         'License :: OSI Approved :: Apache Software License',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
     ],
-    packages=[
-        'pyhocon',
-    ],
+    packages=PACKAGES,
     install_requires=['pyparsing~=2.0'],
     extras_require={
         'Duration': ['python-dateutil>=2.8.0']
