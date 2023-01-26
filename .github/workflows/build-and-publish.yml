@@ -43,4 +43,8 @@ jobs:
         else
           slackMsg "Failed to publish new version for stackadapt.ds-pyhocon" "#FF0000"
         fi
+        echo "msg:"
+        echo $msg
+        echo "SLACK_WEB_HOOK:"
+        echo $SLACK_WEB_HOOK
         curl -H "Content-type: application/json" -d "$msg" -X POST $SLACK_WEB_HOOK
