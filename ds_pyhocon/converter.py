@@ -4,11 +4,11 @@ import sys
 from datetime import timedelta
 
 from . import ConfigFactory
-from config_tree import ConfigQuotedString
-from config_tree import ConfigSubstitution
-from config_tree import ConfigTree
-from config_tree import ConfigValues
-from config_tree import NoneValue
+from .config_tree import ConfigQuotedString
+from .config_tree import ConfigSubstitution
+from .config_tree import ConfigTree
+from .config_tree import ConfigValues
+from .config_tree import NoneValue
 
 
 try:

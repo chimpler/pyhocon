@@ -2,7 +2,7 @@ from collections import OrderedDict
 from pyparsing import col, lineno
 import re
 import copy
-from exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
+from .exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
 from typing import Iterable
 
 try:
