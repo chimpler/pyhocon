@@ -387,7 +387,8 @@ assert config == d
   - Boris Smidt ([@borissmidt](https://github.com/borissmidt))
   - Scott Johnson ([@scottj97](https://github.com/scottj97))
   - Yifei Tao ([@yifeitao](https://github.com/yifeitao))
-  - Kevin Fong([@KevinMFong](https://github.com/KevinMFong))
+  - Kevin Fong ([@KevinMFong](https://github.com/KevinMFong))
+  - Erik Cederstrand [@ecederstrand](https://github.com/ecederstrand))
 
 ### Thanks
 

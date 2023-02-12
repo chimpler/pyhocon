@@ -1,5 +1,12 @@
 # Changelog
 
+# Version 0.3.60
+
+* Update pyparsing requirement from ~=2.0 to >=2,<4 (@ecederstrand) [#296]
+* Fixes for dict substitution (@USSX-Hares) [#292]
+* Fix: Tests on Windows (@USSX-Hares) [#291]
+* Fix broken overrides (@afanasev) [#287]
+
 # Version 0.3.59
 
 * Resolve namespace package (@yifeitao) [#264]
