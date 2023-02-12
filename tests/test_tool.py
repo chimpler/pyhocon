@@ -1,3 +1,4 @@
+import os
 import tempfile
 import pytest
 from pyhocon import ConfigFactory
@@ -151,15 +152,25 @@ class TestHOCONConverter(object):
             == [line.strip() for line in converted.split('\n') if line.strip()]
 
     def _test_convert_from_file(self, input, expected_output, format):
-        with tempfile.NamedTemporaryFile('w') as fdin:
-            fdin.write(input)
+        with tempfile.NamedTemporaryFile('wb', delete=False) as fdin:
+            fdin.write(input.encode())
             fdin.flush()
-            with tempfile.NamedTemporaryFile('r') as fdout:
+
+        try:
+            with tempfile.NamedTemporaryFile('w', delete=False) as fdout:
+                pass
+
+            try:
                 HOCONConverter.convert_from_file(fdin.name, fdout.name, format)
                 with open(fdout.name) as fdi:
                     converted = fdi.read()
                     assert [line.strip() for line in expected_output.split('\n') if line.strip()]\
                         == [line.strip() for line in converted.split('\n') if line.strip()]
+
+            finally:
+                os.remove(fdout.name)
+        finally:
+            os.remove(fdin.name)
 
     def test_convert_from_file(self):
         self._test_convert_from_file(TestHOCONConverter.CONFIG_STRING, TestHOCONConverter.EXPECTED_JSON, 'json')
