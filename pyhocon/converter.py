@@ -124,7 +124,7 @@ class HOCONConverter(object):
             if '\n' in config and len(config) > 1:
                 lines = '"""{value}"""'.format(value=config)  # multilines
             else:
-                lines = '"{value}"'.format(value=cls.__escape_string(config))
+                lines = '"{value}"'.format(value=cls._escape_string(config))
         elif isinstance(config, ConfigValues):
             lines = ''.join(cls.to_hocon(o, compact, indent, level) for o in config.tokens)
         elif isinstance(config, ConfigSubstitution):
@@ -136,7 +136,7 @@ class HOCONConverter(object):
             if '\n' in config.value and len(config.value) > 1:
                 lines = '"""{value}"""'.format(value=config.value)  # multilines
             else:
-                lines = '"{value}"'.format(value=cls.__escape_string(config.value))
+                lines = '"{value}"'.format(value=cls._escape_string(config.value))
         elif is_timedelta_like(config):
             lines += timedelta_to_hocon(config)
         elif config is None or isinstance(config, NoneValue):
@@ -275,7 +275,7 @@ class HOCONConverter(object):
                 fd.write(res)
 
     @classmethod
-    def __escape_match(cls, match):
+    def _escape_match(cls, match):
         char = match.group(0)
         return {
             '\b': r'\b',
@@ -288,6 +288,6 @@ class HOCONConverter(object):
         }.get(char) or (r'\u%04x' % ord(char))
 
     @classmethod
-    def __escape_string(cls, string):
-        return re.sub(r'[\x00-\x1F"\\]', cls.__escape_match, string)
+    def _escape_string(cls, string):
+        return re.sub(r'[\x00-\x1F"\\]', cls._escape_match, string)
 
