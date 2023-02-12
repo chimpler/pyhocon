@@ -19,7 +19,6 @@ try:
 except Exception:
     from datetime import timedelta as period
 
-
 class TestConfigParser(object):
     def test_parse_simple_value(self):
         config = ConfigFactory.parse_string(
@@ -605,6 +604,58 @@ class TestConfigParser(object):
             'name': 'east',
             'cluster-size': 6
         }
+
+    def test_dict_substitutions2(self):
+        config = ConfigFactory.parse_string(
+            """
+                data-center-generic = { cluster-size = 6 }
+                data-center-east = ${data-center-generic}
+                data-center-east.name = "east"
+            """
+        )
+
+        assert config.get('data-center-east.cluster-size') == 6
+        assert config.get('data-center-east.name') == 'east'
+
+        config2 = ConfigFactory.parse_string(
+            """
+                data-center-generic = { cluster-size = 6 }
+                data-center-east.name = "east"
+                data-center-east = ${data-center-generic}
+            """
+        )
+
+        assert config2.get('data-center-east.cluster-size') == 6
+        assert config2.get('data-center-east.name') == 'east'
+
+        config3 = ConfigFactory.parse_string(
+            """
+                data-center-generic = { cluster-size = 6 }
+                data-center-east.name = "east"
+                data-center-east = ${data-center-generic}
+                data-center-east.cluster-size = 9
+                data-center-east.opts = "-Xmx4g"
+            """
+        )
+
+        assert config3.get('data-center-east.cluster-size') == 9
+        assert config3.get('data-center-east.name') == 'east'
+        assert config3.get('data-center-east.opts') == '-Xmx4g'
+
+        config4 = ConfigFactory.parse_string(
+            """
+                data-center-generic = { cluster-size = 6 }
+                data-center-east.name = "east"
+                data-center-east = ${data-center-generic}
+                data-center-east-prod = ${data-center-east}
+                data-center-east-prod.tmpDir=/tmp
+            """
+        )
+
+        assert config4.get('data-center-east.cluster-size') == 6
+        assert config4.get('data-center-east.name') == 'east'
+        assert config4.get('data-center-east-prod.cluster-size') == 6
+        assert config4.get('data-center-east-prod.tmpDir') == '/tmp'
 
     def test_dos_chars_with_unquoted_string_noeol(self):
         config = ConfigFactory.parse_string("foo = bar")

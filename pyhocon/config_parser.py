@@ -125,6 +125,10 @@ def period(period_value, period_unit):
     return period_impl(**arguments)
 
 
+U_KEY_SEP = unicode('.')
+U_KEY_FMT = unicode('"{0}"')
+
+
 class ConfigFactory(object):
 
     @classmethod
@@ -868,6 +872,14 @@ class ConfigTreeParser(TokenConverter):
                         config_tree.put(key, value, False)
                     else:
                         existing_value = config_tree.get(key, None)
+                        parsed_key = ConfigTree.parse_key(key)
+                        key = parsed_key[0]
+                        if len(parsed_key) > 1:
+                            # Special case when the key contains path (i.e., `x.y = v`)
+                            new_value = ConfigTree()
+                            new_value.put(U_KEY_SEP.join(U_KEY_FMT.format(k) for k in parsed_key[1:]), value)
+                            value = new_value
+
                         if isinstance(value, ConfigTree) and not isinstance(existing_value, list):
                             # Only Tree has to be merged with tree
                             config_tree.put(key, value, True)
