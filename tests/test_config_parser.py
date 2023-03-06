@@ -14,10 +14,12 @@ except ImportError:
     # Python 2
     from urllib import pathname2url
 
-from pyparsing import ParseBaseException, ParseException, ParseSyntaxException
 import mock
 import pytest
-from pyhocon import (ConfigFactory, ConfigParser, ConfigSubstitutionException, ConfigTree, HOCONConverter)
+from pyparsing import ParseBaseException, ParseException, ParseSyntaxException
+
+from pyhocon import (ConfigFactory, ConfigParser, ConfigSubstitutionException,
+                     ConfigTree, HOCONConverter)
 from pyhocon.exceptions import (ConfigException, ConfigMissingException,
                                 ConfigWrongTypeException)
 
@@ -1452,7 +1454,7 @@ class TestConfigParser(object):
                 """.format(tmp_file=incl_name)
             )
             assert config3['a'] == expected_res
-        
+
         finally:
             os.remove(incl_name)
 
@@ -1712,6 +1714,21 @@ class TestConfigParser(object):
             'num': 3,
             'retries_msg': 'You have 3 retries'
         }
+
+    def test_override_optional_substitution(self):
+        config = ConfigFactory.parse_string(
+            """
+              a = 3
+              test = ${a}
+              test = ${?b}
+              result = ${test}
+            """)
+        assert config == {
+            'a' : 3,
+            'test': 3,
+            'result': 3
+        }
+
 
     def test_substitution_cycle(self):
         with pytest.raises(ConfigSubstitutionException):

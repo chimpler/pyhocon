@@ -38,11 +38,11 @@ from pyhocon.exceptions import (ConfigException, ConfigMissingException,
 use_urllib2 = False
 try:
     # For Python 3.0 and later
-    from urllib.request import urlopen
     from urllib.error import HTTPError, URLError
+    from urllib.request import urlopen
 except ImportError:  # pragma: no cover
     # Fall back to Python 2's urllib2
-    from urllib2 import urlopen, HTTPError, URLError
+    from urllib2 import HTTPError, URLError, urlopen
 
     use_urllib2 = True
 try:
@@ -644,9 +644,11 @@ class ConfigParser(object):
                         continue
 
                     is_optional_resolved, resolved_value = cls._resolve_variable(config, substitution)
-                    if isinstance(resolved_value, ConfigValues) and overridden_value and not isinstance(
-                            overridden_value, ConfigValues):
-                        unresolved, _, _ = cls._do_substitute(substitution, overridden_value, is_optional_resolved)
+                    if isinstance(resolved_value, ConfigValues) :
+                        value_to_be_substitute = resolved_value
+                        if overridden_value and not isinstance(overridden_value, ConfigValues):
+                                value_to_be_substitute = overridden_value
+                        unresolved, _, _ = cls._do_substitute(substitution, value_to_be_substitute, is_optional_resolved)
                         any_unresolved = unresolved or any_unresolved
                         if not unresolved and substitution in substitutions:
                             substitutions.remove(substitution)
@@ -657,6 +659,9 @@ class ConfigParser(object):
                         continue
 
                     cache_values = []
+                    if isinstance(resolved_value, ConfigValues):
+                        cache_values.append(substitution)
+
                     if isinstance(overridden_value, ConfigValues):
                         cache_values = cache.get(substitution)
                         if cache_values is None:
