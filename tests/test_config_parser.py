@@ -1454,7 +1454,6 @@ class TestConfigParser(object):
                 """.format(tmp_file=incl_name)
             )
             assert config3['a'] == expected_res
-
         finally:
             os.remove(incl_name)
 
