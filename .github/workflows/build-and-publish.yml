@@ -17,6 +17,7 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
+        cache: 'none'
     - name: Pip Install Build Tools
       run: pip install --upgrade build twine
     - name: Build
