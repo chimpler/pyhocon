@@ -21,5 +21,3 @@ jobs:
       run: pip install --upgrade build twine
     - name: Build
       run: python -m build
-    - name: Publish
-      run: twine upload --repository-url $ARTIFACTORY_URL dist/* -u $ARTIFACTORY_ROLE -p $ARTIFACTORY_AUTH
