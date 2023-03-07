@@ -24,6 +24,22 @@ jobs:
       shell: bash
       run: |
         echo $RUNNER_TOOL_CACHE
+    - name: setup
+      id: setup
+      run: |
+        cd repo${{ matrix.python-version }}
+        pwd;ls
+        source /etc/profile && source /etc/sysdenv
+        load-pyenv
+        python -v; which python
+        pyenv install ${{ matrix.python-version }} -s
+        pyenv virtualenv runner${{ matrix.python-version }} && pyenv local runner${{ matrix.python-version }}
+        export PYENV_ROOT="/home/ec2-user/.pyenv/versions/runner${{ matrix.python-version }}/"
+        export PATH="$PYENV_ROOT/bin:/home/ec2-user/.local/bin:$PATH"
+        echo "after pyenv install, check python and pip version"
+        which python
+        which pip
+        exit 0
     - name: Pip Install Build Tools
       run: pip install --upgrade build twine
     - name: Build
