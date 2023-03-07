@@ -13,12 +13,23 @@ jobs:
         python-version: [ 3.6, 3.7, 3.8, 3.9 ]
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: ${{ matrix.python-version }}
-      env:
-        AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
+#    - name: Set up Python
+#      uses: actions/setup-python@v3
+#      with:
+#        python-version: ${{ matrix.python-version }}
+#      env:
+#        AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
+    - name: Ensure pip is linked to pip3
+      if: false # disabled on eks self-hosted runners, enabled on asg self-hosted runners
+      shell: bash
+      run: |
+        # The priority resembles python version (3000) so that if we add an alternative for an
+        # older version of python with the same strategy, the newest version will win. Ideally,
+        # we'd wrap the remaining steps in pre/post inside a virtualenv, which is probably what
+        # the setup-python action does.
+        update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 3000
+        # when pip is run as root (in later steps) it defaults to --prefix=/usr/local
+        echo "/usr/local/bin" >> $GITHUB_PATH
     - name: Pip Install Build Tools
       run: pip install --upgrade build twine
     - name: Build
