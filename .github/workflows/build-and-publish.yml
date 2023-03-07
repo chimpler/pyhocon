@@ -20,7 +20,7 @@ jobs:
 #      env:
 #        AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
     - name: Ensure pip is linked to pip3
-      if: false # disabled on eks self-hosted runners, enabled on asg self-hosted runners
+      if: true # disabled on eks self-hosted runners, enabled on asg self-hosted runners
       shell: bash
       run: |
         # The priority resembles python version (3000) so that if we add an alternative for an
