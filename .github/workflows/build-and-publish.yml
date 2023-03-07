@@ -14,9 +14,11 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
+      env:
+        AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
     - name: Pip Install Build Tools
       run: pip install --upgrade build twine
     - name: Build
