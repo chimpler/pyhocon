@@ -18,11 +18,8 @@ jobs:
           load-pyenv
           python -v; which python
           pyenv install ${{ matrix.python-version }} -s
-          echo "log3"
           pyenv virtualenv runner${{ matrix.python-version }} && pyenv local runner${{ matrix.python-version }}
-          echo "log"
           PYENV_ROOT="/home/ec2-user/.pyenv/versions/runner${{ matrix.python-version }}"
-          echo "log2"
           echo "$PYENV_ROOT/bin:/home/ec2-user/.local/bin:$PATH" >> $GITHUB_PATH
       - name: Pip Install Build Tools
         run: pip install --upgrade build twine
