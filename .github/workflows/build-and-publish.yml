@@ -14,8 +14,6 @@ jobs:
     steps:
       - name: setup
         run: |
-#          source /etc/profile && source /etc/sysdenv
-#          load-pyenv
           python -v; which python
           pyenv install ${{ matrix.python-version }} -s
           pyenv virtualenv runner${{ matrix.python-version }} && pyenv local runner${{ matrix.python-version }}
