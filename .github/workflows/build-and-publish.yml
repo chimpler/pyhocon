@@ -17,7 +17,9 @@ jobs:
       run: |
         ls
         source /etc/profile && source /etc/sysdenv
+        echo "log"
         load-pyenv
+        echo "log2"
         python -v; which python
         pyenv install ${{ matrix.python-version }} -s
         pyenv virtualenv runner${{ matrix.python-version }} && pyenv local runner${{ matrix.python-version }}
