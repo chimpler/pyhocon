@@ -21,8 +21,11 @@ jobs:
         load-pyenv
         echo "log2"
         python -v; which python
+        echo "log3"
         pyenv install ${{ matrix.python-version }} -s
+        echo "log2"
         pyenv virtualenv runner${{ matrix.python-version }} && pyenv local runner${{ matrix.python-version }}
+        echo "log5"
         export PYENV_ROOT="/home/ec2-user/.pyenv/versions/runner${{ matrix.python-version }}/"
         export PATH="$PYENV_ROOT/bin:/home/ec2-user/.local/bin:$PATH"
         echo "after pyenv install, check python and pip version"
