@@ -23,8 +23,6 @@ jobs:
           which python
           which pip
           exit 0
-        env:
-          PATH: /home/ec2-user/.pyenv/versions/runner${{ matrix.python-version }}/bin:/home/ec2-user/.local/bin:${{ env.PATH }}
       - name: Pip Install Build Tools
         run: |
           echo $PATH
