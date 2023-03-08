@@ -25,6 +25,7 @@ jobs:
         echo "after pyenv install, check python and pip version"
         which python
         which pip
+        echo $PATH
         exit 0
     - name: Pip Install Build Tools
       run: |
