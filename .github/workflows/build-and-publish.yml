@@ -11,8 +11,6 @@ jobs:
       fail-fast: false
       matrix:
         python-version: [ 3.6.0, 3.7.0, 3.8.0, 3.9.0 ]
-    env:
-      PATH: /home/ec2-user/.pyenv/versions/runner${{ matrix.python-version }}/bin:/home/ec2-user/.local/bin:${PATH}
     steps:
       - name: setup
         run: |
@@ -22,6 +20,9 @@ jobs:
           python -v; which python
           pyenv install ${{ matrix.python-version }} -s
           pyenv virtualenv runner${{ matrix.python-version }} && pyenv local runner${{ matrix.python-version }}
+          export PYENV_ROOT="/home/ec2-user/.pyenv/versions/runner${{ matrix.python-version }}/"
+          export PATH="$PYENV_ROOT/bin:/home/ec2-user/.local/bin:$PATH"
+          echo "{PATH}" >> $GITHUB_PATH
           echo "after pyenv install, check python and pip version"
           echo $PATH
           which python
