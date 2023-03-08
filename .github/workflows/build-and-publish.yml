@@ -15,8 +15,7 @@ jobs:
     - name: setup
       id: setup
       run: |
-        arch;pwd;ls
-        cd repo${{ matrix.python-version }}
+        ls
         source /etc/profile && source /etc/sysdenv
         load-pyenv
         python -v; which python
