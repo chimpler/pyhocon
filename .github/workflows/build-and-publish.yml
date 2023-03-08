@@ -11,11 +11,13 @@ jobs:
       fail-fast: false
       matrix:
         python-version: [ 3.6.0, 3.7.0, 3.8.0, 3.9.0 ]
+    env:
+      PATH: /home/ec2-user/.pyenv/versions/runner${{ matrix.python-version }}/bin:/home/ec2-user/.local/bin:${PATH}
     steps:
       - name: setup
         run: |
-          ls
           source /etc/profile && source /etc/sysdenv
+          ls
           load-pyenv
           python -v; which python
           pyenv install ${{ matrix.python-version }} -s
@@ -24,17 +26,11 @@ jobs:
           echo $PATH
           which python
           which pip
-        env:
-          PATH: /home/ec2-user/.pyenv/versions/runner${{ matrix.python-version }}/bin:/home/ec2-user/.local/bin:${PATH}
       - name: Pip Install Build Tools
         run: |
           echo $PATH
           which pip
           which python
           pip install --upgrade build twine
-        env:
-          PATH: /home/ec2-user/.pyenv/versions/runner${{ matrix.python-version }}/bin:/home/ec2-user/.local/bin:${PATH}
       - name: Build
         run: python -m build
-        env:
-          PATH: /home/ec2-user/.pyenv/versions/runner${{ matrix.python-version }}/bin:/home/ec2-user/.local/bin:${PATH}
