@@ -12,25 +12,28 @@ jobs:
       matrix:
         python-version: [ 3.6.0, 3.7.0, 3.8.0, 3.9.0 ]
     steps:
-    - name: setup
-      id: setup
-      run: |
-        source /etc/profile && source /etc/sysdenv
-        load-pyenv
-        python -v; which python
-        pyenv install ${{ matrix.python-version }} -s
-        pyenv virtualenv runner${{ matrix.python-version }} && pyenv local runner${{ matrix.python-version }}
-        export PYENV_ROOT="/home/ec2-user/.pyenv/versions/runner${{ matrix.python-version }}/"
-        export PATH="$PYENV_ROOT/bin:/home/ec2-user/.local/bin:$PATH"
-        source /etc/profile
-        echo "after pyenv install, check python and pip version"
-        which python
-        which pip
-        echo $PATH
-        exit 0
-    - name: Pip Install Build Tools
-      run: |
-        echo $PATH
-        pip install --upgrade build twine
-    - name: Build
-      run: python -m build
+      - name: setup
+        id: setup
+        run: |
+          source /etc/profile && source /etc/sysdenv
+          load-pyenv
+          python -v; which python
+          pyenv install ${{ matrix.python-version }} -s
+          pyenv virtualenv runner${{ matrix.python-version }} && pyenv local runner${{ matrix.python-version }}
+          source /etc/profile
+          echo "after pyenv install, check python and pip version"
+          which python
+          which pip
+          exit 0
+        env:
+          PATH: /home/ec2-user/.pyenv/versions/runner${{ matrix.python-version }}/bin:/home/ec2-user/.local/bin:$PATH
+      - name: Pip Install Build Tools
+        run: |
+          echo $PATH
+          pip install --upgrade build twine
+        env:
+          PATH: /home/ec2-user/.pyenv/versions/runner${{ matrix.python-version }}/bin:/home/ec2-user/.local/bin:$PATH
+      - name: Build
+        run: python -m build
+        env:
+          PATH: /home/ec2-user/.pyenv/versions/runner${{ matrix.python-version }}/bin:/home/ec2-user/.local/bin:$PATH
