@@ -10,18 +10,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ 3.6, 3.7, 3.8, 3.9 ]
+        python-version: [ 3.6.x, 3.7.x, 3.8.x, 3.9.x ]
     steps:
     - name: setup
       id: setup
       run: |
         ls
         source /etc/profile && source /etc/sysdenv
-        echo "log"
         load-pyenv
-        echo "log2"
         python -v; which python
-        echo "log3"
         pyenv install ${{ matrix.python-version }} -s
         echo "log2"
         pyenv virtualenv runner${{ matrix.python-version }} && pyenv local runner${{ matrix.python-version }}
