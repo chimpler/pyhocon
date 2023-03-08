@@ -21,12 +21,14 @@ jobs:
           pyenv install ${{ matrix.python-version }} -s
           pyenv virtualenv runner${{ matrix.python-version }} && pyenv local runner${{ matrix.python-version }}
           export PYENV_ROOT="/home/ec2-user/.pyenv/versions/runner${{ matrix.python-version }}/"
+          echo $PYENV_ROOT
           echo "$PYENV_ROOT/bin:/home/ec2-user/.local/bin:$PATH" >> $GITHUB_PATH
           echo "after pyenv install, check python and pip version"
           which python
           which pip
       - name: Pip Install Build Tools
         run: |
+          echo $PYENV_ROOT
           echo $GITHUB_PATH
           echo $PATH
           which pip
@@ -34,6 +36,7 @@ jobs:
           pip install --upgrade build twine
       - name: Build
         run: |
+          echo $PYENV_ROOT
           echo $GITHUB_PATH
           echo $PATH
           which pip
