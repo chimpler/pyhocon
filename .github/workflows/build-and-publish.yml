@@ -28,7 +28,7 @@ jobs:
         exit 0
     - name: Pip Install Build Tools
       run: |
-        echo PATH
+        echo $PATH
         pip install --upgrade build twine
     - name: Build
       run: python -m build
