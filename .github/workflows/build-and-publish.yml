@@ -23,8 +23,6 @@ jobs:
           $PYENV_ROOT="/home/ec2-user/.pyenv/versions/runner${{ matrix.python-version }}"
           echo "$PYENV_ROOT/bin:/home/ec2-user/.local/bin:$PATH" >> $GITHUB_PATH
       - name: Pip Install Build Tools
-        run: |
-          pip install --upgrade build twine
+        run: pip install --upgrade build twine
       - name: Build
-        run: |
-          python -m build
+        run: python -m build
