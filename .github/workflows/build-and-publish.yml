@@ -2,7 +2,7 @@ name: Build the main branch and publish it to artifactory
 
 on:
   push:
-    branches: [ main ]
+    branches: [ darren/test-centos ]
 
 jobs:
   build:
@@ -17,13 +17,14 @@ jobs:
           source /etc/profile && source /etc/sysdenv
           load-pyenv
           python -v; which python
+          echo $PYENV_ROOT
+          $PYENV_ROOT=$(pwd)
+          echo $PYENV_ROOT
           pyenv install ${{ matrix.python-version }} -s
           pyenv virtualenv runner${{ matrix.python-version }} && pyenv local runner${{ matrix.python-version }}
-          PYENV_ROOT="/home/ec2-user/.pyenv/versions/runner${{ matrix.python-version }}"
-          echo "$PYENV_ROOT/bin:/home/ec2-user/.local/bin:$PATH" >> $GITHUB_PATH
+          python_location="$PYENV_ROOT/runner${{ matrix.python-version }}"
+          echo "python_location/bin:/home/ec2-user/.local/bin:$PATH" >> $GITHUB_PATH
       - name: Pip Install Build Tools
         run: pip install --upgrade build twine
       - name: Build
         run: python -m build
-      - name: Publish
-        run: twine upload --repository-url $ARTIFACTORY_URL dist/* -u $ARTIFACTORY_ROLE -p $ARTIFACTORY_AUTH
