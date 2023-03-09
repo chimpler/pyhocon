@@ -22,12 +22,8 @@ jobs:
           PYENV_ROOT="/home/ec2-user/.pyenv/versions/runner${{ matrix.python-version }}"
           echo "$PYENV_ROOT/bin:/home/ec2-user/.local/bin:$PATH" >> $GITHUB_PATH
       - name: Pip Install Build Tools
-        run: |
-          which python
-          which pip
-          pip install --upgrade build twine
+        run: pip install --upgrade build twine
       - name: Build
-        run: |
-          which python
-          which pip
-          python -m build
+        run: python -m build
+      - name: Publish
+        run: twine upload --repository-url $ARTIFACTORY_URL dist/* -u $ARTIFACTORY_ROLE -p $ARTIFACTORY_AUTH
