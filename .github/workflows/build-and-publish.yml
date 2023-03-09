@@ -2,7 +2,7 @@ name: Build the main branch and publish it to artifactory
 
 on:
   push:
-    branches: [ main ]
+    branches: [ darren/change-name ]
 
 jobs:
   build:
@@ -14,16 +14,16 @@ jobs:
     steps:
       - name: setup
         run: |
+          REPO="pyhocon"
+          PY_REPO_VERSION = $(REPO)_runner${{ matrix.python-version }}
           source /etc/profile && source /etc/sysdenv
           load-pyenv
           python -v; which python
           pyenv install ${{ matrix.python-version }} -s
-          pyenv virtualenv runner${{ matrix.python-version }} && pyenv local runner${{ matrix.python-version }}
-          PYENV_ROOT="/home/ec2-user/.pyenv/versions/runner${{ matrix.python-version }}"
+          pyenv virtualenv $PY_REPO_VERSION && pyenv local $PY_REPO_VERSION
+          PYENV_ROOT="/home/ec2-user/.pyenv/versions/$PY_REPO_VERSION"
           echo "$PYENV_ROOT/bin:/home/ec2-user/.local/bin:$PATH" >> $GITHUB_PATH
       - name: Pip Install Build Tools
         run: pip install --upgrade build twine
       - name: Build
         run: python -m build
-      - name: Publish
-        run: twine upload --repository-url $ARTIFACTORY_URL dist/* -u $ARTIFACTORY_ROLE -p $ARTIFACTORY_AUTH
