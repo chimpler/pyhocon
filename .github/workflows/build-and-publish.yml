@@ -14,8 +14,8 @@ jobs:
     steps:
       - name: setup
         run: |
-          REPO="pyhocon"
-          PY_REPO_VERSION = $(REPO)_runner${{ matrix.python-version }}
+          export REPO="pyhocon"
+          export PY_REPO_VERSION = $(REPO)_runner${{ matrix.python-version }}
           source /etc/profile && source /etc/sysdenv
           load-pyenv
           python -v; which python
