@@ -2,7 +2,7 @@ name: Build the main branch and publish it to artifactory
 
 on:
   push:
-    branches: [ darren/test-centos ]
+    branches: [ main ]
 
 jobs:
   build:
