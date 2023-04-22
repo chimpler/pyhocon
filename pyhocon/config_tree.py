@@ -602,7 +602,7 @@ class ConfigValues(object):
 
 
 class ConfigSubstitution(object):
-    def __init__(self, variable, optional, ws, instring, loc):
+    def __init__(self, variable, optional, ws, instring, loc, self_ref=False):
         self.variable = variable
         self.optional = optional
         self.ws = ws
@@ -610,6 +610,7 @@ class ConfigSubstitution(object):
         self.parent = None
         self.instring = instring
         self.loc = loc
+        self.self_ref = self_ref
 
     def raw_str(self):
         return self.variable
