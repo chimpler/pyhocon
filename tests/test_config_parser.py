@@ -44,6 +44,7 @@ class TestConfigParser(object):
                 j = [1, 2, 3]
                 u = 192.168.1.3/32
                 g = null
+                \"\"\"z\"\"\" = 1
             }
             """
         )
@@ -65,6 +66,7 @@ class TestConfigParser(object):
         assert config.get_bool('t.g') is None
         assert config.get_list('t.g') is None
         assert config.get_config('t.g') is None
+        assert config.get('t.z') == 1
 
     @pytest.mark.parametrize('forbidden_char', ['+', '`', '^', '?', '!', '@', '*', '&'])
     def test_fail_parse_forbidden_characters(self, forbidden_char):
@@ -2625,6 +2627,14 @@ www.example-ö.com {
         config = ConfigFactory.parse_string(source)
         assert config == expected
         assert config == json.loads(source)
+
+    def test_triple_quotes_keys(self):
+        config = ConfigFactory.parse_string("\"\"\"foo\"\"\" = bar")
+        assert config['foo'] == 'bar'
+
+    def test_triple_quotes_keys_triple_quotes_values(self):
+        config = ConfigFactory.parse_string("\"\"\"foo\"\"\" = \"\"\"bar\"\"\"")
+        assert config['foo'] == 'bar'
 
 
 try:
