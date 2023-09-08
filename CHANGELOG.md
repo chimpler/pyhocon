@@ -227,7 +227,7 @@
 
 # Version 0.3.13
 
-* Fixed dictionary substititution merge. PR[#52]
+* Fixed dictionary substitution merge. PR[#52]
 
 # Version 0.3.12
 
