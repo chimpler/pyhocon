@@ -144,7 +144,7 @@ class ConfigTree(OrderedDict):
                             type=l_value.__class__.__name__)
                     )
             else:
-                # if there was an override keep overide value
+                # if there was an override keep override value
                 if isinstance(value, ConfigValues):
                     value.parent = self
                     value.key = key_elt
