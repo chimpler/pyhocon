@@ -271,7 +271,7 @@
 # Version 0.3.3
 
 * Fixed optional substitution when overriding elements at the same level. PR[#28]
-* Silent IOErrors when including non-existent files. PR[#24]
+* Silent IOErrors when including nonexistent files. PR[#24]
 * Fixed when assign key to a value, list or dict that starts with eol. PR[#22]
 
 ## Version 0.3.2
