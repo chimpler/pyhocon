@@ -57,7 +57,7 @@ class ConfigTree(OrderedDict):
                     value.parent = a
                     value.key = key
                     if key in a:
-                        value.overriden_value = a[key]
+                        value.overridden_value = a[key]
                 a[key] = value
                 if a.root:
                     if b.root:
@@ -115,7 +115,7 @@ class ConfigTree(OrderedDict):
                     l_value.tokens.append(value)
                     l_value.recompute()
                 elif isinstance(l_value, ConfigTree) and isinstance(value, ConfigValues):
-                    value.overriden_value = l_value
+                    value.overridden_value = l_value
                     value.tokens.insert(0, l_value)
                     value.recompute()
                     value.parent = self
@@ -124,7 +124,7 @@ class ConfigTree(OrderedDict):
                     self[key_elt] = value
                 elif isinstance(l_value, list) and isinstance(value, ConfigValues):
                     self._push_history(key_elt, value)
-                    value.overriden_value = l_value
+                    value.overridden_value = l_value
                     value.parent = self
                     value.key = key_elt
                     self[key_elt] = value
@@ -144,11 +144,11 @@ class ConfigTree(OrderedDict):
                             type=l_value.__class__.__name__)
                     )
             else:
-                # if there was an override keep overide value
+                # if there was an override keep override value
                 if isinstance(value, ConfigValues):
                     value.parent = self
                     value.key = key_elt
-                    value.overriden_value = self.get(key_elt, None)
+                    value.overridden_value = self.get(key_elt, None)
                 self._push_history(key_elt, value)
                 self[key_elt] = value
         else:
@@ -477,7 +477,7 @@ class ConfigValues(object):
         self.key = None
         self._instring = instring
         self._loc = loc
-        self.overriden_value = None
+        self.overridden_value = None
         self.recompute()
 
     def recompute(self):
@@ -506,8 +506,8 @@ class ConfigValues(object):
             # walking up the override chain and append overrides to the front.
             # later, parent overrides will be processed first, followed by children
             lst = [token for token in node.tokens if isinstance(token, ConfigSubstitution)] + lst
-            if hasattr(node, 'overriden_value'):
-                node = node.overriden_value
+            if hasattr(node, 'overridden_value'):
+                node = node.overridden_value
                 if not isinstance(node, ConfigValues):
                     break
             else:
@@ -549,8 +549,8 @@ class ConfigValues(object):
 
         if first_tok_type is ConfigTree:
             child = []
-            if hasattr(self, 'overriden_value'):
-                node = self.overriden_value
+            if hasattr(self, 'overridden_value'):
+                node = self.overridden_value
                 while node:
                     if isinstance(node, ConfigValues):
                         value = node.transform()
@@ -562,8 +562,8 @@ class ConfigValues(object):
                         child.append(node)
                     else:
                         break
-                    if hasattr(node, 'overriden_value'):
-                        node = node.overriden_value
+                    if hasattr(node, 'overridden_value'):
+                        node = node.overridden_value
                     else:
                         break
 

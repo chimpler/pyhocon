@@ -334,7 +334,7 @@ class TestConfigTree(object):
             resolve=False
         )
 
-        substitudeConfig = ConfigFactory.parse_string(
+        substituteConfig = ConfigFactory.parse_string(
             """
             sub = 100
             nested {
@@ -345,7 +345,7 @@ class TestConfigTree(object):
             }
             """
         )
-        result = config.resolve(substitudeConfig)
+        result = config.resolve(substituteConfig)
         assert result.get_int('a') == 100
         assert result.get_string('nested.value.a') == "string"
         assert result.get_int('nested.value.b') == 10

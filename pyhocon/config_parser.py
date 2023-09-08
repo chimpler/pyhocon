@@ -130,7 +130,7 @@ class ConfigFactory(object):
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
         :param unresolved_value: assigned value to unresolved substitution.
-        If overriden with a default value, it will replace all unresolved values by the default value.
+        If overridden with a default value, it will replace all unresolved values by the default value.
         If it is set to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
         :type unresolved_value: class
         :return: Config object or []
@@ -155,7 +155,7 @@ class ConfigFactory(object):
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
         :param unresolved_value: assigned value to unresolved substitution.
-        If overriden with a default value, it will replace all unresolved values by the default value.
+        If overridden with a default value, it will replace all unresolved values by the default value.
         If it is set to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
         :type unresolved_value: class
         :return: Config object or []
@@ -183,7 +183,7 @@ class ConfigFactory(object):
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
         :param unresolved_value: assigned value to unresolved substitution.
-        If overriden with a default value, it will replace all unresolved values by the default value.
+        If overridden with a default value, it will replace all unresolved values by the default value.
         If it is set to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
         :type unresolved_value: class
         :return: Config object
@@ -240,7 +240,7 @@ class ConfigParser(object):
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
         :param unresolved_value: assigned value to unresolved substitution.
-        If overriden with a default value, it will replace all unresolved values by the default value.
+        If overridden with a default value, it will replace all unresolved values by the default value.
         If it is set to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
         :type unresolved_value: boolean
         :return: a ConfigTree or a list
@@ -580,7 +580,7 @@ class ConfigParser(object):
             # use a deepcopy of resolved_value to avoid mutation
             config_values.put(substitution.index, copy.deepcopy(formatted_resolved_value))
             transformation = config_values.transform()
-            result = config_values.overriden_value \
+            result = config_values.overridden_value \
                 if transformation is None and not is_optional_resolved \
                 else transformation
 
@@ -635,7 +635,7 @@ class ConfigParser(object):
 
                 for substitution in _substitutions:
                     unresolved = False
-                    overridden_value = substitution.parent.overriden_value
+                    overridden_value = substitution.parent.overridden_value
                     if isinstance(overridden_value, ConfigValues):
                         overridden_value = overridden_value.transform()
                     # If this substitution is an override, and the parent is still being processed,
@@ -663,7 +663,7 @@ class ConfigParser(object):
                             continue
                     if not isinstance(resolved_value, ConfigValues):
                         cache_values.append(substitution)
-                        overrides = [s for s in substitutions if s.parent.overriden_value == substitution.parent]
+                        overrides = [s for s in substitutions if s.parent.overridden_value == substitution.parent]
                         if len(overrides) > 0:
                             for o in overrides:
                                 values = cache.get(o) if cache.get(o) is not None else []

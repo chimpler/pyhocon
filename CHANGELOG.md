@@ -227,7 +227,7 @@
 
 # Version 0.3.13
 
-* Fixed dictionary substititution merge. PR[#52]
+* Fixed dictionary substitution merge. PR[#52]
 
 # Version 0.3.12
 
@@ -265,13 +265,13 @@
 
 # Version 0.3.4
 
-* Fixed substitutions that are overriden later on by a non substitution. PR[#34]
+* Fixed substitutions that are overridden later on by a non substitution. PR[#34]
 * Added logging. PR[#30] and PR[#31]
 
 # Version 0.3.3
 
 * Fixed optional substitution when overriding elements at the same level. PR[#28]
-* Silent IOErrors when including non-existent files. PR[#24]
+* Silent IOErrors when including nonexistent files. PR[#24]
 * Fixed when assign key to a value, list or dict that starts with eol. PR[#22]
 
 ## Version 0.3.2
