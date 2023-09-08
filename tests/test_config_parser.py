@@ -2513,9 +2513,9 @@ www.example-ö.com {
         }
         assert expected == config_tree
 
-    def test_merge_overriden(self):
+    def test_merge_overridden(self):
         # Address issue #110
-        # ConfigValues must merge with its .overriden_value
+        # ConfigValues must merge with its .overridden_value
         # if both are ConfigTree
         config_tree = ConfigFactory.parse_string("""
         foo: ${bar}

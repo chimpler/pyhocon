@@ -265,7 +265,7 @@
 
 # Version 0.3.4
 
-* Fixed substitutions that are overriden later on by a non substitution. PR[#34]
+* Fixed substitutions that are overridden later on by a non substitution. PR[#34]
 * Added logging. PR[#30] and PR[#31]
 
 # Version 0.3.3
