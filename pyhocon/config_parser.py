@@ -110,7 +110,6 @@ class STR_SUBSTITUTION(object):
 U_KEY_SEP = unicode('.')
 U_KEY_FMT = unicode('"{0}"')
 
-
 U_KEY_SEP = unicode('.')
 U_KEY_FMT = unicode('"{0}"')
 
@@ -386,7 +385,8 @@ class ConfigParser(object):
             true_expr = Keyword("true", caseless=True).setParseAction(replaceWith(True))
             false_expr = Keyword("false", caseless=True).setParseAction(replaceWith(False))
             null_expr = Keyword("null", caseless=True).setParseAction(replaceWith(NoneValue()))
-            key = QuotedString('"', escChar='\\', unquoteResults=False) | Word(alphanums + alphas8bit + '._- /')
+            key = QuotedString('"""', escChar='\\', unquoteResults=False) | \
+                  QuotedString('"', escChar='\\', unquoteResults=False) | Word(alphanums + alphas8bit + '._- /')
 
             eol = Word('\n\r').suppress()
             eol_comma = Word('\n\r,').suppress()
