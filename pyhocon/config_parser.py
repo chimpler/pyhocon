@@ -661,7 +661,8 @@ class ConfigParser(object):
                         cache_values = cache.get(substitution)
                         if cache_values is None:
                             continue
-                    if not isinstance(resolved_value, ConfigValues):
+
+                    if resolved_value:
                         cache_values.append(substitution)
                         overrides = [s for s in substitutions if s.parent.overriden_value == substitution.parent]
                         if len(overrides) > 0:
