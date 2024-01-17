@@ -2626,6 +2626,11 @@ www.example-ö.com {
         assert config == expected
         assert config == json.loads(source)
 
+    def test_nested_substitution(self):
+        config = ConfigFactory.parse_file("samples/substitutions.d/child.conf")
+        assert config.get_int("foo.foo-inner.foo-sub") == 11
+        assert config.get_int("bar.bar-inner.foo-sub") == 11
+
 
 try:
     from dateutil.relativedelta import relativedelta
