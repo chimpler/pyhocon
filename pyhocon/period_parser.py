@@ -64,7 +64,7 @@ def get_period_expr():
     # Allow only spaces as a valid separator between value and unit.
     # E.g. \t as a separator is invalid: '10<TAB>weeks'.
     return (
-            Word(nums)('value') + ZeroOrMore(White(ws=' ')).suppress() + Or(period_types)('unit') + WordEnd(
+            Word(nums)('value') + Or(period_types)('unit') + WordEnd(
         alphanums).suppress()
     ).setParseAction(convert_period)
 
