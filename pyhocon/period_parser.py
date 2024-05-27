@@ -1,7 +1,7 @@
 import itertools
 from datetime import timedelta
 
-from pyparsing import (Word, ZeroOrMore, alphanums, Or, nums, White, WordEnd, Combine)
+from pyparsing import (Word, ZeroOrMore, alphanums, Or, nums, WordEnd, Combine, Literal)
 
 period_type_map = {
     'nanoseconds': ['ns', 'nano', 'nanos', 'nanosecond', 'nanoseconds'],
@@ -62,7 +62,7 @@ def get_period_expr():
     # Allow only spaces as a valid separator between value and unit.
     # E.g. \t as a separator is invalid: '10<TAB>weeks'.
     return Combine(
-            Word(nums)('value') + ZeroOrMore(White(ws=' ')).suppress() + Or(period_types)('unit') + WordEnd(
+            Word(nums)('value') + ZeroOrMore(Literal(" ")).suppress() + Or(period_types)('unit') + WordEnd(
         alphanums).suppress()
     ).setParseAction(convert_period)
 
