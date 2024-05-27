@@ -101,6 +101,27 @@ class TestConfigParser(object):
 
         assert config.get_string('a.b') == '5'
 
+    def test_parse_with_enclosing_brace_and_period_like_value(self):
+        config = ConfigFactory.parse_string(
+            """
+            {
+                a: {
+                    b: 5
+                    y_min: 42
+                }
+            }
+            """
+        )
+
+        assert config.get_string('a.b') == '5'
+        assert config.get_string('a.y_min') == '42'
+
+
+    def test_issue_324(self):
+        config = ConfigFactory.parse_string("a { c = 3\nd = 4 }")
+        assert config["a"]["c"] == 3
+        assert config["a"]["d"] == 4
+
     @pytest.mark.parametrize('data_set', [
         ('a: 1 minutes', period(minutes=1)),
         ('a: 1minutes', period(minutes=1)),
@@ -168,7 +189,14 @@ class TestConfigParser(object):
             c: bar
             """
         )
-        assert config['b'] == ['a', 1, period(weeks=10), period(minutes=5)]
+        # Depending if parsing dates is enabled, might parse date or might not
+        # since this is an optional dependency
+        assert (
+                config['b'] == ['a', 1, period(weeks=10), period(minutes=5)]
+            ) or (
+                config['b'] == ['a', 1, '10 weeks', '5 minutes']
+            )
+
 
     def test_parse_with_enclosing_square_bracket(self):
         config = ConfigFactory.parse_string("[1, 2, 3]")
