@@ -1,7 +1,7 @@
 import itertools
 from datetime import timedelta
 
-from pyparsing import (Word, ZeroOrMore, alphanums, Or, nums, White, WordEnd, Combine, Optional, Literal)
+from pyparsing import (Word, ZeroOrMore, alphanums, Or, nums, WordEnd, Combine, Literal)
 
 period_type_map = {
     'nanoseconds': ['ns', 'nano', 'nanos', 'nanosecond', 'nanoseconds'],
