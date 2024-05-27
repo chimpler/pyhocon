@@ -38,11 +38,11 @@ from pyhocon.exceptions import (ConfigException, ConfigMissingException,
 use_urllib2 = False
 try:
     # For Python 3.0 and later
-    from urllib.error import HTTPError, URLError
     from urllib.request import urlopen
+    from urllib.error import HTTPError, URLError
 except ImportError:  # pragma: no cover
     # Fall back to Python 2's urllib2
-    from urllib2 import HTTPError, URLError, urlopen
+    from urllib2 import urlopen, HTTPError, URLError
 
     use_urllib2 = True
 try:
@@ -563,8 +563,6 @@ class ConfigParser(object):
         unresolved = False
         new_substitutions = []
         if isinstance(resolved_value, ConfigValues):
-            resolved_value = resolved_value.transform()
-        if isinstance(resolved_value, ConfigValues):
             unresolved = True
             result = resolved_value
         else:
@@ -643,11 +641,14 @@ class ConfigParser(object):
                         continue
 
                     is_optional_resolved, resolved_value = cls._resolve_variable(config, substitution)
+
                     if isinstance(resolved_value, ConfigValues) :
+                        resolved_value = resolved_value.transform()
                         value_to_be_substitute = resolved_value
                         if overridden_value and not isinstance(overridden_value, ConfigValues):
                                 value_to_be_substitute = overridden_value
                         unresolved, _, _ = cls._do_substitute(substitution, value_to_be_substitute, is_optional_resolved)
+
                         any_unresolved = unresolved or any_unresolved
                         if not unresolved and substitution in substitutions:
                             substitutions.remove(substitution)
@@ -658,13 +659,12 @@ class ConfigParser(object):
                         continue
 
                     cache_values = []
-
                     if isinstance(overridden_value, ConfigValues):
                         cache_values = cache.get(substitution)
                         if cache_values is None:
                             continue
 
-                    if resolved_value:
+                    if not isinstance(resolved_value, ConfigValues):
                         cache_values.append(substitution)
                         overrides = [s for s in substitutions if s.parent.overridden_value == substitution.parent]
                         if len(overrides) > 0:
