@@ -38,7 +38,7 @@ def relative_delta_to_timedelta(relative_delta):
 
 
 def timedelta_to_str(config):
-    if isinstance(config, relativedelta):
+    if relativedelta is not None and isinstance(config, relativedelta):
         time_delta = relative_delta_to_timedelta(config)
     else:
         time_delta = config
