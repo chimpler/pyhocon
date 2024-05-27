@@ -79,7 +79,7 @@ password = conf.get('databases.mysql.password', 'default_password') #  use defau
       # you can use substitution with unquoted strings
       retries_msg = You have ${databases.mysql.retries} retries
 
-      # retries message will be overriden if environment variable CUSTOM_MSG is set
+      # retries message will be overridden if environment variable CUSTOM_MSG is set
       retries_msg = ${?CUSTOM_MSG}
     }
 
@@ -388,7 +388,7 @@ assert config == d
   - Scott Johnson ([@scottj97](https://github.com/scottj97))
   - Yifei Tao ([@yifeitao](https://github.com/yifeitao))
   - Kevin Fong ([@KevinMFong](https://github.com/KevinMFong))
-  - Erik Cederstrand [@ecederstrand](https://github.com/ecederstrand))
+  - Erik Cederstrand ([@ecederstrand](https://github.com/ecederstrand))
 
 ### Thanks
 

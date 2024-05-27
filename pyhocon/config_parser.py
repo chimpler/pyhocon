@@ -110,7 +110,6 @@ class STR_SUBSTITUTION(object):
 U_KEY_SEP = unicode('.')
 U_KEY_FMT = unicode('"{0}"')
 
-
 U_KEY_SEP = unicode('.')
 U_KEY_FMT = unicode('"{0}"')
 
@@ -130,7 +129,7 @@ class ConfigFactory(object):
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
         :param unresolved_value: assigned value to unresolved substitution.
-        If overriden with a default value, it will replace all unresolved values by the default value.
+        If overridden with a default value, it will replace all unresolved values by the default value.
         If it is set to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
         :type unresolved_value: class
         :return: Config object or []
@@ -155,7 +154,7 @@ class ConfigFactory(object):
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
         :param unresolved_value: assigned value to unresolved substitution.
-        If overriden with a default value, it will replace all unresolved values by the default value.
+        If overridden with a default value, it will replace all unresolved values by the default value.
         If it is set to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
         :type unresolved_value: class
         :return: Config object or []
@@ -183,7 +182,7 @@ class ConfigFactory(object):
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
         :param unresolved_value: assigned value to unresolved substitution.
-        If overriden with a default value, it will replace all unresolved values by the default value.
+        If overridden with a default value, it will replace all unresolved values by the default value.
         If it is set to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
         :type unresolved_value: class
         :return: Config object
@@ -240,7 +239,7 @@ class ConfigParser(object):
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
         :param unresolved_value: assigned value to unresolved substitution.
-        If overriden with a default value, it will replace all unresolved values by the default value.
+        If overridden with a default value, it will replace all unresolved values by the default value.
         If it is set to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
         :type unresolved_value: boolean
         :return: a ConfigTree or a list
@@ -386,7 +385,8 @@ class ConfigParser(object):
             true_expr = Keyword("true", caseless=True).setParseAction(replaceWith(True))
             false_expr = Keyword("false", caseless=True).setParseAction(replaceWith(False))
             null_expr = Keyword("null", caseless=True).setParseAction(replaceWith(NoneValue()))
-            key = QuotedString('"', escChar='\\', unquoteResults=False) | Word(alphanums + alphas8bit + '._- /')
+            key = QuotedString('"""', escChar='\\', unquoteResults=False) | \
+                  QuotedString('"', escChar='\\', unquoteResults=False) | Word(alphanums + alphas8bit + '._- /')
 
             eol = Word('\n\r').suppress()
             eol_comma = Word('\n\r,').suppress()
@@ -395,7 +395,6 @@ class ConfigParser(object):
             comment_no_comma_eol = (comment | eol).suppress()
             number_expr = Regex(r'[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE][+\-]?\d+)?(?=$|[ \t]*([\$\}\],#\n\r]|//))',
                                 re.DOTALL).setParseAction(convert_number)
-
             # multi line string using """
             # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
             multiline_string = Regex('""".*?"*"""', re.DOTALL | re.UNICODE).setParseAction(parse_multi_string)
@@ -580,7 +579,7 @@ class ConfigParser(object):
             # use a deepcopy of resolved_value to avoid mutation
             config_values.put(substitution.index, copy.deepcopy(formatted_resolved_value))
             transformation = config_values.transform()
-            result = config_values.overriden_value \
+            result = config_values.overridden_value \
                 if transformation is None and not is_optional_resolved \
                 else transformation
 
@@ -635,7 +634,7 @@ class ConfigParser(object):
 
                 for substitution in _substitutions:
                     unresolved = False
-                    overridden_value = substitution.parent.overriden_value
+                    overridden_value = substitution.parent.overridden_value
                     if isinstance(overridden_value, ConfigValues):
                         overridden_value = overridden_value.transform()
                     # If this substitution is an override, and the parent is still being processed,
@@ -661,9 +660,10 @@ class ConfigParser(object):
                         cache_values = cache.get(substitution)
                         if cache_values is None:
                             continue
-                    if not isinstance(resolved_value, ConfigValues):
+
+                    if resolved_value:
                         cache_values.append(substitution)
-                        overrides = [s for s in substitutions if s.parent.overriden_value == substitution.parent]
+                        overrides = [s for s in substitutions if s.parent.overridden_value == substitution.parent]
                         if len(overrides) > 0:
                             for o in overrides:
                                 values = cache.get(o) if cache.get(o) is not None else []

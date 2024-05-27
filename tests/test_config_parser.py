@@ -40,10 +40,13 @@ class TestConfigParser(object):
                         "first line"
                         "second" line
                         \"\"\"
+                    \"\"\"z\"\"\": sample
                 }
                 j = [1, 2, 3]
                 u = 192.168.1.3/32
                 g = null
+                \"\"\"z\"\"\" = 1
+                \"\"\"z2\"\"\": 21
             }
             """
         )
@@ -52,6 +55,7 @@ class TestConfigParser(object):
         assert config.get_int('t.c') == 5
         assert config.get_float('t.c') == 5.0
         assert config.get('t.e.y.f') == 7
+        assert config.get('t.e.y.z') == 'sample'
         assert config.get('t.e.y.g') == 'hey dude!'
         assert config.get('t.e.y.h') == 'hey man'
         assert [v.strip() for v in config.get('t.e.y.i').split('\n')] == ['', '"first line"', '"second" line', '']
@@ -65,6 +69,8 @@ class TestConfigParser(object):
         assert config.get_bool('t.g') is None
         assert config.get_list('t.g') is None
         assert config.get_config('t.g') is None
+        assert config.get('t.z') == 1
+        assert config.get('t.z2') == 21
 
     @pytest.mark.parametrize('forbidden_char', ['+', '`', '^', '?', '!', '@', '*', '&'])
     def test_fail_parse_forbidden_characters(self, forbidden_char):
@@ -2516,7 +2522,7 @@ www.example-ö.com {
             config.get_string(u'www.example-ö.com.us.name.missing')
 
     def test_with_comment_on_last_line(self):
-        # Adress issue #102
+        # Address issue #102
         config_tree = ConfigFactory.parse_string("""
         foo: "1"
         bar: "2"
@@ -2541,9 +2547,9 @@ www.example-ö.com {
         }
         assert expected == config_tree
 
-    def test_merge_overriden(self):
-        # Adress issue #110
-        # ConfigValues must merge with its .overriden_value
+    def test_merge_overridden(self):
+        # Address issue #110
+        # ConfigValues must merge with its .overridden_value
         # if both are ConfigTree
         config_tree = ConfigFactory.parse_string("""
         foo: ${bar}
@@ -2653,6 +2659,27 @@ www.example-ö.com {
         config = ConfigFactory.parse_string(source)
         assert config == expected
         assert config == json.loads(source)
+
+    def test_nested_substitution(self):
+        config = ConfigFactory.parse_file("samples/substitutions.d/child.conf")
+        assert config.get_int("foo.foo-inner.foo-sub") == 11
+        assert config.get_int("bar.bar-inner.foo-sub") == 11
+
+    def test_triple_quotes_keys(self):
+        config = ConfigFactory.parse_string("\"\"\"foo\"\"\" = bar")
+        assert config['foo'] == 'bar'
+
+    def test_triple_quotes_keys_triple_quotes_values(self):
+        config = ConfigFactory.parse_string("\"\"\"foo\"\"\" = \"\"\"bar\"\"\"")
+        assert config['foo'] == 'bar'
+
+    def test_triple_quotes_keys_second_separator(self):
+        config = ConfigFactory.parse_string("\"\"\"foo\"\"\": bar")
+        assert config['foo'] == 'bar'
+
+    def test_triple_quotes_keys_triple_quotes_values_second_separator(self):
+        config = ConfigFactory.parse_string("\"\"\"foo\"\"\": \"\"\"bar\"\"\"")
+        assert config['foo'] == 'bar'
 
 
 try:
