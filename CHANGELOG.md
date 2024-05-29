@@ -1,5 +1,15 @@
 # Changelog
 
+# Version 0.3.61
+
+* fix(tox): remove old EOLed python 3.x versions, added new python versions (@pierresouchay) [#330]
+* substitution fix (@carolguo-dd, @darthbear) [#308] [#329]
+* period parser fix (@pierresouchay, @darthbear) [#326] [#327] [#328]
+* fix(config_parser): handle substitutions with resolved values of type ConfigValues (@M0dEx) [#322]
+* Added support for triple quoted keys (@jakub-szewczyk-exa) [#318]
+* Fixed typos and spellings (@jsoref) [#315]
+
+
 # Version 0.3.60
 
 * Update pyparsing requirement from ~=2.0 to >=2,<4 (@ecederstrand) [#296]
