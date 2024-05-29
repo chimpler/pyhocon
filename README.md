@@ -390,6 +390,7 @@ assert config == d
   - Kevin Fong ([@KevinMFong](https://github.com/KevinMFong))
   - Erik Cederstrand ([@ecederstrand](https://github.com/ecederstrand))
   - Pierre Souchay ([@pierresouchay](https://github.com/pierresouchay))
+  - Josh Soref ([@jsoref](https://github.com/jsoref))
   - Carol Guo ([@carolguo-dd](https://github.com/carolguo-dd))
   - Jakub Kubík ([@M0dEx](https://github.com/M0dEx))
   - Jakub Szewczyk ([@jakub-szewczyk-exa](https://github.com/jakub-szewczyk-exa))
