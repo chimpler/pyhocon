@@ -901,7 +901,7 @@ class TestConfigParser(object):
         )
         assert config.get("x") == [-3, -2, -1, 0, 1, 2, 3, 4, 5, 6]
 
-    def test_self_append_array(self):
+    def test_self_extend_array(self):
         config = ConfigFactory.parse_string(
             """
             x = [1,2]
@@ -909,6 +909,37 @@ class TestConfigParser(object):
             """
         )
         assert config.get("x") == [1, 2, 3, 4]
+
+    def test_self_append_array(self):
+        config = ConfigFactory.parse_string(
+            """
+            x = [1,2]
+            x += 3
+            """
+        )
+        assert config.get("x") == [1, 2, 3]
+
+    def test_self_extend_array_inside_dict(self):
+        config = ConfigFactory.parse_string(
+            """
+            d {
+                x = [1,2]
+                x += [3,4]
+            }
+            """
+        )
+        assert config.get("d.x") == [1, 2, 3, 4]
+
+    def test_self_append_array_inside_dict(self):
+        config = ConfigFactory.parse_string(
+            """
+            d {
+                x = [1,2]
+                x += 3
+            }
+            """
+        )
+        assert config.get("d.x") == [1, 2, 3]
 
     def test_self_append_string(self):
         """
@@ -924,6 +955,22 @@ class TestConfigParser(object):
         )
         assert config.get("x") == "abc def"
 
+    def test_self_append_string_inside_dict(self):
+        '''
+        Should be equivalent to
+        x = abc
+        x = ${?x} def
+        '''
+        config = ConfigFactory.parse_string(
+            """
+            d {
+                x = abc
+                x += def
+            }
+            """
+        )
+        assert config.get("d.x") == "abc def"
+
     def test_self_append_non_existent_string(self):
         """
         Should be equivalent to x = ${?x} def
@@ -935,13 +982,21 @@ class TestConfigParser(object):
         )
         assert config.get("x") == " def"
 
-    def test_self_append_nonexistent_array(self):
+    def test_self_extend_nonexistent_array(self):
         config = ConfigFactory.parse_string(
             """
             x += [1,2]
             """
         )
         assert config.get("x") == [1, 2]
+
+    def test_self_append_nonexistent_array(self):
+        config = ConfigFactory.parse_string(
+            """
+            x += 1
+            """
+        )
+        assert config.get("x") == [1]
 
     def test_self_append_object(self):
         config = ConfigFactory.parse_string(
@@ -951,6 +1006,17 @@ class TestConfigParser(object):
             """
         )
         assert config.get("x") == {'a': 1, 'b': 2}
+
+    def test_self_append_object_inside_dict(self):
+        config = ConfigFactory.parse_string(
+            """
+            d {
+                x = {a: 1}
+                x += {b: 2}
+            }
+            """
+        )
+        assert config.get("d.x") == {'a': 1, 'b': 2}
 
     def test_self_append_nonexistent_object(self):
         config = ConfigFactory.parse_string(
