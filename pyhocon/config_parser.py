@@ -7,27 +7,13 @@ import re
 import socket
 import sys
 
-import pyparsing
 from pyparsing import (Forward, Group, Keyword, Literal, Optional,
                        ParserElement, ParseSyntaxException, QuotedString,
                        Regex, SkipTo, StringEnd, Suppress, TokenConverter,
                        Word, ZeroOrMore, alphanums, alphas8bit, col, lineno,
-                       replaceWith)
+                       replace_with)
 
 from pyhocon.period_parser import get_period_expr
-
-# Fix deepcopy issue with pyparsing
-if sys.version_info >= (3, 8):
-    def fixed_get_attr(self, item):
-        if item == '__deepcopy__':
-            raise AttributeError(item)
-        try:
-            return self[item]
-        except KeyError:
-            return ""
-
-
-    pyparsing.ParseResults.__getattr__ = fixed_get_attr
 
 from pyhocon.config_tree import (ConfigInclude, ConfigList, ConfigQuotedString,
                                  ConfigSubstitution, ConfigTree,
@@ -142,7 +128,7 @@ class ConfigFactory(object):
         except IOError as e:
             if required:
                 raise e
-            logger.warn('Cannot include file %s. File does not exist or cannot be read.', filename)
+            logger.warning('Cannot include file %s. File does not exist or cannot be read.', filename)
             return []
 
     @classmethod
@@ -167,7 +153,7 @@ class ConfigFactory(object):
                 content = fd.read() if use_urllib2 else fd.read().decode('utf-8')
                 return cls.parse_string(content, os.path.dirname(url), resolve, unresolved_value)
         except (HTTPError, URLError) as e:
-            logger.warn('Cannot include url %s. Resource is inaccessible.', url)
+            logger.warning('Cannot include url %s. Resource is inaccessible.', url)
             if required:
                 raise e
             else:
@@ -376,17 +362,17 @@ class ConfigParser(object):
         @contextlib.contextmanager
         def set_default_white_spaces():
             default = ParserElement.DEFAULT_WHITE_CHARS
-            ParserElement.setDefaultWhitespaceChars(' \t')
+            ParserElement.set_default_whitespace_chars(' \t')
             yield
-            ParserElement.setDefaultWhitespaceChars(default)
+            ParserElement.set_default_whitespace_chars(default)
 
         with set_default_white_spaces():
             assign_expr = Forward()
-            true_expr = Keyword("true", caseless=True).setParseAction(replaceWith(True))
-            false_expr = Keyword("false", caseless=True).setParseAction(replaceWith(False))
-            null_expr = Keyword("null", caseless=True).setParseAction(replaceWith(NoneValue()))
-            key = QuotedString('"""', escChar='\\', unquoteResults=False) | \
-                  QuotedString('"', escChar='\\', unquoteResults=False) | Word(alphanums + alphas8bit + '._- /')
+            true_expr = Keyword("true", caseless=True).set_parse_action(replace_with(True))
+            false_expr = Keyword("false", caseless=True).set_parse_action(replace_with(False))
+            null_expr = Keyword("null", caseless=True).set_parse_action(replace_with(NoneValue()))
+            key = QuotedString('"""', esc_char='\\', unquote_results=False) | \
+                  QuotedString('"', esc_char='\\', unquote_results=False) | Word(alphanums + alphas8bit + '._- /')
 
             eol = Word('\n\r').suppress()
             eol_comma = Word('\n\r,').suppress()
@@ -394,20 +380,20 @@ class ConfigParser(object):
             comment_eol = Suppress(Optional(eol_comma) + comment)
             comment_no_comma_eol = (comment | eol).suppress()
             number_expr = Regex(r'[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE][+\-]?\d+)?(?=$|[ \t]*([\$\}\],#\n\r]|//))',
-                                re.DOTALL).setParseAction(convert_number)
+                                re.DOTALL).set_parse_action(convert_number)
             # multi line string using """
             # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
-            multiline_string = Regex('""".*?"*"""', re.DOTALL | re.UNICODE).setParseAction(parse_multi_string)
+            multiline_string = Regex('""".*?"*"""', re.DOTALL | re.UNICODE).set_parse_action(parse_multi_string)
             # single quoted line string
-            quoted_string = Regex(r'"(?:[^"\\\n]|\\.)*"[ \t]*', re.UNICODE).setParseAction(create_quoted_string)
+            quoted_string = Regex(r'"(?:[^"\\\n]|\\.)*"[ \t]*', re.UNICODE).set_parse_action(create_quoted_string)
             # unquoted string that takes the rest of the line until an optional comment
             # we support .properties multiline support which is like this:
             # line1  \
             # line2 \
             # so a backslash precedes the \n
-            unquoted_string = Regex(r'(?:[^^`+?!@*&"\[\{\s\]\}#,=\$\\]|\\.)+[ \t]*', re.UNICODE).setParseAction(
+            unquoted_string = Regex(r'(?:[^^`+?!@*&"\[\{\s\]\}#,=\$\\]|\\.)+[ \t]*', re.UNICODE).set_parse_action(
                 unescape_string)
-            substitution_expr = Regex(r'[ \t]*\$\{[^\}]+\}[ \t]*').setParseAction(create_substitution)
+            substitution_expr = Regex(r'[ \t]*\$\{[^\}]+\}[ \t]*').set_parse_action(create_substitution)
             string_expr = multiline_string | quoted_string | unquoted_string
 
             value_expr = get_period_expr() | number_expr | true_expr | false_expr | null_expr | string_expr
@@ -422,7 +408,7 @@ class ConfigParser(object):
                     Keyword("required") - Literal('(').suppress() - include_content - Literal(')').suppress()
             )
             )
-            ).setParseAction(include_config)
+            ).set_parse_action(include_config)
 
             root_dict_expr = Forward()
             dict_expr = Forward()
@@ -451,7 +437,7 @@ class ConfigParser(object):
             config_expr = ZeroOrMore(comment_eol | eol) + (
                     list_expr | root_dict_expr | inside_root_dict_expr) + ZeroOrMore(
                 comment_eol | eol_comma)
-            config = config_expr.parseString(content, parseAll=True)[0]
+            config = config_expr.parse_string(content, parse_all=True)[0]
 
             if resolve:
                 allow_unresolved = resolve and unresolved_value is not DEFAULT_SUBSTITUTION \
