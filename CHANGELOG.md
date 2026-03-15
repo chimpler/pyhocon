@@ -1,5 +1,36 @@
 # Changelog
 
+# Version 0.3.61
+
+* fix(tox): remove old EOLed python 3.x versions, added new python versions (@pierresouchay) [#330]
+* substitution fix (@carolguo-dd, @darthbear) [#308] [#329]
+* period parser fix (@pierresouchay, @darthbear) [#326] [#327] [#328]
+* fix(config_parser): handle substitutions with resolved values of type ConfigValues (@M0dEx) [#322]
+* Added support for triple quoted keys (@jakub-szewczyk-exa) [#318]
+* Fixed typos and spellings (@jsoref) [#315]
+
+
+# Version 0.3.60
+
+* Update pyparsing requirement from ~=2.0 to >=2,<4 (@ecederstrand) [#296]
+* Fixes for dict substitution (@USSX-Hares) [#292]
+* Fix: Tests on Windows (@USSX-Hares) [#291]
+* Fix broken overrides (@afanasev) [#287]
+
+# Version 0.3.59
+
+* Resolve namespace package (@yifeitao) [#264]
+* Update pyparsing requires lock to be more strict [#275]
+
+# Version 0.3.58
+
+* Adding the resolve method to resolve substitution keys in 1 config tree with another config tree (@borissmidt) [#266]
+* Support serializing timedelta and relativedelta to string (hocon, json etc.) (@gabis-precog) [#263]
+* Upgrade to GitHub-native Dependabot (@dependabot-preview) [#260]
+* Process substitution overrides in order (@JettJones) [#257]
+* Fix duration parsing in lists (@olii) [#255]
+* Add support for Python 3.9 and fix deprecation warning (@olii) [#254]
+
 # Version 0.3.57
 
 * Rewrite the logic to resolve package-relative paths so we can remove the "asset" library (@klamann) [#247]
@@ -206,7 +237,7 @@
 
 # Version 0.3.13
 
-* Fixed dictionary substititution merge. PR[#52]
+* Fixed dictionary substitution merge. PR[#52]
 
 # Version 0.3.12
 
@@ -244,13 +275,13 @@
 
 # Version 0.3.4
 
-* Fixed substitutions that are overriden later on by a non substitution. PR[#34]
+* Fixed substitutions that are overridden later on by a non substitution. PR[#34]
 * Added logging. PR[#30] and PR[#31]
 
 # Version 0.3.3
 
 * Fixed optional substitution when overriding elements at the same level. PR[#28]
-* Silent IOErrors when including non-existent files. PR[#24]
+* Silent IOErrors when including nonexistent files. PR[#24]
 * Fixed when assign key to a value, list or dict that starts with eol. PR[#22]
 
 ## Version 0.3.2

@@ -7,10 +7,19 @@ import tempfile
 from collections import OrderedDict
 from datetime import timedelta
 
-from pyparsing import ParseBaseException, ParseException, ParseSyntaxException
+try:
+    # Python 3
+    from urllib.request import pathname2url
+except ImportError:
+    # Python 2
+    from urllib import pathname2url
+
 import mock
 import pytest
-from pyhocon import (ConfigFactory, ConfigParser, ConfigSubstitutionException, ConfigTree)
+from pyparsing import ParseBaseException, ParseException, ParseSyntaxException
+
+from pyhocon import (ConfigFactory, ConfigParser, ConfigSubstitutionException,
+                     ConfigTree, HOCONConverter)
 from pyhocon.exceptions import (ConfigException, ConfigMissingException,
                                 ConfigWrongTypeException)
 
@@ -18,7 +27,6 @@ try:
     from dateutil.relativedelta import relativedelta as period
 except Exception:
     from datetime import timedelta as period
-
 
 class TestConfigParser(object):
     def test_parse_simple_value(self):
@@ -34,10 +42,13 @@ class TestConfigParser(object):
                         "first line"
                         "second" line
                         \"\"\"
+                    \"\"\"z\"\"\": sample
                 }
                 j = [1, 2, 3]
                 u = 192.168.1.3/32
                 g = null
+                \"\"\"z\"\"\" = 1
+                \"\"\"z2\"\"\": 21
             }
             """
         )
@@ -46,6 +57,7 @@ class TestConfigParser(object):
         assert config.get_int('t.c') == 5
         assert config.get_float('t.c') == 5.0
         assert config.get('t.e.y.f') == 7
+        assert config.get('t.e.y.z') == 'sample'
         assert config.get('t.e.y.g') == 'hey dude!'
         assert config.get('t.e.y.h') == 'hey man'
         assert [v.strip() for v in config.get('t.e.y.i').split('\n')] == ['', '"first line"', '"second" line', '']
@@ -59,6 +71,8 @@ class TestConfigParser(object):
         assert config.get_bool('t.g') is None
         assert config.get_list('t.g') is None
         assert config.get_config('t.g') is None
+        assert config.get('t.z') == 1
+        assert config.get('t.z2') == 21
 
     @pytest.mark.parametrize('forbidden_char', ['+', '`', '^', '?', '!', '@', '*', '&'])
     def test_fail_parse_forbidden_characters(self, forbidden_char):
@@ -88,6 +102,27 @@ class TestConfigParser(object):
         )
 
         assert config.get_string('a.b') == '5'
+
+    def test_parse_with_enclosing_brace_and_period_like_value(self):
+        config = ConfigFactory.parse_string(
+            """
+            {
+                a: {
+                    b: 5
+                    y_min: 42
+                }
+            }
+            """
+        )
+
+        assert config.get_string('a.b') == '5'
+        assert config.get_string('a.y_min') == '42'
+
+
+    def test_issue_324(self):
+        config = ConfigFactory.parse_string("a { c = 3\nd = 4 }")
+        assert config["a"]["c"] == 3
+        assert config["a"]["d"] == 4
 
     @pytest.mark.parametrize('data_set', [
         ('a: 1 minutes', period(minutes=1)),
@@ -156,7 +191,14 @@ class TestConfigParser(object):
             c: bar
             """
         )
-        assert config['b'] == ['a', 1, period(weeks=10), period(minutes=5)]
+        # Depending if parsing dates is enabled, might parse date or might not
+        # since this is an optional dependency
+        assert (
+                config['b'] == ['a', 1, period(weeks=10), period(minutes=5)]
+            ) or (
+                config['b'] == ['a', 1, '10 weeks', '5 minutes']
+            )
+
 
     def test_parse_with_enclosing_square_bracket(self):
         config = ConfigFactory.parse_string("[1, 2, 3]")
@@ -606,6 +648,58 @@ class TestConfigParser(object):
             'cluster-size': 6
         }
 
+    def test_dict_substitutions2(self):
+        config = ConfigFactory.parse_string(
+            """
+                data-center-generic = { cluster-size = 6 }
+                data-center-east = ${data-center-generic}
+                data-center-east.name = "east"
+            """
+        )
+
+        assert config.get('data-center-east.cluster-size') == 6
+        assert config.get('data-center-east.name') == 'east'
+
+        config2 = ConfigFactory.parse_string(
+            """
+                data-center-generic = { cluster-size = 6 }
+                data-center-east.name = "east"
+                data-center-east = ${data-center-generic}
+            """
+        )
+
+        assert config2.get('data-center-east.cluster-size') == 6
+        assert config2.get('data-center-east.name') == 'east'
+
+        config3 = ConfigFactory.parse_string(
+            """
+                data-center-generic = { cluster-size = 6 }
+                data-center-east.name = "east"
+                data-center-east = ${data-center-generic}
+                data-center-east.cluster-size = 9
+                data-center-east.opts = "-Xmx4g"
+            """
+        )
+
+        assert config3.get('data-center-east.cluster-size') == 9
+        assert config3.get('data-center-east.name') == 'east'
+        assert config3.get('data-center-east.opts') == '-Xmx4g'
+
+        config4 = ConfigFactory.parse_string(
+            """
+                data-center-generic = { cluster-size = 6 }
+                data-center-east.name = "east"
+                data-center-east = ${data-center-generic}
+                data-center-east-prod = ${data-center-east}
+                data-center-east-prod.tmpDir=/tmp
+            """
+        )
+
+        assert config4.get('data-center-east.cluster-size') == 6
+        assert config4.get('data-center-east.name') == 'east'
+        assert config4.get('data-center-east-prod.cluster-size') == 6
+        assert config4.get('data-center-east-prod.tmpDir') == '/tmp'
+
     def test_dos_chars_with_unquoted_string_noeol(self):
         config = ConfigFactory.parse_string("foo = bar")
         assert config['foo'] == 'bar'
@@ -817,11 +911,11 @@ class TestConfigParser(object):
         assert config.get("x") == [1, 2, 3, 4]
 
     def test_self_append_string(self):
-        '''
+        """
         Should be equivalent to
         x = abc
         x = ${?x} def
-        '''
+        """
         config = ConfigFactory.parse_string(
             """
             x = abc
@@ -831,9 +925,9 @@ class TestConfigParser(object):
         assert config.get("x") == "abc def"
 
     def test_self_append_non_existent_string(self):
-        '''
+        """
         Should be equivalent to x = ${?x} def
-        '''
+        """
         config = ConfigFactory.parse_string(
             """
             x += def
@@ -879,7 +973,7 @@ class TestConfigParser(object):
         assert config.get("x.y") == [5, 6]
         assert config.get("x.z") == {'x': [3, 4], 'y': [5, 6]}
 
-    def test_self_ref_substitiotion_dict_in_array(self):
+    def test_self_ref_substitution_dict_in_array(self):
         config = ConfigFactory.parse_string(
             """
             x = {x: [3,4]}
@@ -930,9 +1024,9 @@ class TestConfigParser(object):
             )
 
     def test_self_ref_substitution_dict_merge(self):
-        '''
+        """
         Example from HOCON spec
-        '''
+        """
         config = ConfigFactory.parse_string(
             """
             foo : { a : { c : 1 } }
@@ -943,10 +1037,10 @@ class TestConfigParser(object):
         assert config.get('foo') == {'a': 2, 'c': 1}
         assert set(config.keys()) == set(['foo'])
 
-    def test_self_ref_substitution_dict_otherfield(self):
-        '''
+    def test_self_ref_substitution_dict_other_field(self):
+        """
         Example from HOCON spec
-        '''
+        """
         config = ConfigFactory.parse_string(
             """
             bar : {
@@ -958,10 +1052,10 @@ class TestConfigParser(object):
         assert config.get("bar") == {'foo': 42, 'baz': 42}
         assert set(config.keys()) == set(['bar'])
 
-    def test_self_ref_substitution_dict_otherfield_merged_in(self):
-        '''
+    def test_self_ref_substitution_dict_other_field_merged_in(self):
+        """
         Example from HOCON spec
-        '''
+        """
         config = ConfigFactory.parse_string(
             """
             bar : {
@@ -974,10 +1068,10 @@ class TestConfigParser(object):
         assert config.get("bar") == {'foo': 43, 'baz': 43}
         assert set(config.keys()) == set(['bar'])
 
-    def test_self_ref_substitution_dict_otherfield_merged_in_mutual(self):
-        '''
+    def test_self_ref_substitution_dict_other_field_merged_in_mutual(self):
+        """
         Example from HOCON spec
-        '''
+        """
         config = ConfigFactory.parse_string(
             """
             // bar.a should end up as 4
@@ -993,9 +1087,9 @@ class TestConfigParser(object):
         assert set(config.keys()) == set(['bar', 'foo'])
 
     def test_self_ref_substitution_string_opt_concat(self):
-        '''
+        """
         Example from HOCON spec
-        '''
+        """
         config = ConfigFactory.parse_string(
             """
             a = ${?a}foo
@@ -1039,6 +1133,36 @@ class TestConfigParser(object):
         )
         assert config.get("a") == {'b': 3, 'c': [1, 2], 'd': {'foo': 'bar'}}
 
+    def test_self_ref_child2(self):
+        config = ConfigFactory.parse_string(
+            """
+                a.b = 3
+                a.b = ${a.b}
+                a.b = ${a.b} foo
+                a.b = ${a.b}
+                a.c = [1,2]
+                a.c = ${a.c}
+                a.d = {foo: bar}
+                a.d = ${a.d}
+                a.e = ${a.b} bar
+            """
+        )
+        assert config.get("a.b") == "3 foo"
+        assert config.get("a.c") == [1, 2]
+        assert config.get("a.d") == {'foo': 'bar'}
+        assert config.get("a.e") == "3 foo bar"
+
+    def test_sequential_self_ref_concat_string(self):
+        config = ConfigFactory.parse_string(
+            """
+            string = abc
+            string += def
+            string = ${string}ghi
+            string += jkl
+            """
+        )
+        assert config.get("string") == 'abc defghi jkl'
+
     def test_concat_multi_line_string(self):
         config = ConfigFactory.parse_string(
             """
@@ -1072,12 +1196,12 @@ class TestConfigParser(object):
 
         assert config['common_modules'] == {'a': 'perl', 'b': 'java', 'c': 'python'}
 
-    def test_parse_URL_from_samples(self):
+    def test_parse_url_from_samples(self):
         config = ConfigFactory.parse_URL("file:samples/aws.conf")
         assert config.get('data-center-generic.cluster-size') == 6
         assert config.get('large-jvm-opts') == ['-XX:+UseParNewGC', '-Xm16g']
 
-    def test_parse_URL_from_invalid(self):
+    def test_parse_url_from_invalid(self):
         config = ConfigFactory.parse_URL("https://nosuchurl")
         assert config == []
 
@@ -1193,16 +1317,18 @@ class TestConfigParser(object):
             ConfigFactory.parse_string('a = {g}')
 
     def test_include_file(self):
-        with tempfile.NamedTemporaryFile('w') as fdin:
+        with tempfile.NamedTemporaryFile('w', delete=False) as fdin:
             fdin.write('[1, 2]')
             fdin.flush()
+            incl_name = HOCONConverter._escape_string(fdin.name)
 
+        try:
             config1 = ConfigFactory.parse_string(
                 """
                 a: [
                     include "{tmp_file}"
                 ]
-                """.format(tmp_file=fdin.name)
+                """.format(tmp_file=incl_name)
             )
             assert config1['a'] == [1, 2]
 
@@ -1211,18 +1337,21 @@ class TestConfigParser(object):
                 a: [
                     include file("{tmp_file}")
                 ]
-                """.format(tmp_file=fdin.name)
+                """.format(tmp_file=incl_name)
             )
             assert config2['a'] == [1, 2]
 
             config3 = ConfigFactory.parse_string(
                 """
                 a: [
-                    include url("file://{tmp_file}")
+                    include url("file:{tmp_file}")
                 ]
-                """.format(tmp_file=fdin.name)
+                """.format(tmp_file=pathname2url(incl_name))
             )
             assert config3['a'] == [1, 2]
+
+        finally:
+            os.remove(incl_name)
 
     def test_include_missing_file(self):
         config1 = ConfigFactory.parse_string(
@@ -1321,10 +1450,12 @@ class TestConfigParser(object):
             'c': 3,
             'd': 4
         }
-        with tempfile.NamedTemporaryFile('w') as fdin:
+        with tempfile.NamedTemporaryFile('w', delete=False) as fdin:
             fdin.write('{a: 1, b: 2}')
             fdin.flush()
+            incl_name = HOCONConverter._escape_string(fdin.name)
 
+        try:
             config1 = ConfigFactory.parse_string(
                 """
                 a: {{
@@ -1332,7 +1463,7 @@ class TestConfigParser(object):
                     c: 3
                     d: 4
                 }}
-                """.format(tmp_file=fdin.name)
+                """.format(tmp_file=incl_name)
             )
             assert config1['a'] == expected_res
 
@@ -1343,7 +1474,7 @@ class TestConfigParser(object):
                     d: 4
                     include "{tmp_file}"
                 }}
-                """.format(tmp_file=fdin.name)
+                """.format(tmp_file=incl_name)
             )
             assert config2['a'] == expected_res
 
@@ -1354,40 +1485,52 @@ class TestConfigParser(object):
                     include "{tmp_file}"
                     d: 4
                 }}
-                """.format(tmp_file=fdin.name)
+                """.format(tmp_file=incl_name)
             )
             assert config3['a'] == expected_res
+        finally:
+            os.remove(incl_name)
 
     def test_include_substitution(self):
-        with tempfile.NamedTemporaryFile('w') as fdin:
+        with tempfile.NamedTemporaryFile('w', delete=False) as fdin:
             fdin.write('y = ${x}')
             fdin.flush()
+            incl_name = HOCONConverter._escape_string(fdin.name)
 
+        try:
             config = ConfigFactory.parse_string(
                 """
                 include "{tmp_file}"
                 x = 42
-                """.format(tmp_file=fdin.name)
+                """.format(tmp_file=incl_name)
             )
             assert config['x'] == 42
             assert config['y'] == 42
 
+        finally:
+            os.remove(incl_name)
+
     @pytest.mark.xfail
     def test_include_substitution2(self):
-        with tempfile.NamedTemporaryFile('w') as fdin:
+        with tempfile.NamedTemporaryFile('w', delete=False) as fdin:
             fdin.write('{ x : 10, y : ${x} }')
             fdin.flush()
+            incl_name = HOCONConverter._escape_string(fdin.name)
 
+        try:
             config = ConfigFactory.parse_string(
                 """
                 {
-                    a : { include """ + '"' + fdin.name + """" }
+                    a : { include """ + '"' + incl_name + """" }
                     a : { x : 42 }
                 }
                 """
             )
             assert config['a']['x'] == 42
             assert config['a']['y'] == 42
+
+        finally:
+            os.remove(incl_name)
 
     def test_var_with_include_keyword(self):
         config = ConfigFactory.parse_string(
@@ -1450,6 +1593,90 @@ class TestConfigParser(object):
 
         assert config['c'] == 'foo 1'
         assert config['d'] == '1 bar'
+
+    def test_substitution_multiple_override2(self):
+        config = ConfigFactory.parse_string(
+            """
+            common = common
+            original = ${common}/original
+            result = ${original}
+            replaced = ${common}/replaced
+            result = ${replaced}
+            copy = ${result}
+            """)
+
+        assert config['result'] == 'common/replaced'
+        assert config['copy'] == 'common/replaced'
+
+    def test_substitution_multiple_override2a(self):
+        config = ConfigFactory.parse_string(
+            """
+            common = common
+            original = ${common}/original
+            var.result = var/${original}
+            replaced = ${common}/replaced
+            var.result = var/${replaced}
+            copy = ${var.result}
+            """)
+
+        assert config['var.result'] == 'var/common/replaced'
+        assert config['copy'] == 'var/common/replaced'
+
+    def test_substitution_multiple_override3(self):
+        config = ConfigFactory.parse_string(
+            """
+            parent.child = ""
+            result = ${parent.child}
+            var1 = val1
+            var2 = val2
+            parent.child = ${var1} ${var2}
+            parent.child = ${var1} ${var2} testval
+            """)
+
+        assert "testval" in config['parent.child']
+        assert "testval" in config['result']
+
+    def test_substitution_multiple_override4(self):
+        config = ConfigFactory.parse_string(
+            """
+            a = a
+            b = b
+            c = c
+            result = ${c} ${b} ${a}
+            d = d
+            e = e
+            result = ${d} ${c} ${e}
+            """)
+
+        assert "a" not in config['result']
+
+    def test_substitution_multiple_override5(self):
+        config = ConfigFactory.parse_string(
+            """
+            address1 = ${host}":"${port1}
+            address2 = ${host}":"${port2}
+            address = ${address1}
+            address = ${address2}
+            host=${my_host}
+            port1=111
+            port2=222
+            my_host = myhost.com
+            """)
+
+        assert "222" in config['address']
+
+    def test_substitution_multiple_override6(self):
+        config = ConfigFactory.parse_string(
+            """
+            a = foo
+            b = ${a}
+            c = bar
+            d = ${b} ${c}
+            d = ${c}
+            result = ${d}
+            """)
+
+        assert "foo" not in config['result']
 
     def test_substitution_nested_override(self):
         config = ConfigFactory.parse_string(
@@ -1520,6 +1747,21 @@ class TestConfigParser(object):
             'num': 3,
             'retries_msg': 'You have 3 retries'
         }
+
+    def test_override_optional_substitution(self):
+        config = ConfigFactory.parse_string(
+            """
+              a = 3
+              test = ${a}
+              test = ${?b}
+              result = ${test}
+            """)
+        assert config == {
+            'a' : 3,
+            'test': 3,
+            'result': 3
+        }
+
 
     def test_substitution_cycle(self):
         with pytest.raises(ConfigSubstitutionException):
@@ -2296,7 +2538,7 @@ www.example-ö.com {
             config.get_string(u'www.example-ö.com.us.name.missing')
 
     def test_with_comment_on_last_line(self):
-        # Adress issue #102
+        # Address issue #102
         config_tree = ConfigFactory.parse_string("""
         foo: "1"
         bar: "2"
@@ -2321,9 +2563,9 @@ www.example-ö.com {
         }
         assert expected == config_tree
 
-    def test_merge_overriden(self):
-        # Adress issue #110
-        # ConfigValues must merge with its .overriden_value
+    def test_merge_overridden(self):
+        # Address issue #110
+        # ConfigValues must merge with its .overridden_value
         # if both are ConfigTree
         config_tree = ConfigFactory.parse_string("""
         foo: ${bar}
@@ -2434,9 +2676,31 @@ www.example-ö.com {
         assert config == expected
         assert config == json.loads(source)
 
+    def test_nested_substitution(self):
+        config = ConfigFactory.parse_file("samples/substitutions.d/child.conf")
+        assert config.get_int("foo.foo-inner.foo-sub") == 11
+        assert config.get_int("bar.bar-inner.foo-sub") == 11
+
+    def test_triple_quotes_keys(self):
+        config = ConfigFactory.parse_string("\"\"\"foo\"\"\" = bar")
+        assert config['foo'] == 'bar'
+
+    def test_triple_quotes_keys_triple_quotes_values(self):
+        config = ConfigFactory.parse_string("\"\"\"foo\"\"\" = \"\"\"bar\"\"\"")
+        assert config['foo'] == 'bar'
+
+    def test_triple_quotes_keys_second_separator(self):
+        config = ConfigFactory.parse_string("\"\"\"foo\"\"\": bar")
+        assert config['foo'] == 'bar'
+
+    def test_triple_quotes_keys_triple_quotes_values_second_separator(self):
+        config = ConfigFactory.parse_string("\"\"\"foo\"\"\": \"\"\"bar\"\"\"")
+        assert config['foo'] == 'bar'
+
 
 try:
     from dateutil.relativedelta import relativedelta
+
 
     @pytest.mark.parametrize('data_set', [
         ('a: 1 months', relativedelta(months=1)),
@@ -2457,5 +2721,5 @@ try:
         config = ConfigFactory.parse_string(data_set[0])
 
         assert config['a'] == data_set[1]
-except Exception:
+except ImportError:
     pass

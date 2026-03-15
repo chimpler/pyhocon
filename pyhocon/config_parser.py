@@ -1,40 +1,25 @@
 import codecs
 import contextlib
 import copy
-import itertools
 import logging
 import os
 import re
 import socket
 import sys
-from datetime import timedelta
-
-import pyparsing
 
 from pyparsing import (Forward, Group, Keyword, Literal, Optional,
                        ParserElement, ParseSyntaxException, QuotedString,
                        Regex, SkipTo, StringEnd, Suppress, TokenConverter,
                        Word, ZeroOrMore, alphanums, alphas8bit, col, lineno,
-                       replaceWith, Or, nums, White, WordEnd)
+                       replace_with)
 
-# Fix deepcopy issue with pyparsing
-if sys.version_info >= (3, 8):
-    def fixed_get_attr(self, item):
-        if item == '__deepcopy__':
-            raise AttributeError(item)
-        try:
-            return self[item]
-        except KeyError:
-            return ""
-
-    pyparsing.ParseResults.__getattr__ = fixed_get_attr
+from pyhocon.period_parser import get_period_expr
 
 from pyhocon.config_tree import (ConfigInclude, ConfigList, ConfigQuotedString,
                                  ConfigSubstitution, ConfigTree,
                                  ConfigUnquotedString, ConfigValues, NoneValue)
 from pyhocon.exceptions import (ConfigException, ConfigMissingException,
                                 ConfigSubstitutionException)
-
 
 use_urllib2 = False
 try:
@@ -62,28 +47,30 @@ if sys.version_info < (3, 5):
 else:
     from glob import glob
 
-
 # Fix deprecated warning with 'imp' library and Python 3.4+.
 # See: https://github.com/chimpler/pyhocon/issues/248
 if sys.version_info >= (3, 4):
     import importlib.util
 
-    def find_package_dir(name):
+
+    def find_package_dirs(name):
         spec = importlib.util.find_spec(name)
         # When `imp.find_module()` cannot find a package it raises ImportError.
         # Here we should simulate it to keep the compatibility with older
         # versions.
         if not spec:
             raise ImportError('No module named {!r}'.format(name))
-        return os.path.dirname(spec.origin)
+        return spec.submodule_search_locations
 else:
     import imp
+    import importlib
 
-    def find_package_dir(name):
-        return imp.find_module(name)[1]
 
+    def find_package_dirs(name):
+        return [imp.find_module(name)[1]]
 
 logger = logging.getLogger(__name__)
+
 
 #
 # Substitution Defaults
@@ -106,22 +93,11 @@ class STR_SUBSTITUTION(object):
     pass
 
 
-def period(period_value, period_unit):
-    try:
-        from dateutil.relativedelta import relativedelta as period_impl
-    except Exception:
-        from datetime import timedelta as period_impl
+U_KEY_SEP = unicode('.')
+U_KEY_FMT = unicode('"{0}"')
 
-    if period_unit == 'nanoseconds':
-        period_unit = 'microseconds'
-        period_value = int(period_value / 1000)
-
-    arguments = dict(zip((period_unit,), (period_value,)))
-
-    if period_unit == 'milliseconds':
-        return timedelta(**arguments)
-
-    return period_impl(**arguments)
+U_KEY_SEP = unicode('.')
+U_KEY_FMT = unicode('"{0}"')
 
 
 class ConfigFactory(object):
@@ -139,7 +115,7 @@ class ConfigFactory(object):
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
         :param unresolved_value: assigned value to unresolved substitution.
-        If overriden with a default value, it will replace all unresolved values by the default value.
+        If overridden with a default value, it will replace all unresolved values by the default value.
         If it is set to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
         :type unresolved_value: class
         :return: Config object or []
@@ -152,7 +128,7 @@ class ConfigFactory(object):
         except IOError as e:
             if required:
                 raise e
-            logger.warn('Cannot include file %s. File does not exist or cannot be read.', filename)
+            logger.warning('Cannot include file %s. File does not exist or cannot be read.', filename)
             return []
 
     @classmethod
@@ -164,7 +140,7 @@ class ConfigFactory(object):
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
         :param unresolved_value: assigned value to unresolved substitution.
-        If overriden with a default value, it will replace all unresolved values by the default value.
+        If overridden with a default value, it will replace all unresolved values by the default value.
         If it is set to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
         :type unresolved_value: class
         :return: Config object or []
@@ -177,7 +153,7 @@ class ConfigFactory(object):
                 content = fd.read() if use_urllib2 else fd.read().decode('utf-8')
                 return cls.parse_string(content, os.path.dirname(url), resolve, unresolved_value)
         except (HTTPError, URLError) as e:
-            logger.warn('Cannot include url %s. Resource is inaccessible.', url)
+            logger.warning('Cannot include url %s. Resource is inaccessible.', url)
             if required:
                 raise e
             else:
@@ -192,7 +168,7 @@ class ConfigFactory(object):
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
         :param unresolved_value: assigned value to unresolved substitution.
-        If overriden with a default value, it will replace all unresolved values by the default value.
+        If overridden with a default value, it will replace all unresolved values by the default value.
         If it is set to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
         :type unresolved_value: class
         :return: Config object
@@ -240,42 +216,6 @@ class ConfigParser(object):
         '\\"': '"',
     }
 
-    period_type_map = {
-        'nanoseconds': ['ns', 'nano', 'nanos', 'nanosecond', 'nanoseconds'],
-
-        'microseconds': ['us', 'micro', 'micros', 'microsecond', 'microseconds'],
-        'milliseconds': ['ms', 'milli', 'millis', 'millisecond', 'milliseconds'],
-        'seconds': ['s', 'second', 'seconds'],
-        'minutes': ['m', 'minute', 'minutes'],
-        'hours': ['h', 'hour', 'hours'],
-        'weeks': ['w', 'week', 'weeks'],
-        'days': ['d', 'day', 'days'],
-
-    }
-
-    optional_period_type_map = {
-        'months': ['mo', 'month', 'months'],  # 'm' from hocon spec removed. conflicts with minutes syntax.
-        'years': ['y', 'year', 'years']
-    }
-
-    supported_period_map = None
-
-    @classmethod
-    def get_supported_period_type_map(cls):
-        if cls.supported_period_map is None:
-            cls.supported_period_map = {}
-            cls.supported_period_map.update(cls.period_type_map)
-
-            try:
-                from dateutil import relativedelta
-
-                if relativedelta is not None:
-                    cls.supported_period_map.update(cls.optional_period_type_map)
-            except Exception:
-                pass
-
-        return cls.supported_period_map
-
     @classmethod
     def parse(cls, content, basedir=None, resolve=True, unresolved_value=DEFAULT_SUBSTITUTION):
         """parse a HOCON content
@@ -285,7 +225,7 @@ class ConfigParser(object):
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
         :param unresolved_value: assigned value to unresolved substitution.
-        If overriden with a default value, it will replace all unresolved values by the default value.
+        If overridden with a default value, it will replace all unresolved values by the default value.
         If it is set to pyhocon.STR_SUBSTITUTION then it will replace the value by its substitution expression (e.g., ${x})
         :type unresolved_value: boolean
         :return: a ConfigTree or a list
@@ -313,16 +253,6 @@ class ConfigParser(object):
                 return int(n, 10)
             except ValueError:
                 return float(n)
-
-        def convert_period(tokens):
-            period_value = int(tokens.value)
-            period_identifier = tokens.unit
-
-            period_unit = next((single_unit for single_unit, values
-                                in cls.get_supported_period_type_map().items()
-                                if period_identifier in values))
-
-            return period(period_value, period_unit)
 
         # ${path} or ${?path} for optional substitution
         SUBSTITUTION_PATTERN = r"\$\{(?P<optional>\?)?(?P<variable>[^}]+)\}(?P<ws>[ \t]*)"
@@ -432,16 +362,17 @@ class ConfigParser(object):
         @contextlib.contextmanager
         def set_default_white_spaces():
             default = ParserElement.DEFAULT_WHITE_CHARS
-            ParserElement.setDefaultWhitespaceChars(' \t')
+            ParserElement.set_default_whitespace_chars(' \t')
             yield
-            ParserElement.setDefaultWhitespaceChars(default)
+            ParserElement.set_default_whitespace_chars(default)
 
         with set_default_white_spaces():
             assign_expr = Forward()
-            true_expr = Keyword("true", caseless=True).setParseAction(replaceWith(True))
-            false_expr = Keyword("false", caseless=True).setParseAction(replaceWith(False))
-            null_expr = Keyword("null", caseless=True).setParseAction(replaceWith(NoneValue()))
-            key = QuotedString('"', escChar='\\', unquoteResults=False) | Word(alphanums + alphas8bit + '._- /')
+            true_expr = Keyword("true", caseless=True).set_parse_action(replace_with(True))
+            false_expr = Keyword("false", caseless=True).set_parse_action(replace_with(False))
+            null_expr = Keyword("null", caseless=True).set_parse_action(replace_with(NoneValue()))
+            key = QuotedString('"""', esc_char='\\', unquote_results=False) | \
+                  QuotedString('"', esc_char='\\', unquote_results=False) | Word(alphanums + alphas8bit + '._- /')
 
             eol = Word('\n\r').suppress()
             eol_comma = Word('\n\r,').suppress()
@@ -449,56 +380,47 @@ class ConfigParser(object):
             comment_eol = Suppress(Optional(eol_comma) + comment)
             comment_no_comma_eol = (comment | eol).suppress()
             number_expr = Regex(r'[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE][+\-]?\d+)?(?=$|[ \t]*([\$\}\],#\n\r]|//))',
-                                re.DOTALL).setParseAction(convert_number)
-
-            # Flatten the list of lists with unit strings.
-            period_types = list(itertools.chain(*cls.get_supported_period_type_map().values()))
-            # `Or()` tries to match the longest expression if more expressions
-            # are matching. We employ this to match e.g.: 'weeks' so that we
-            # don't end up with 'w' and 'eeks'. Note that 'weeks' but also 'w'
-            # are valid unit identifiers.
-            # Allow only spaces as a valid separator between value and unit.
-            # E.g. \t as a separator is invalid: '10<TAB>weeks'.
-            period_expr = (
-                Word(nums)('value') + ZeroOrMore(White(ws=' ')).suppress() + Or(period_types)('unit') + WordEnd(alphanums).suppress()
-            ).setParseAction(convert_period)
-
+                                re.DOTALL).set_parse_action(convert_number)
             # multi line string using """
             # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
-            multiline_string = Regex('""".*?"*"""', re.DOTALL | re.UNICODE).setParseAction(parse_multi_string)
+            multiline_string = Regex('""".*?"*"""', re.DOTALL | re.UNICODE).set_parse_action(parse_multi_string)
             # single quoted line string
-            quoted_string = Regex(r'"(?:[^"\\\n]|\\.)*"[ \t]*', re.UNICODE).setParseAction(create_quoted_string)
+            quoted_string = Regex(r'"(?:[^"\\\n]|\\.)*"[ \t]*', re.UNICODE).set_parse_action(create_quoted_string)
             # unquoted string that takes the rest of the line until an optional comment
             # we support .properties multiline support which is like this:
             # line1  \
             # line2 \
             # so a backslash precedes the \n
-            unquoted_string = Regex(r'(?:[^^`+?!@*&"\[\{\s\]\}#,=\$\\]|\\.)+[ \t]*', re.UNICODE).setParseAction(unescape_string)
-            substitution_expr = Regex(r'[ \t]*\$\{[^\}]+\}[ \t]*').setParseAction(create_substitution)
+            unquoted_string = Regex(r'(?:[^^`+?!@*&"\[\{\s\]\}#,=\$\\]|\\.)+[ \t]*', re.UNICODE).set_parse_action(
+                unescape_string)
+            substitution_expr = Regex(r'[ \t]*\$\{[^\}]+\}[ \t]*').set_parse_action(create_substitution)
             string_expr = multiline_string | quoted_string | unquoted_string
 
-            value_expr = period_expr | number_expr | true_expr | false_expr | null_expr | string_expr
+            value_expr = get_period_expr() | number_expr | true_expr | false_expr | null_expr | string_expr
 
             include_content = (
-                quoted_string | ((Keyword('url') | Keyword('file') | Keyword('package')) - Literal('(').suppress() - quoted_string - Literal(')').suppress())
+                    quoted_string | ((Keyword('url') | Keyword('file') | Keyword('package')) - Literal(
+                '(').suppress() - quoted_string - Literal(')').suppress())
             )
             include_expr = (
-                Keyword("include", caseless=True).suppress() + (
+                    Keyword("include", caseless=True).suppress() + (
                     include_content | (
-                        Keyword("required") - Literal('(').suppress() - include_content - Literal(')').suppress()
-                    )
-                )
-            ).setParseAction(include_config)
+                    Keyword("required") - Literal('(').suppress() - include_content - Literal(')').suppress()
+            )
+            )
+            ).set_parse_action(include_config)
 
             root_dict_expr = Forward()
             dict_expr = Forward()
             list_expr = Forward()
-            multi_value_expr = ZeroOrMore(comment_eol | include_expr | substitution_expr | dict_expr | list_expr | value_expr | (Literal(
-                '\\') - eol).suppress())
+            multi_value_expr = ZeroOrMore(
+                comment_eol | include_expr | substitution_expr | dict_expr | list_expr | value_expr | (Literal(
+                    '\\') - eol).suppress())
             # for a dictionary : or = is optional
             # last zeroOrMore is because we can have t = {a:4} {b: 6} {c: 7} which is dictionary concatenation
             inside_dict_expr = ConfigTreeParser(ZeroOrMore(comment_eol | include_expr | assign_expr | eol_comma))
-            inside_root_dict_expr = ConfigTreeParser(ZeroOrMore(comment_eol | include_expr | assign_expr | eol_comma), root=True)
+            inside_root_dict_expr = ConfigTreeParser(ZeroOrMore(comment_eol | include_expr | assign_expr | eol_comma),
+                                                     root=True)
             dict_expr << Suppress('{') - inside_dict_expr - Suppress('}')
             root_dict_expr << Suppress('{') - inside_root_dict_expr - Suppress('}')
             list_entry = ConcatenatedValueParser(multi_value_expr)
@@ -506,20 +428,24 @@ class ConfigParser(object):
 
             # special case when we have a value assignment where the string can potentially be the remainder of the line
             assign_expr << Group(
-                key - ZeroOrMore(comment_no_comma_eol) - (dict_expr | (Literal('=') | Literal(':') | Literal('+=')) - ZeroOrMore(
+                key - ZeroOrMore(comment_no_comma_eol) - (
+                        dict_expr | (Literal('=') | Literal(':') | Literal('+=')) - ZeroOrMore(
                     comment_no_comma_eol) - ConcatenatedValueParser(multi_value_expr))
             )
 
             # the file can be { ... } where {} can be omitted or []
-            config_expr = ZeroOrMore(comment_eol | eol) + (list_expr | root_dict_expr | inside_root_dict_expr) + ZeroOrMore(
+            config_expr = ZeroOrMore(comment_eol | eol) + (
+                    list_expr | root_dict_expr | inside_root_dict_expr) + ZeroOrMore(
                 comment_eol | eol_comma)
-            config = config_expr.parseString(content, parseAll=True)[0]
+            config = config_expr.parse_string(content, parse_all=True)[0]
 
             if resolve:
-                allow_unresolved = resolve and unresolved_value is not DEFAULT_SUBSTITUTION and unresolved_value is not MANDATORY_SUBSTITUTION
+                allow_unresolved = resolve and unresolved_value is not DEFAULT_SUBSTITUTION \
+                                   and unresolved_value is not MANDATORY_SUBSTITUTION
                 has_unresolved = cls.resolve_substitutions(config, allow_unresolved)
                 if has_unresolved and unresolved_value is MANDATORY_SUBSTITUTION:
-                    raise ConfigSubstitutionException('resolve cannot be set to True and unresolved_value to MANDATORY_SUBSTITUTION')
+                    raise ConfigSubstitutionException(
+                        'resolve cannot be set to True and unresolved_value to MANDATORY_SUBSTITUTION')
 
             if unresolved_value is not NO_SUBSTITUTION and unresolved_value is not DEFAULT_SUBSTITUTION:
                 cls.unresolve_substitutions_to_value(config, unresolved_value)
@@ -570,14 +496,16 @@ class ConfigParser(object):
                         if len(prop_path) > 1 and config.get(substitution.variable, None) is not None:
                             continue  # If value is present in latest version, don't do anything
                         if prop_path[0] == key:
-                            if isinstance(previous_item, ConfigValues) and not accept_unresolved:  # We hit a dead end, we cannot evaluate
+                            if isinstance(previous_item, ConfigValues) and not accept_unresolved:
+                                # We hit a dead end, we cannot evaluate
                                 raise ConfigSubstitutionException(
                                     "Property {variable} cannot be substituted. Check for cycles.".format(
                                         variable=substitution.variable
                                     )
                                 )
                             else:
-                                value = previous_item if len(prop_path) == 1 else previous_item.get(".".join(prop_path[1:]))
+                                value = previous_item if len(prop_path) == 1 else previous_item.get(
+                                    ".".join(prop_path[1:]))
                                 _, _, current_item = cls._do_substitute(substitution, value)
                     previous_item = current_item
 
@@ -621,8 +549,6 @@ class ConfigParser(object):
         unresolved = False
         new_substitutions = []
         if isinstance(resolved_value, ConfigValues):
-            resolved_value = resolved_value.transform()
-        if isinstance(resolved_value, ConfigValues):
             unresolved = True
             result = resolved_value
         else:
@@ -631,13 +557,13 @@ class ConfigParser(object):
             # if it is a string, then add the extra ws that was present in the original string after the substitution
             formatted_resolved_value = resolved_value \
                 if resolved_value is None \
-                or isinstance(resolved_value, (dict, list)) \
-                or substitution.index == len(config_values.tokens) - 1 \
+                   or isinstance(resolved_value, (dict, list)) \
+                   or substitution.index == len(config_values.tokens) - 1 \
                 else (str(resolved_value) + substitution.ws)
             # use a deepcopy of resolved_value to avoid mutation
             config_values.put(substitution.index, copy.deepcopy(formatted_resolved_value))
             transformation = config_values.transform()
-            result = config_values.overriden_value \
+            result = config_values.overridden_value \
                 if transformation is None and not is_optional_resolved \
                 else transformation
 
@@ -651,7 +577,7 @@ class ConfigParser(object):
                     new_substitutions = s
                     unresolved = True
 
-        return (unresolved, new_substitutions, result)
+        return unresolved, new_substitutions, result
 
     @classmethod
     def _final_fixup(cls, item):
@@ -683,55 +609,76 @@ class ConfigParser(object):
         cls._fixup_self_references(config, accept_unresolved)
         substitutions = cls._find_substitutions(config)
         if len(substitutions) > 0:
-            unresolved = True
             any_unresolved = True
             _substitutions = []
             cache = {}
             while any_unresolved and len(substitutions) > 0 and set(substitutions) != set(_substitutions):
-                unresolved = False
-                any_unresolved = True
+                any_unresolved = False
                 _substitutions = substitutions[:]
 
                 for substitution in _substitutions:
+                    unresolved = False
+                    overridden_value = substitution.parent.overridden_value
+                    if isinstance(overridden_value, ConfigValues):
+                        overridden_value = overridden_value.transform()
                     # If this substitution is an override, and the parent is still being processed,
                     # skip this entry, it will be processed on the next loop.
-                    if substitution.parent.overriden_value:
-                        if substitution.parent.overriden_value in [s.parent for s in substitutions]:
-                            continue
+                    if overridden_value in [s.parent for s in substitutions]:
+                        continue
 
                     is_optional_resolved, resolved_value = cls._resolve_variable(config, substitution)
 
-                    # if the substitution is optional
-                    if not is_optional_resolved and substitution.optional:
-                        resolved_value = None
-                    if isinstance(resolved_value, ConfigValues):
-                        parents = cache.get(resolved_value)
-                        if parents is None:
-                            parents = []
-                            link = resolved_value
-                            while isinstance(link, ConfigValues):
-                                parents.append(link)
-                                link = link.overriden_value
-                            cache[resolved_value] = parents
+                    if isinstance(resolved_value, ConfigValues) :
+                        resolved_value = resolved_value.transform()
+                        value_to_be_substitute = resolved_value
+                        if overridden_value and not isinstance(overridden_value, ConfigValues):
+                                value_to_be_substitute = overridden_value
+                        unresolved, _, _ = cls._do_substitute(substitution, value_to_be_substitute, is_optional_resolved)
 
-                    if isinstance(resolved_value, ConfigValues) \
-                       and substitution.parent in parents \
-                       and hasattr(substitution.parent, 'overriden_value') \
-                       and substitution.parent.overriden_value:
+                        any_unresolved = unresolved or any_unresolved
+                        if not unresolved and substitution in substitutions:
+                            substitutions.remove(substitution)
+                        continue
 
-                        # self resolution, backtrack
-                        resolved_value = substitution.parent.overriden_value
+                    if isinstance(resolved_value, ConfigValues) and isinstance(overridden_value, ConfigValues):
+                        any_unresolved = True
+                        continue
 
-                    unresolved, new_substitutions, result = cls._do_substitute(substitution, resolved_value, is_optional_resolved)
+                    cache_values = []
+                    if isinstance(overridden_value, ConfigValues):
+                        cache_values = cache.get(substitution)
+                        if cache_values is None:
+                            continue
+
+                    if not isinstance(resolved_value, ConfigValues):
+                        cache_values.append(substitution)
+                        overrides = [s for s in substitutions if s.parent.overridden_value == substitution.parent]
+                        if len(overrides) > 0:
+                            for o in overrides:
+                                values = cache.get(o) if cache.get(o) is not None else []
+                                values.extend(cache_values)
+                                cache[o] = values
+                            substitutions.remove(substitution)
+                            continue
+
+                    for s in cache_values:
+                        is_optional_resolved, resolved_value = cls._resolve_variable(config, s)
+                        # if the substitution is optional
+                        if not is_optional_resolved and s.optional:
+                            resolved_value = None
+                        unresolved, new_subs, _ = cls._do_substitute(s, resolved_value, is_optional_resolved)
+                        if s in substitutions:
+                            substitutions.remove(s)
+                        # Detected substitutions may already be listed to process
+                        new_subs = [n for n in new_subs if n not in (substitutions, cache_values)]
+                        substitutions.extend(new_subs)
                     any_unresolved = unresolved or any_unresolved
-                    # Detected substitutions may already be listed to process
-                    new_substitutions = [n for n in new_substitutions if n not in substitutions]
-                    substitutions.extend(new_substitutions)
-                    if not isinstance(result, ConfigValues):
-                        substitutions.remove(substitution)
+
+                    if len(cache_values) == 0:
+                        any_unresolved = True
 
             cls._final_fixup(config)
-            if unresolved:
+            if any_unresolved:
                 has_unresolved = True
                 if not accept_unresolved:
                     raise ConfigSubstitutionException("Cannot resolve {variables}. Check for cycles.".format(
@@ -758,9 +705,14 @@ class ConfigParser(object):
         if ':' not in package_path:
             raise ValueError("Expected format is 'PACKAGE:PATH'")
         package_name, path_relative = package_path.split(':', 1)
-        package_dir = find_package_dir(package_name)
-        path_abs = os.path.join(package_dir, path_relative)
-        return path_abs
+        package_dirs = find_package_dirs(package_name)
+        for package_dir in package_dirs:
+            path_abs = os.path.join(package_dir, path_relative)
+            if os.path.exists(path_abs):
+                return path_abs
+        raise ImportError("Can't find {path_relative} in package:{package_name}".format(
+            path_relative=path_relative,
+            package_name=package_name))
 
 
 class ListParser(TokenConverter):
@@ -862,6 +814,14 @@ class ConfigTreeParser(TokenConverter):
                         config_tree.put(key, value, False)
                     else:
                         existing_value = config_tree.get(key, None)
+                        parsed_key = ConfigTree.parse_key(key)
+                        key = parsed_key[0]
+                        if len(parsed_key) > 1:
+                            # Special case when the key contains path (i.e., `x.y = v`)
+                            new_value = ConfigTree()
+                            new_value.put(U_KEY_SEP.join(U_KEY_FMT.format(k) for k in parsed_key[1:]), value)
+                            value = new_value
+
                         if isinstance(value, ConfigTree) and not isinstance(existing_value, list):
                             # Only Tree has to be merged with tree
                             config_tree.put(key, value, True)

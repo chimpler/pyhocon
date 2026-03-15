@@ -3,12 +3,11 @@ pyhocon
 
 [![pypi](http://img.shields.io/pypi/v/pyhocon.png)](https://pypi.python.org/pypi/pyhocon)
 [![Supported Python Versions](https://img.shields.io/pypi/pyversions/Pyhocon.svg)](https://pypi.python.org/pypi/pyhocon/)
-[![Build Status](https://travis-ci.org/chimpler/pyhocon.svg)](https://travis-ci.org/chimpler/pyhocon)
+[![Build Status](https://app.travis-ci.com/chimpler/pyhocon.svg?branch=master)](https://app.travis-ci.com/chimpler/pyhocon)
 [![Downloads](https://img.shields.io/pypi/dm/pyhocon.svg)](https://pypistats.org/packages/pyhocon)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/684cdd4d82734702ac612bf8b25fc5a0)](https://www.codacy.com/app/francois-dangngoc/pyhocon?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=chimpler/pyhocon&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/23504feba7974e429c6641c660b7959b)](https://www.codacy.com/gh/chimpler/pyhocon/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=chimpler/pyhocon&amp;utm_campaign=Badge_Grade)
 [![License](https://img.shields.io/pypi/l/Pyhocon.svg)](https://pypi.python.org/pypi/pyhocon/)
 [![Coverage Status](https://coveralls.io/repos/chimpler/pyhocon/badge.svg)](https://coveralls.io/r/chimpler/pyhocon)
-[![Requirements Status](https://requires.io/github/chimpler/pyhocon/requirements.svg?branch=master)](https://requires.io/github/chimpler/pyhocon/requirements/?branch=master)
 
 HOCON parser for Python
 
@@ -79,7 +78,7 @@ password = conf.get('databases.mysql.password', 'default_password') #  use defau
       # you can use substitution with unquoted strings
       retries_msg = You have ${databases.mysql.retries} retries
 
-      # retries message will be overriden if environment variable CUSTOM_MSG is set
+      # retries message will be overridden if environment variable CUSTOM_MSG is set
       retries_msg = ${?CUSTOM_MSG}
     }
 
@@ -355,32 +354,45 @@ assert config == d
   - jjtk88 ([@jjtk88](https://github.com/jjtk88))
   - Aki Ariga ([@chezou](https://github.com/chezou))
   - Joel Grus ([@joelgrus](https://github.com/joelgrus))
-  - Anthony Alba [@aalba6675](https://github.com/aalba6675)
-  - hugovk [@hugovk](https://github.com/hugovk)
-  - chunyang-wen [@chunyang-wen](https://github.com/chunyang-wen)
-  - afanasev [@afanasev](https://github.com/afanasev)
-  - derkcrezee [@derkcrezee](https://github.com/derkcrezee)
-  - Roee Nizan [@roee-allegro](https://github.com/roee-allegro)
-  - Samuel Bible [@sambible](https://github.com/sambible)
-  - Christophe Duong [@ChristopheDuong](https://github.com/ChristopheDuong)
-  - lune* [@lune-sta](https://github.com/lune-sta)
-  - Sascha [@ElkMonster](https://github.com/ElkMonster)
-  - Tomas Witzany [@Tommassino](https://github.com/Tommassino)
-  - Gabriel Shaar [@gabis-precog](https://github.com/gabis-precog)
-  - Brandon Martin [@bdmartin](https://github.com/bdmartin)
-  - Bryan Richter [@chreekat](https://github.com/chreekat)
-  - dtarakanov1 [@dtarakanov](https://github.com/dtarakanov)
-  - Anuj Kumar [@anujkumar93](https://github.com/anujkumar93)
-  - Guillaume Poulin [@gpoulin](https://github.com/gpoulin)
-  - Scott Johnson [@scottj97](https://github.com/scottj97)
-  - Pablo Manso [@manso92](https://github.com/manso92)
-  - Marc Rijken [@mrijken](https://github.com/mrijken)
-  - Michel Rouly [@jrouly](https://github.com/jrouly)
-  - Xing Hai Xu [@xinghaixu](https://github.com/xinghaixu)
-  - Peter Zaitcev [@USSX-Hares](https://github.com/USSX-Hares)
-  - Oliver Nemček [@olii](https://github.com/olii)
-  - Guillaume George [@LysanderGG](https://github.com/LysanderGG)
-  - Sebastian Straub [@klamann](https://github.com/klamann)
+  - Anthony Alba ([@aalba6675](https://github.com/aalba6675))
+  - hugovk ([@hugovk](https://github.com/hugovk))
+  - chunyang-wen ([@chunyang-wen](https://github.com/chunyang-wen))
+  - afanasev ([@afanasev](https://github.com/afanasev))
+  - derkcrezee ([@derkcrezee](https://github.com/derkcrezee))
+  - Roee Nizan ([@roee-allegro](https://github.com/roee-allegro))
+  - Samuel Bible ([@sambible](https://github.com/sambible))
+  - Christophe Duong ([@ChristopheDuong](https://github.com/ChristopheDuong))
+  - lune* ([@lune-sta](https://github.com/lune-sta))
+  - Sascha ([@ElkMonster](https://github.com/ElkMonster))
+  - Tomas Witzany ([@Tommassino](https://github.com/Tommassino))
+  - Gabriel Shaar ([@gabis-precog](https://github.com/gabis-precog))
+  - Brandon Martin ([@bdmartin](https://github.com/bdmartin))
+  - Bryan Richter ([@chreekat](https://github.com/chreekat))
+  - dtarakanov1 ([@dtarakanov](https://github.com/dtarakanov))
+  - Anuj Kumar ([@anujkumar93](https://github.com/anujkumar93))
+  - Guillaume Poulin ([@gpoulin](https://github.com/gpoulin))
+  - Scott Johnson ([@scottj97](https://github.com/scottj97))
+  - Pablo Manso ([@manso92](https://github.com/manso92))
+  - Marc Rijken ([@mrijken](https://github.com/mrijken))
+  - Michel Rouly ([@jrouly](https://github.com/jrouly))
+  - Xing Hai Xu ([@xinghaixu](https://github.com/xinghaixu))
+  - Peter Zaitcev ([@USSX-Hares](https://github.com/USSX-Hares))
+  - Oliver Nemček ([@olii](https://github.com/olii))
+  - Guillaume George ([@LysanderGG](https://github.com/LysanderGG))
+  - Sebastian Straub ([@klamann](https://github.com/klamann))
+  - Oliver Nemček ([@olii](https://github.com/olii))
+  - Jett Jones ([@JettJones](https://github.com/JettJones))
+  - Gabriel Shaar ([@gabis-precog](https://github.com/gabis-precog))
+  - Boris Smidt ([@borissmidt](https://github.com/borissmidt))
+  - Scott Johnson ([@scottj97](https://github.com/scottj97))
+  - Yifei Tao ([@yifeitao](https://github.com/yifeitao))
+  - Kevin Fong ([@KevinMFong](https://github.com/KevinMFong))
+  - Erik Cederstrand ([@ecederstrand](https://github.com/ecederstrand))
+  - Pierre Souchay ([@pierresouchay](https://github.com/pierresouchay))
+  - Josh Soref ([@jsoref](https://github.com/jsoref))
+  - Carol Guo ([@carolguo-dd](https://github.com/carolguo-dd))
+  - Jakub Kubík ([@M0dEx](https://github.com/M0dEx))
+  - Jakub Szewczyk ([@jakub-szewczyk-exa](https://github.com/jakub-szewczyk-exa))
 
 ### Thanks
 
@@ -396,3 +408,4 @@ assert config == d
   - Dominik1123 ([@Dominik1123](https://github.com/Dominik1123))
   - Richard Taylor ([@richard534](https://github.com/richard534))
   - Sergii Lutsanych ([@sergii1989](https://github.com/sergii1989))
+
