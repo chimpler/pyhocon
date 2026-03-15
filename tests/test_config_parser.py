@@ -7,26 +7,22 @@ import tempfile
 from collections import OrderedDict
 from datetime import timedelta
 
-try:
-    # Python 3
-    from urllib.request import pathname2url
-except ImportError:
-    # Python 2
-    from urllib import pathname2url
+from urllib.request import pathname2url
 
-import mock
+from unittest import mock
 import pytest
 from pyparsing import ParseBaseException, ParseException, ParseSyntaxException
 
 from pyhocon import (ConfigFactory, ConfigParser, ConfigSubstitutionException,
-                     ConfigTree, HOCONConverter)
+                         ConfigTree, HOCONConverter)
 from pyhocon.exceptions import (ConfigException, ConfigMissingException,
-                                ConfigWrongTypeException)
+                                    ConfigWrongTypeException)
 
 try:
     from dateutil.relativedelta import relativedelta as period
 except Exception:
     from datetime import timedelta as period
+
 
 class TestConfigParser(object):
     def test_parse_simple_value(self):
@@ -118,7 +114,6 @@ class TestConfigParser(object):
         assert config.get_string('a.b') == '5'
         assert config.get_string('a.y_min') == '42'
 
-
     def test_issue_324(self):
         config = ConfigFactory.parse_string("a { c = 3\nd = 4 }")
         assert config["a"]["c"] == 3
@@ -198,7 +193,6 @@ class TestConfigParser(object):
             ) or (
                 config['b'] == ['a', 1, '10 weeks', '5 minutes']
             )
-
 
     def test_parse_with_enclosing_square_bracket(self):
         config = ConfigFactory.parse_string("[1, 2, 3]")
@@ -1757,11 +1751,10 @@ class TestConfigParser(object):
               result = ${test}
             """)
         assert config == {
-            'a' : 3,
+            'a': 3,
             'test': 3,
             'result': 3
         }
-
 
     def test_substitution_cycle(self):
         with pytest.raises(ConfigSubstitutionException):
@@ -2700,7 +2693,6 @@ www.example-ö.com {
 
 try:
     from dateutil.relativedelta import relativedelta
-
 
     @pytest.mark.parametrize('data_set', [
         ('a: 1 months', relativedelta(months=1)),

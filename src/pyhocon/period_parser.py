@@ -64,8 +64,8 @@ def get_period_expr():
     return Combine(
             Word(nums)('value') + ZeroOrMore(Literal(" ")).suppress() + Or(period_types)('unit') + WordEnd(
         alphanums).suppress()
-    ).setParseAction(convert_period)
+    ).set_parse_action(convert_period)
 
 
 def parse_period(content):
-    return get_period_expr().parseString(content, parseAll=True)[0]
+    return get_period_expr().parse_string(content, parse_all=True)[0]

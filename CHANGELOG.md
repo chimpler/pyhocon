@@ -1,5 +1,18 @@
 # Changelog
 
+
+# 
+
+
+# Version 0.4.0
+Major overhaul of the library. 
+
+* Upgrade of the build system and directory structure to use pyproject.toml
+* Update of the dependencies
+* Add support for Python 3.10+
+* Remove support for Python 2.7
+
+
 # Version 0.3.61
 
 * fix(tox): remove old EOLed python 3.x versions, added new python versions (@pierresouchay) [#330]

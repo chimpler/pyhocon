@@ -62,7 +62,6 @@ def test_parse_string_with_duration(data_set):
 try:
     from dateutil.relativedelta import relativedelta
 
-
     @pytest.mark.parametrize('data_set', [
         ('1 months', relativedelta(months=1)),
         ('1months', relativedelta(months=1)),
@@ -82,7 +81,6 @@ try:
 
         assert parsed == data_set[1]
 
-
     def test_format_relativedelta():
 
         for time_delta, expected_result in ((relativedelta(seconds=0), '0 seconds'),
@@ -93,6 +91,7 @@ try:
                                             (relativedelta(minutes=43), '43 minutes'),):
             assert expected_result == timedelta_to_hocon(time_delta)
 except ImportError:
+    relativedelta = None
     pass
 
 

@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=80.10.2", "wheel"]
+
+[project]
+name = "pyhocon_up"
+version = "0.4.0"
+description = "HOCON parser for Python"
+readme = "README.md"
+license = "Apache-2.0"
+authors = [
+    {name = "Robert Rapplean", email = "mythobeast@gmail.com"}
+]
+keywords = ["hocon", "parser"]
+classifiers = [
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "pyparsing>=3,<4",
+]
+
+[project.optional-dependencies]
+duration = ["python-dateutil>=2.8.0"]
+test = ["pytest", "pytest-cov", "mock==5.2.0"]
+
+[project.urls]
+Homepage = "http://github.com/mythobeast/pyhocon/"
+
+[project.scripts]
+pyhocon = "pyhocon.tool:main"
+
