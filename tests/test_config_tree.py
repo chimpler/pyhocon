@@ -4,7 +4,7 @@ from pyhocon.config_tree import ConfigTree, NoneValue
 from pyhocon.exceptions import (
     ConfigMissingException, ConfigWrongTypeException, ConfigException)
 from pyhocon.config_parser import ConfigFactory
-from pyhocon.tool import HOCONConverter
+from pyhocon import HOCONConverter
 
 
 class TestConfigTree(object):

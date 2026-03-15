@@ -5,7 +5,6 @@ import logging
 import os
 import re
 import socket
-import sys
 
 from pyparsing import (Forward, Group, Keyword, Literal, Optional,
                        ParserElement, ParseSyntaxException, QuotedString,
@@ -16,98 +15,64 @@ from pyparsing import (Forward, Group, Keyword, Literal, Optional,
 from pyhocon.period_parser import get_period_expr
 
 from pyhocon.config_tree import (ConfigInclude, ConfigList, ConfigQuotedString,
-                                 ConfigSubstitution, ConfigTree,
-                                 ConfigUnquotedString, ConfigValues, NoneValue)
+                                     ConfigSubstitution, ConfigTree,
+                                     ConfigUnquotedString, ConfigValues, NoneValue)
 from pyhocon.exceptions import (ConfigException, ConfigMissingException,
-                                ConfigSubstitutionException)
+                                    ConfigSubstitutionException)
 
-use_urllib2 = False
-try:
-    # For Python 3.0 and later
-    from urllib.request import urlopen
-    from urllib.error import HTTPError, URLError
-except ImportError:  # pragma: no cover
-    # Fall back to Python 2's urllib2
-    from urllib2 import urlopen, HTTPError, URLError
+from urllib.request import urlopen
+from urllib.error import HTTPError, URLError
 
-    use_urllib2 = True
-try:
-    basestring
-except NameError:  # pragma: no cover
-    basestring = str
-    unicode = str
-
-if sys.version_info < (3, 5):
-    def glob(pathname, recursive=False):
-        if recursive and '**' in pathname:
-            import warnings
-            warnings.warn('This version of python (%s) does not support recursive import' % sys.version)
-        from glob import glob as _glob
-        return _glob(pathname)
-else:
-    from glob import glob
+from glob import glob
 
 # Fix deprecated warning with 'imp' library and Python 3.4+.
 # See: https://github.com/chimpler/pyhocon/issues/248
-if sys.version_info >= (3, 4):
-    import importlib.util
+import importlib.util
 
-    def find_package_dirs(name):
-        spec = importlib.util.find_spec(name)
-        # When `imp.find_module()` cannot find a package it raises ImportError.
-        # Here we should simulate it to keep the compatibility with older
-        # versions.
-        if not spec:
-            raise ImportError('No module named {!r}'.format(name))
-        return spec.submodule_search_locations
-else:
-    import imp
-    import importlib
 
-    def find_package_dirs(name):
-        return [imp.find_module(name)[1]]
+def find_package_dirs(name):
+    spec = importlib.util.find_spec(name)
+    # When `imp.find_module()` cannot find a package it raises ImportError.
+    # Here we should simulate it to keep the compatibility with older
+    # versions.
+    if not spec:
+        raise ImportError('No module named {!r}'.format(name))
+    return spec.submodule_search_locations
+
 
 logger = logging.getLogger(__name__)
 
 
-#
-# Substitution Defaults
-#
-
-
-class DEFAULT_SUBSTITUTION(object):
+class DEFAULT_SUBSTITUTION:
     pass
 
 
-class MANDATORY_SUBSTITUTION(object):
+class MANDATORY_SUBSTITUTION:
     pass
 
 
-class NO_SUBSTITUTION(object):
+class NO_SUBSTITUTION:
     pass
 
 
-class STR_SUBSTITUTION(object):
+class STR_SUBSTITUTION:
     pass
 
 
-U_KEY_SEP = unicode('.')
-U_KEY_FMT = unicode('"{0}"')
-
-U_KEY_SEP = unicode('.')
-U_KEY_FMT = unicode('"{0}"')
+U_KEY_SEP = '.'
+U_KEY_FMT = '"{0}"'
 
 
-class ConfigFactory(object):
+class ConfigFactory:
 
     @classmethod
     def parse_file(cls, filename, encoding='utf-8', required=True, resolve=True, unresolved_value=DEFAULT_SUBSTITUTION):
         """Parse file
 
         :param filename: filename
-        :type filename: basestring
+        :type filename: str
         :param encoding: file encoding
-        :type encoding: basestring
+        :type encoding: str
         :param required: If true, raises an exception if can't load file
         :type required: boolean
         :param resolve: if true, resolve substitutions
@@ -134,7 +99,7 @@ class ConfigFactory(object):
         """Parse URL
 
         :param url: url to parse
-        :type url: basestring
+        :type url: str
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
         :param unresolved_value: assigned value to unresolved substitution.
@@ -148,7 +113,7 @@ class ConfigFactory(object):
 
         try:
             with contextlib.closing(urlopen(url, timeout=socket_timeout)) as fd:
-                content = fd.read() if use_urllib2 else fd.read().decode('utf-8')
+                content = fd.read().decode('utf-8')
                 return cls.parse_string(content, os.path.dirname(url), resolve, unresolved_value)
         except (HTTPError, URLError) as e:
             logger.warning('Cannot include url %s. Resource is inaccessible.', url)
@@ -162,7 +127,7 @@ class ConfigFactory(object):
         """Parse string
 
         :param content: content to parse
-        :type content: basestring
+        :type content: str
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
         :param unresolved_value: assigned value to unresolved substitution.
@@ -197,7 +162,7 @@ class ConfigFactory(object):
         return create_tree(dictionary)
 
 
-class ConfigParser(object):
+class ConfigParser:
     """
     Parse HOCON files: https://github.com/typesafehub/config/blob/master/HOCON.md
     """
@@ -219,7 +184,7 @@ class ConfigParser(object):
         """parse a HOCON content
 
         :param content: HOCON content to parse
-        :type content: basestring
+        :type content: str
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
         :param unresolved_value: assigned value to unresolved substitution.
@@ -229,7 +194,7 @@ class ConfigParser(object):
         :return: a ConfigTree or a list
         """
 
-        unescape_pattern = re.compile(r'\\.')
+        unescape_pattern = re.compile(r'')
 
         def replace_escape_sequence(match):
             value = match.group(0)
@@ -526,7 +491,7 @@ class ConfigParser(object):
         """Convert HOCON input into a JSON output
 
         :return: JSON string representation
-        :type return: basestring
+        :type return: str
         """
         if isinstance(item, ConfigValues):
             return item.get_substitutions()
@@ -805,7 +770,7 @@ class ConfigTreeParser(TokenConverter):
                     if isinstance(value, list) and operator == "+=":
                         value = ConfigValues([ConfigSubstitution(key, True, '', False, loc), value], False, loc)
                         config_tree.put(key, value, False)
-                    elif isinstance(value, unicode) and operator == "+=":
+                    elif isinstance(value, str) and operator == "+=":
                         value = ConfigValues([ConfigSubstitution(key, True, '', True, loc), ' ' + value], True, loc)
                         config_tree.put(key, value, False)
                     elif isinstance(value, list):

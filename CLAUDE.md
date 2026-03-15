@@ -28,7 +28,7 @@ coverage report -m
 
 ### Linting
 ```bash
-flake8 pyhocon tests setup.py
+flake8 pyhocon tests setup.py.old
 ```
 
 ### Tox (multi-environment testing)

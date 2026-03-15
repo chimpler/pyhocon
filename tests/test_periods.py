@@ -58,9 +58,9 @@ def test_parse_string_with_duration(data_set):
 
     assert config == data_set[1]
 
+
 try:
     from dateutil.relativedelta import relativedelta
-
 
     @pytest.mark.parametrize('data_set', [
         ('1 months', relativedelta(months=1)),
