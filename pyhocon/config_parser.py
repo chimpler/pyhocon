@@ -52,7 +52,6 @@ else:
 if sys.version_info >= (3, 4):
     import importlib.util
 
-
     def find_package_dirs(name):
         spec = importlib.util.find_spec(name)
         # When `imp.find_module()` cannot find a package it raises ImportError.
@@ -64,7 +63,6 @@ if sys.version_info >= (3, 4):
 else:
     import imp
     import importlib
-
 
     def find_package_dirs(name):
         return [imp.find_module(name)[1]]
@@ -372,7 +370,7 @@ class ConfigParser(object):
             false_expr = Keyword("false", caseless=True).set_parse_action(replace_with(False))
             null_expr = Keyword("null", caseless=True).set_parse_action(replace_with(NoneValue()))
             key = QuotedString('"""', esc_char='\\', unquote_results=False) | \
-                  QuotedString('"', esc_char='\\', unquote_results=False) | Word(alphanums + alphas8bit + '._- /')
+                QuotedString('"', esc_char='\\', unquote_results=False) | Word(alphanums + alphas8bit + '._- /')
 
             eol = Word('\n\r').suppress()
             eol_comma = Word('\n\r,').suppress()
@@ -380,7 +378,7 @@ class ConfigParser(object):
             comment_eol = Suppress(Optional(eol_comma) + comment)
             comment_no_comma_eol = (comment | eol).suppress()
             number_expr = Regex(r'[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE][+\-]?\d+)?(?=$|[ \t]*([\$\}\],#\n\r]|//))',
-                                re.DOTALL).set_parse_action(convert_number)
+                    re.DOTALL).set_parse_action(convert_number)
             # multi line string using """
             # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
             multiline_string = Regex('""".*?"*"""', re.DOTALL | re.UNICODE).set_parse_action(parse_multi_string)
@@ -400,14 +398,14 @@ class ConfigParser(object):
 
             include_content = (
                     quoted_string | ((Keyword('url') | Keyword('file') | Keyword('package')) - Literal(
-                '(').suppress() - quoted_string - Literal(')').suppress())
+                    '(').suppress() - quoted_string - Literal(')').suppress())
             )
             include_expr = (
                     Keyword("include", caseless=True).suppress() + (
                     include_content | (
-                    Keyword("required") - Literal('(').suppress() - include_content - Literal(')').suppress()
-            )
-            )
+                        Keyword("required") - Literal('(').suppress() - include_content - Literal(')').suppress()
+                    )
+                )
             ).set_parse_action(include_config)
 
             root_dict_expr = Forward()
@@ -428,15 +426,15 @@ class ConfigParser(object):
 
             # special case when we have a value assignment where the string can potentially be the remainder of the line
             assign_expr << Group(
-                key - ZeroOrMore(comment_no_comma_eol) - (
-                        dict_expr | (Literal('=') | Literal(':') | Literal('+=')) - ZeroOrMore(
-                    comment_no_comma_eol) - ConcatenatedValueParser(multi_value_expr))
+               key - ZeroOrMore(comment_no_comma_eol) - (
+                     dict_expr | (Literal('=') | Literal(':') | Literal('+=')) - ZeroOrMore(
+                  comment_no_comma_eol) - ConcatenatedValueParser(multi_value_expr))
             )
 
             # the file can be { ... } where {} can be omitted or []
             config_expr = ZeroOrMore(comment_eol | eol) + (
-                    list_expr | root_dict_expr | inside_root_dict_expr) + ZeroOrMore(
-                comment_eol | eol_comma)
+                  list_expr | root_dict_expr | inside_root_dict_expr) + ZeroOrMore(
+               comment_eol | eol_comma)
             config = config_expr.parse_string(content, parse_all=True)[0]
 
             if resolve:
@@ -628,11 +626,11 @@ class ConfigParser(object):
 
                     is_optional_resolved, resolved_value = cls._resolve_variable(config, substitution)
 
-                    if isinstance(resolved_value, ConfigValues) :
+                    if isinstance(resolved_value, ConfigValues):
                         resolved_value = resolved_value.transform()
                         value_to_be_substitute = resolved_value
                         if overridden_value and not isinstance(overridden_value, ConfigValues):
-                                value_to_be_substitute = overridden_value
+                            value_to_be_substitute = overridden_value
                         unresolved, _, _ = cls._do_substitute(substitution, value_to_be_substitute, is_optional_resolved)
 
                         any_unresolved = unresolved or any_unresolved
