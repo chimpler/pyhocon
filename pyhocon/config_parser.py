@@ -346,9 +346,9 @@ class ConfigParser(object):
 
         with set_default_white_spaces():
             assign_expr = Forward()
-            true_expr = Keyword("true", case_insensitive=True).set_parse_action(replace_with(True))
-            false_expr = Keyword("false", case_insensitive=True).set_parse_action(replace_with(False))
-            null_expr = Keyword("null", case_insensitive=True).set_parse_action(replace_with(NoneValue()))
+            true_expr = Keyword("true", caseless=True).set_parse_action(replace_with(True))
+            false_expr = Keyword("false", caseless=True).set_parse_action(replace_with(False))
+            null_expr = Keyword("null", caseless=True).set_parse_action(replace_with(NoneValue()))
             key = QuotedString('"""', esc_char='\\', unquote_results=False) | \
                 QuotedString('"', esc_char='\\', unquote_results=False) | Word(alphanums + alphas8bit + '._- /')
 
@@ -382,7 +382,7 @@ class ConfigParser(object):
                                  - Literal(')').suppress())
             )
             include_expr = (
-                Keyword("include", case_insensitive=True).suppress() + (
+                Keyword("include", caseless=True).suppress() + (
                     include_content | (
                         Keyword("required") - Literal('(').suppress() - include_content - Literal(')').suppress()
                     )
