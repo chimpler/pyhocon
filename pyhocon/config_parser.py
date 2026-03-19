@@ -26,7 +26,6 @@ if sys.version_info >= (3, 8):
         except KeyError:
             return ""
 
-
     pyparsing.ParseResults.__getattr__ = fixed_get_attr
 
 from pyhocon.config_tree import (ConfigInclude, ConfigList, ConfigQuotedString,
@@ -49,6 +48,7 @@ def find_package_dirs(name):
     if not spec:
         raise ImportError('No module named {!r}'.format(name))
     return spec.submodule_search_locations
+
 
 logger = logging.getLogger(__name__)
 
@@ -350,7 +350,7 @@ class ConfigParser(object):
             false_expr = Keyword("false", case_insensitive=True).set_parse_action(replace_with(False))
             null_expr = Keyword("null", case_insensitive=True).set_parse_action(replace_with(NoneValue()))
             key = QuotedString('"""', esc_char='\\', unquote_results=False) | \
-                  QuotedString('"', esc_char='\\', unquote_results=False) | Word(alphanums + alphas8bit + '._- /')
+                QuotedString('"', esc_char='\\', unquote_results=False) | Word(alphanums + alphas8bit + '._- /')
 
             eol = Word('\n\r').suppress()
             eol_comma = Word('\n\r,').suppress()
@@ -377,15 +377,16 @@ class ConfigParser(object):
             value_expr = get_period_expr() | number_expr | true_expr | false_expr | null_expr | string_expr
 
             include_content = (
-                    quoted_string | ((Keyword('url') | Keyword('file') | Keyword('package')) - Literal(
-                '(').suppress() - quoted_string - Literal(')').suppress())
+                quoted_string | ((Keyword('url') | Keyword('file') | Keyword('package'))
+                                 - Literal('(').suppress() - quoted_string
+                                 - Literal(')').suppress())
             )
             include_expr = (
-                    Keyword("include", case_insensitive=True).suppress() + (
+                Keyword("include", case_insensitive=True).suppress() + (
                     include_content | (
-                    Keyword("required") - Literal('(').suppress() - include_content - Literal(')').suppress()
-            )
-            )
+                        Keyword("required") - Literal('(').suppress() - include_content - Literal(')').suppress()
+                    )
+                )
             ).set_parse_action(include_config)
 
             root_dict_expr = Forward()
@@ -407,19 +408,20 @@ class ConfigParser(object):
             # special case when we have a value assignment where the string can potentially be the remainder of the line
             assign_expr << Group(
                 key - ZeroOrMore(comment_no_comma_eol) - (
-                        dict_expr | (Literal('=') | Literal(':') | Literal('+=')) - ZeroOrMore(
-                    comment_no_comma_eol) - ConcatenatedValueParser(multi_value_expr))
+                    dict_expr | (Literal('=') | Literal(':') | Literal('+=')) - ZeroOrMore(
+                        comment_no_comma_eol) - ConcatenatedValueParser(multi_value_expr))
             )
 
             # the file can be { ... } where {} can be omitted or []
             config_expr = ZeroOrMore(comment_eol | eol) + (
-                    list_expr | root_dict_expr | inside_root_dict_expr) + ZeroOrMore(
+                list_expr | root_dict_expr | inside_root_dict_expr
+            ) + ZeroOrMore(
                 comment_eol | eol_comma)
             config = config_expr.parse_string(content, parse_all=True)[0]
 
             if resolve:
-                allow_unresolved = resolve and unresolved_value is not DEFAULT_SUBSTITUTION \
-                                   and unresolved_value is not MANDATORY_SUBSTITUTION
+                allow_unresolved = resolve and unresolved_value is not DEFAULT_SUBSTITUTION
+                allow_unresolved = allow_unresolved and unresolved_value is not MANDATORY_SUBSTITUTION
                 has_unresolved = cls.resolve_substitutions(config, allow_unresolved)
                 if has_unresolved and unresolved_value is MANDATORY_SUBSTITUTION:
                     raise ConfigSubstitutionException(
@@ -535,8 +537,8 @@ class ConfigParser(object):
             # if it is a string, then add the extra ws that was present in the original string after the substitution
             formatted_resolved_value = resolved_value \
                 if resolved_value is None \
-                   or isinstance(resolved_value, (dict, list)) \
-                   or substitution.index == len(config_values.tokens) - 1 \
+                or isinstance(resolved_value, (dict, list)) \
+                or substitution.index == len(config_values.tokens) - 1 \
                 else (str(resolved_value) + substitution.ws)
             # use a deepcopy of resolved_value to avoid mutation
             config_values.put(substitution.index, copy.deepcopy(formatted_resolved_value))
@@ -606,11 +608,11 @@ class ConfigParser(object):
 
                     is_optional_resolved, resolved_value = cls._resolve_variable(config, substitution)
 
-                    if isinstance(resolved_value, ConfigValues) :
+                    if isinstance(resolved_value, ConfigValues):
                         resolved_value = resolved_value.transform()
                         value_to_be_substitute = resolved_value
                         if overridden_value and not isinstance(overridden_value, ConfigValues):
-                                value_to_be_substitute = overridden_value
+                            value_to_be_substitute = overridden_value
                         unresolved, _, _ = cls._do_substitute(substitution, value_to_be_substitute, is_optional_resolved)
 
                         any_unresolved = unresolved or any_unresolved

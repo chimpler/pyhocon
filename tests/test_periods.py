@@ -62,7 +62,6 @@ def test_parse_string_with_duration(data_set):
 try:
     from dateutil.relativedelta import relativedelta
 
-
     @pytest.mark.parametrize('data_set', [
         ('1 months', relativedelta(months=1)),
         ('1months', relativedelta(months=1)),
@@ -81,7 +80,6 @@ try:
         parsed = parse_period(data_set[0])
 
         assert parsed == data_set[1]
-
 
     def test_format_relativedelta():
 

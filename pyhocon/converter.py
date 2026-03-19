@@ -284,4 +284,3 @@ class HOCONConverter(object):
     @classmethod
     def _escape_string(cls, string):
         return re.sub(r'[\x00-\x1F"\\]', cls._escape_match, string)
-

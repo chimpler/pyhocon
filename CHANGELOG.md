@@ -1,5 +1,9 @@
 # Changelog
 
+# Version 0.3.62
+
+* Migrate to pyparsing 3.x and drop Python 2.7 support (@alejandrorm) [#337]
+
 # Version 0.3.61
 
 * fix(tox): remove old EOLed python 3.x versions, added new python versions (@pierresouchay) [#330]

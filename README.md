@@ -393,6 +393,7 @@ assert config == d
   - Carol Guo ([@carolguo-dd](https://github.com/carolguo-dd))
   - Jakub Kubík ([@M0dEx](https://github.com/M0dEx))
   - Jakub Szewczyk ([@jakub-szewczyk-exa](https://github.com/jakub-szewczyk-exa))
+  - Alejandro Rodriguez-Morantes ([@alejandrorm](https://github.com/alejandrorm))
 
 ### Thanks
 
@@ -408,4 +409,4 @@ assert config == d
   - Dominik1123 ([@Dominik1123](https://github.com/Dominik1123))
   - Richard Taylor ([@richard534](https://github.com/richard534))
   - Sergii Lutsanych ([@sergii1989](https://github.com/sergii1989))
-
+  - Romain G ([@Romain-DE](https://github.com/Romain-DE))

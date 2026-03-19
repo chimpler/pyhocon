@@ -1,32 +1,10 @@
 #!/usr/bin/env python
 
-import sys
-
 from setuptools import setup
-from setuptools.command.test import test as TestCommand
-
-
-class PyTestCommand(TestCommand):
-    user_options = [('pytest-args=', 'a', "Arguments to pass to py.test")]
-
-    def initialize_options(self):
-        TestCommand.initialize_options(self)
-        self.pytest_args = []
-
-    def finalize_options(self):
-        TestCommand.finalize_options(self)
-        self.test_args = []
-        self.test_suite = True
-
-    def run_tests(self):
-        import pytest
-        errno = pytest.main(self.pytest_args)
-        sys.exit(errno)
-
 
 setup(
     name='pyhocon',
-    version='0.3.61',
+    version='0.3.62',
     description='HOCON parser for Python',
     long_description='pyhocon is a HOCON parser for Python. Additionally we provide a tool (pyhocon) to convert any HOCON '
                      'content into json, yaml and properties format.',
@@ -56,14 +34,9 @@ setup(
     extras_require={
         'Duration': ['python-dateutil>=2.8.0']
     },
-    tests_require=['pytest', 'mock==3.0.5'],
     entry_points={
         'console_scripts': [
             'pyhocon=pyhocon.tool:main'
         ]
-    },
-    test_suite='tests',
-    cmdclass={
-        'test': PyTestCommand
     }
 )
