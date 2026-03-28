@@ -192,6 +192,7 @@ class ConfigParser(object):
         '\\#': '#',
         '\\!': '!',
         '\\"': '"',
+        '\/': '/',
     }
 
     @classmethod
