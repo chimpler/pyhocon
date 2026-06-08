@@ -11,12 +11,6 @@ from pyhocon.config_tree import NoneValue
 from pyhocon.period_serializer import timedelta_to_str, is_timedelta_like, timedelta_to_hocon
 
 try:
-    basestring
-except NameError:
-    basestring = str
-    unicode = str
-
-try:
     from dateutil.relativedelta import relativedelta
 except Exception:
     relativedelta = None
@@ -28,7 +22,7 @@ class HOCONConverter(object):
         """Convert HOCON input into a JSON output
 
         :return: JSON string representation
-        :type return: basestring
+        :type return: str
         """
         lines = ""
         if isinstance(config, ConfigTree):
@@ -62,7 +56,7 @@ class HOCONConverter(object):
                 lines += '\n{indent}]'.format(indent=''.rjust(level * indent, ' '))
         elif is_timedelta_like(config):
             lines += timedelta_to_str(config)
-        elif isinstance(config, basestring):
+        elif isinstance(config, str):
             lines = json.dumps(config, ensure_ascii=False)
         elif config is None or isinstance(config, NoneValue):
             lines = 'null'
@@ -79,7 +73,7 @@ class HOCONConverter(object):
         """Convert HOCON input into a HOCON output
 
         :return: JSON string representation
-        :type return: basestring
+        :type return: str
         """
         lines = ""
         if isinstance(config, ConfigTree):
@@ -120,7 +114,7 @@ class HOCONConverter(object):
                                                               value=cls.to_hocon(item, compact, indent, level + 1)))
                 lines += '\n'.join(bet_lines)
                 lines += '\n{indent}]'.format(indent=''.rjust((level - 1) * indent, ' '))
-        elif isinstance(config, basestring):
+        elif isinstance(config, str):
             if '\n' in config and len(config) > 1:
                 lines = '"""{value}"""'.format(value=config)  # multilines
             else:
@@ -154,7 +148,7 @@ class HOCONConverter(object):
         """Convert HOCON input into a YAML output
 
         :return: YAML string representation
-        :type return: basestring
+        :type return: str
         """
         lines = ""
         if isinstance(config, ConfigTree):
@@ -182,7 +176,7 @@ class HOCONConverter(object):
                 lines += '\n'.join(bet_lines)
         elif is_timedelta_like(config):
             lines += timedelta_to_str(config)
-        elif isinstance(config, basestring):
+        elif isinstance(config, str):
             # if it contains a \n then it's multiline
             lines = config.split('\n')
             if len(lines) == 1:
@@ -204,7 +198,7 @@ class HOCONConverter(object):
         """Convert HOCON input into a .properties output
 
         :return: .properties string representation
-        :type return: basestring
+        :type return: str
         :return:
         """
         key_stack = key_stack or []
@@ -224,7 +218,7 @@ class HOCONConverter(object):
                     lines.append(cls.to_properties(item, compact, indent, stripped_key_stack + [str(index)]))
         elif is_timedelta_like(config):
             lines.append('.'.join(stripped_key_stack) + ' = ' + timedelta_to_str(config))
-        elif isinstance(config, basestring):
+        elif isinstance(config, str):
             lines.append('.'.join(stripped_key_stack) + ' = ' + escape_value(config))
         elif config is True:
             lines.append('.'.join(stripped_key_stack) + ' = true')
@@ -290,4 +284,3 @@ class HOCONConverter(object):
     @classmethod
     def _escape_string(cls, string):
         return re.sub(r'[\x00-\x1F"\\]', cls._escape_match, string)
-

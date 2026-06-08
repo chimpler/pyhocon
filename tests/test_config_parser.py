@@ -28,6 +28,7 @@ try:
 except Exception:
     from datetime import timedelta as period
 
+
 class TestConfigParser(object):
     def test_parse_simple_value(self):
         config = ConfigFactory.parse_string(
@@ -118,7 +119,6 @@ class TestConfigParser(object):
         assert config.get_string('a.b') == '5'
         assert config.get_string('a.y_min') == '42'
 
-
     def test_issue_324(self):
         config = ConfigFactory.parse_string("a { c = 3\nd = 4 }")
         assert config["a"]["c"] == 3
@@ -194,11 +194,10 @@ class TestConfigParser(object):
         # Depending if parsing dates is enabled, might parse date or might not
         # since this is an optional dependency
         assert (
-                config['b'] == ['a', 1, period(weeks=10), period(minutes=5)]
-            ) or (
-                config['b'] == ['a', 1, '10 weeks', '5 minutes']
-            )
-
+            config['b'] == ['a', 1, period(weeks=10), period(minutes=5)]
+        ) or (
+            config['b'] == ['a', 1, '10 weeks', '5 minutes']
+        )
 
     def test_parse_with_enclosing_square_bracket(self):
         config = ConfigFactory.parse_string("[1, 2, 3]")
@@ -1757,11 +1756,10 @@ class TestConfigParser(object):
               result = ${test}
             """)
         assert config == {
-            'a' : 3,
+            'a': 3,
             'test': 3,
             'result': 3
         }
-
 
     def test_substitution_cycle(self):
         with pytest.raises(ConfigSubstitutionException):
@@ -2700,7 +2698,6 @@ www.example-ö.com {
 
 try:
     from dateutil.relativedelta import relativedelta
-
 
     @pytest.mark.parametrize('data_set', [
         ('a: 1 months', relativedelta(months=1)),

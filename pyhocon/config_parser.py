@@ -12,7 +12,7 @@ from pyparsing import (Forward, Group, Keyword, Literal, Optional,
                        ParserElement, ParseSyntaxException, QuotedString,
                        Regex, SkipTo, StringEnd, Suppress, TokenConverter,
                        Word, ZeroOrMore, alphanums, alphas8bit, col, lineno,
-                       replaceWith)
+                       replace_with)
 
 from pyhocon.period_parser import get_period_expr
 
@@ -26,7 +26,6 @@ if sys.version_info >= (3, 8):
         except KeyError:
             return ""
 
-
     pyparsing.ParseResults.__getattr__ = fixed_get_attr
 
 from pyhocon.config_tree import (ConfigInclude, ConfigList, ConfigQuotedString,
@@ -35,53 +34,21 @@ from pyhocon.config_tree import (ConfigInclude, ConfigList, ConfigQuotedString,
 from pyhocon.exceptions import (ConfigException, ConfigMissingException,
                                 ConfigSubstitutionException)
 
-use_urllib2 = False
-try:
-    # For Python 3.0 and later
-    from urllib.request import urlopen
-    from urllib.error import HTTPError, URLError
-except ImportError:  # pragma: no cover
-    # Fall back to Python 2's urllib2
-    from urllib2 import urlopen, HTTPError, URLError
-
-    use_urllib2 = True
-try:
-    basestring
-except NameError:  # pragma: no cover
-    basestring = str
-    unicode = str
-
-if sys.version_info < (3, 5):
-    def glob(pathname, recursive=False):
-        if recursive and '**' in pathname:
-            import warnings
-            warnings.warn('This version of python (%s) does not support recursive import' % sys.version)
-        from glob import glob as _glob
-        return _glob(pathname)
-else:
-    from glob import glob
-
-# Fix deprecated warning with 'imp' library and Python 3.4+.
-# See: https://github.com/chimpler/pyhocon/issues/248
-if sys.version_info >= (3, 4):
-    import importlib.util
+from urllib.request import urlopen
+from urllib.error import HTTPError, URLError
+from glob import glob
+import importlib.util
 
 
-    def find_package_dirs(name):
-        spec = importlib.util.find_spec(name)
-        # When `imp.find_module()` cannot find a package it raises ImportError.
-        # Here we should simulate it to keep the compatibility with older
-        # versions.
-        if not spec:
-            raise ImportError('No module named {!r}'.format(name))
-        return spec.submodule_search_locations
-else:
-    import imp
-    import importlib
+def find_package_dirs(name):
+    spec = importlib.util.find_spec(name)
+    # When `imp.find_module()` cannot find a package it raises ImportError.
+    # Here we should simulate it to keep the compatibility with older
+    # versions.
+    if not spec:
+        raise ImportError('No module named {!r}'.format(name))
+    return spec.submodule_search_locations
 
-
-    def find_package_dirs(name):
-        return [imp.find_module(name)[1]]
 
 logger = logging.getLogger(__name__)
 
@@ -107,11 +74,8 @@ class STR_SUBSTITUTION(object):
     pass
 
 
-U_KEY_SEP = unicode('.')
-U_KEY_FMT = unicode('"{0}"')
-
-U_KEY_SEP = unicode('.')
-U_KEY_FMT = unicode('"{0}"')
+U_KEY_SEP = '.'
+U_KEY_FMT = '"{0}"'
 
 
 class ConfigFactory(object):
@@ -121,9 +85,9 @@ class ConfigFactory(object):
         """Parse file
 
         :param filename: filename
-        :type filename: basestring
+        :type filename: str
         :param encoding: file encoding
-        :type encoding: basestring
+        :type encoding: str
         :param required: If true, raises an exception if can't load file
         :type required: boolean
         :param resolve: if true, resolve substitutions
@@ -150,7 +114,7 @@ class ConfigFactory(object):
         """Parse URL
 
         :param url: url to parse
-        :type url: basestring
+        :type url: str
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
         :param unresolved_value: assigned value to unresolved substitution.
@@ -164,7 +128,7 @@ class ConfigFactory(object):
 
         try:
             with contextlib.closing(urlopen(url, timeout=socket_timeout)) as fd:
-                content = fd.read() if use_urllib2 else fd.read().decode('utf-8')
+                content = fd.read().decode('utf-8')
                 return cls.parse_string(content, os.path.dirname(url), resolve, unresolved_value)
         except (HTTPError, URLError) as e:
             logger.warn('Cannot include url %s. Resource is inaccessible.', url)
@@ -178,7 +142,7 @@ class ConfigFactory(object):
         """Parse string
 
         :param content: content to parse
-        :type content: basestring
+        :type content: str
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
         :param unresolved_value: assigned value to unresolved substitution.
@@ -235,7 +199,7 @@ class ConfigParser(object):
         """parse a HOCON content
 
         :param content: HOCON content to parse
-        :type content: basestring
+        :type content: str
         :param resolve: if true, resolve substitutions
         :type resolve: boolean
         :param unresolved_value: assigned value to unresolved substitution.
@@ -376,17 +340,17 @@ class ConfigParser(object):
         @contextlib.contextmanager
         def set_default_white_spaces():
             default = ParserElement.DEFAULT_WHITE_CHARS
-            ParserElement.setDefaultWhitespaceChars(' \t')
+            ParserElement.set_default_whitespace_chars(' \t')
             yield
-            ParserElement.setDefaultWhitespaceChars(default)
+            ParserElement.set_default_whitespace_chars(default)
 
         with set_default_white_spaces():
             assign_expr = Forward()
-            true_expr = Keyword("true", caseless=True).setParseAction(replaceWith(True))
-            false_expr = Keyword("false", caseless=True).setParseAction(replaceWith(False))
-            null_expr = Keyword("null", caseless=True).setParseAction(replaceWith(NoneValue()))
-            key = QuotedString('"""', escChar='\\', unquoteResults=False) | \
-                  QuotedString('"', escChar='\\', unquoteResults=False) | Word(alphanums + alphas8bit + '._- /')
+            true_expr = Keyword("true", caseless=True).set_parse_action(replace_with(True))
+            false_expr = Keyword("false", caseless=True).set_parse_action(replace_with(False))
+            null_expr = Keyword("null", caseless=True).set_parse_action(replace_with(NoneValue()))
+            key = QuotedString('"""', esc_char='\\', unquote_results=False) | \
+                QuotedString('"', esc_char='\\', unquote_results=False) | Word(alphanums + alphas8bit + '._- /')
 
             eol = Word('\n\r').suppress()
             eol_comma = Word('\n\r,').suppress()
@@ -394,35 +358,36 @@ class ConfigParser(object):
             comment_eol = Suppress(Optional(eol_comma) + comment)
             comment_no_comma_eol = (comment | eol).suppress()
             number_expr = Regex(r'[+-]?(\d*\.\d+|\d+(\.\d+)?)([eE][+\-]?\d+)?(?=$|[ \t]*([\$\}\],#\n\r]|//))',
-                                re.DOTALL).setParseAction(convert_number)
+                                re.DOTALL).set_parse_action(convert_number)
             # multi line string using """
             # Using fix described in http://pyparsing.wikispaces.com/share/view/3778969
-            multiline_string = Regex('""".*?"*"""', re.DOTALL | re.UNICODE).setParseAction(parse_multi_string)
+            multiline_string = Regex('""".*?"*"""', re.DOTALL | re.UNICODE).set_parse_action(parse_multi_string)
             # single quoted line string
-            quoted_string = Regex(r'"(?:[^"\\\n]|\\.)*"[ \t]*', re.UNICODE).setParseAction(create_quoted_string)
+            quoted_string = Regex(r'"(?:[^"\\\n]|\\.)*"[ \t]*', re.UNICODE).set_parse_action(create_quoted_string)
             # unquoted string that takes the rest of the line until an optional comment
             # we support .properties multiline support which is like this:
             # line1  \
             # line2 \
             # so a backslash precedes the \n
-            unquoted_string = Regex(r'(?:[^^`+?!@*&"\[\{\s\]\}#,=\$\\]|\\.)+[ \t]*', re.UNICODE).setParseAction(
+            unquoted_string = Regex(r'(?:[^^`+?!@*&"\[\{\s\]\}#,=\$\\]|\\.)+[ \t]*', re.UNICODE).set_parse_action(
                 unescape_string)
-            substitution_expr = Regex(r'[ \t]*\$\{[^\}]+\}[ \t]*').setParseAction(create_substitution)
+            substitution_expr = Regex(r'[ \t]*\$\{[^\}]+\}[ \t]*').set_parse_action(create_substitution)
             string_expr = multiline_string | quoted_string | unquoted_string
 
             value_expr = get_period_expr() | number_expr | true_expr | false_expr | null_expr | string_expr
 
             include_content = (
-                    quoted_string | ((Keyword('url') | Keyword('file') | Keyword('package')) - Literal(
-                '(').suppress() - quoted_string - Literal(')').suppress())
+                quoted_string | ((Keyword('url') | Keyword('file') | Keyword('package'))
+                                 - Literal('(').suppress() - quoted_string
+                                 - Literal(')').suppress())
             )
             include_expr = (
-                    Keyword("include", caseless=True).suppress() + (
+                Keyword("include", caseless=True).suppress() + (
                     include_content | (
-                    Keyword("required") - Literal('(').suppress() - include_content - Literal(')').suppress()
-            )
-            )
-            ).setParseAction(include_config)
+                        Keyword("required") - Literal('(').suppress() - include_content - Literal(')').suppress()
+                    )
+                )
+            ).set_parse_action(include_config)
 
             root_dict_expr = Forward()
             dict_expr = Forward()
@@ -443,19 +408,20 @@ class ConfigParser(object):
             # special case when we have a value assignment where the string can potentially be the remainder of the line
             assign_expr << Group(
                 key - ZeroOrMore(comment_no_comma_eol) - (
-                        dict_expr | (Literal('=') | Literal(':') | Literal('+=')) - ZeroOrMore(
-                    comment_no_comma_eol) - ConcatenatedValueParser(multi_value_expr))
+                    dict_expr | (Literal('=') | Literal(':') | Literal('+=')) - ZeroOrMore(
+                        comment_no_comma_eol) - ConcatenatedValueParser(multi_value_expr))
             )
 
             # the file can be { ... } where {} can be omitted or []
             config_expr = ZeroOrMore(comment_eol | eol) + (
-                    list_expr | root_dict_expr | inside_root_dict_expr) + ZeroOrMore(
+                list_expr | root_dict_expr | inside_root_dict_expr
+            ) + ZeroOrMore(
                 comment_eol | eol_comma)
-            config = config_expr.parseString(content, parseAll=True)[0]
+            config = config_expr.parse_string(content, parse_all=True)[0]
 
             if resolve:
-                allow_unresolved = resolve and unresolved_value is not DEFAULT_SUBSTITUTION \
-                                   and unresolved_value is not MANDATORY_SUBSTITUTION
+                allow_unresolved = resolve and unresolved_value is not DEFAULT_SUBSTITUTION
+                allow_unresolved = allow_unresolved and unresolved_value is not MANDATORY_SUBSTITUTION
                 has_unresolved = cls.resolve_substitutions(config, allow_unresolved)
                 if has_unresolved and unresolved_value is MANDATORY_SUBSTITUTION:
                     raise ConfigSubstitutionException(
@@ -542,7 +508,7 @@ class ConfigParser(object):
         """Convert HOCON input into a JSON output
 
         :return: JSON string representation
-        :type return: basestring
+        :type return: str
         """
         if isinstance(item, ConfigValues):
             return item.get_substitutions()
@@ -571,8 +537,8 @@ class ConfigParser(object):
             # if it is a string, then add the extra ws that was present in the original string after the substitution
             formatted_resolved_value = resolved_value \
                 if resolved_value is None \
-                   or isinstance(resolved_value, (dict, list)) \
-                   or substitution.index == len(config_values.tokens) - 1 \
+                or isinstance(resolved_value, (dict, list)) \
+                or substitution.index == len(config_values.tokens) - 1 \
                 else (str(resolved_value) + substitution.ws)
             # use a deepcopy of resolved_value to avoid mutation
             config_values.put(substitution.index, copy.deepcopy(formatted_resolved_value))
@@ -642,11 +608,11 @@ class ConfigParser(object):
 
                     is_optional_resolved, resolved_value = cls._resolve_variable(config, substitution)
 
-                    if isinstance(resolved_value, ConfigValues) :
+                    if isinstance(resolved_value, ConfigValues):
                         resolved_value = resolved_value.transform()
                         value_to_be_substitute = resolved_value
                         if overridden_value and not isinstance(overridden_value, ConfigValues):
-                                value_to_be_substitute = overridden_value
+                            value_to_be_substitute = overridden_value
                         unresolved, _, _ = cls._do_substitute(substitution, value_to_be_substitute, is_optional_resolved)
 
                         any_unresolved = unresolved or any_unresolved
@@ -823,7 +789,7 @@ class ConfigTreeParser(TokenConverter):
                     if isinstance(value, list) and operator == "+=":
                         value = ConfigValues([ConfigSubstitution(key, True, '', False, loc), value], False, loc)
                         config_tree.put(key, value, False)
-                    elif isinstance(value, unicode) and operator == "+=":
+                    elif isinstance(value, str) and operator == "+=":
                         value = ConfigValues([ConfigSubstitution(key, True, '', True, loc), ' ' + value], True, loc)
                         config_tree.put(key, value, False)
                     elif isinstance(value, list):

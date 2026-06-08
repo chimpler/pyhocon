@@ -4,12 +4,6 @@ import re
 import copy
 from pyhocon.exceptions import ConfigException, ConfigWrongTypeException, ConfigMissingException
 
-try:
-    basestring
-except NameError:  # pragma: no cover
-    basestring = str
-    unicode = str
-
 
 class UndefinedKey(object):
     pass
@@ -219,7 +213,7 @@ class ConfigTree(OrderedDict):
         """Put a value in the tree (dot separated)
 
         :param key: key to use (dot separated). E.g., a.b.c
-        :type key: basestring
+        :type key: str
         :param value: value to put
         """
         self._put(ConfigTree.parse_key(key), value, append)
@@ -228,7 +222,7 @@ class ConfigTree(OrderedDict):
         """Get a value from the tree
 
         :param key: key to use (dot separated). E.g., a.b.c
-        :type key: basestring
+        :type key: str
         :param default: default value if key not found
         :type default: object
         :return: value in the tree located at key
@@ -239,17 +233,17 @@ class ConfigTree(OrderedDict):
         """Return string representation of value found at key
 
         :param key: key to use (dot separated). E.g., a.b.c
-        :type key: basestring
+        :type key: str
         :param default: default value if key not found
-        :type default: basestring
+        :type default: str
         :return: string value
-        :type return: basestring
+        :type return: str
         """
         value = self.get(key, default)
         if value is None:
             return None
 
-        string_value = unicode(value)
+        string_value = str(value)
         if isinstance(value, bool):
             string_value = string_value.lower()
         return string_value
@@ -262,7 +256,7 @@ class ConfigTree(OrderedDict):
         and pops the last value out of the dict.
 
         :param key: key to use (dot separated). E.g., a.b.c
-        :type key: basestring
+        :type key: str
         :param default: default value if key not found
         :type default: object
         :param default: default value if key not found
@@ -286,7 +280,7 @@ class ConfigTree(OrderedDict):
         """Return int representation of value found at key
 
         :param key: key to use (dot separated). E.g., a.b.c
-        :type key: basestring
+        :type key: str
         :param default: default value if key not found
         :type default: int
         :return: int value
@@ -303,7 +297,7 @@ class ConfigTree(OrderedDict):
         """Return float representation of value found at key
 
         :param key: key to use (dot separated). E.g., a.b.c
-        :type key: basestring
+        :type key: str
         :param default: default value if key not found
         :type default: float
         :return: float value
@@ -320,7 +314,7 @@ class ConfigTree(OrderedDict):
         """Return boolean representation of value found at key
 
         :param key: key to use (dot separated). E.g., a.b.c
-        :type key: basestring
+        :type key: str
         :param default: default value if key not found
         :type default: bool
         :return: boolean value
@@ -347,7 +341,7 @@ class ConfigTree(OrderedDict):
         """Return list representation of value found at key
 
         :param key: key to use (dot separated). E.g., a.b.c
-        :type key: basestring
+        :type key: str
         :param default: default value if key not found
         :type default: list
         :return: list value
@@ -374,7 +368,7 @@ class ConfigTree(OrderedDict):
         """Return tree config representation of value found at key
 
         :param key: key to use (dot separated). E.g., a.b.c
-        :type key: basestring
+        :type key: str
         :param default: default value if key not found
         :type default: config
         :return: config value
@@ -522,7 +516,7 @@ class ConfigValues(object):
             if isinstance(v, ConfigQuotedString):
                 return v.value + ('' if last else v.ws)
             else:
-                return '' if v is None else unicode(v)
+                return '' if v is None else str(v)
 
         if self.has_substitution():
             return self
@@ -618,7 +612,7 @@ class ConfigSubstitution(object):
         return '[ConfigSubstitution: ' + self.variable + ']'
 
 
-class ConfigUnquotedString(unicode):
+class ConfigUnquotedString(str):
     def __new__(cls, value):
         return super(ConfigUnquotedString, cls).__new__(cls, value)
 
