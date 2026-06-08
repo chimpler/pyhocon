@@ -720,12 +720,14 @@ class ListParser(TokenConverter):
         # relativedelta.__eq__() raises NotImplemented if it is compared with
         # a different object type so Python falls back to identity comparison.
         # We cannot compare this object to a string object.
+
+        # If the token list is a multiline list
+        # Remove the first and last tokens from token list which are new lines converted to empty strings
+        if instring[loc - 1] in ["\n", "\r"]:
+            token_list.pop(0)
+            token_list.pop(-1)
+
         for token in token_list:
-            if isinstance(token, str) and token == '':
-                # This is the case when there was a trailing comma in the list.
-                # The last token is just an empty string so we can safely ignore
-                # it.
-                continue
             if isinstance(token, ConfigInclude):
                 cleaned_token_list.extend(token.tokens)
             else:
