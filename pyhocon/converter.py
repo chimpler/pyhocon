@@ -115,7 +115,10 @@ class HOCONConverter(object):
                 lines += '\n'.join(bet_lines)
                 lines += '\n{indent}]'.format(indent=''.rjust((level - 1) * indent, ' '))
         elif isinstance(config, str):
-            if '\n' in config and len(config) > 1:
+            # A triple-quoted literal cannot contain the `"""` sequence (it
+            # would terminate the literal early), so such strings must use the
+            # escaped single-quoted form instead.
+            if '\n' in config and len(config) > 1 and '"""' not in config:
                 lines = '"""{value}"""'.format(value=config)  # multilines
             else:
                 lines = '"{value}"'.format(value=cls._escape_string(config))
@@ -127,7 +130,7 @@ class HOCONConverter(object):
                 lines += '?'
             lines += config.variable + '}' + config.ws
         elif isinstance(config, ConfigQuotedString):
-            if '\n' in config.value and len(config.value) > 1:
+            if '\n' in config.value and len(config.value) > 1 and '"""' not in config.value:
                 lines = '"""{value}"""'.format(value=config.value)  # multilines
             else:
                 lines = '"{value}"'.format(value=cls._escape_string(config.value))
