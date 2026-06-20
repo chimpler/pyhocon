@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 from datetime import timedelta
 
-from pyhocon import ConfigTree
+from pyhocon import ConfigFactory, ConfigTree
 from pyhocon.converter import HOCONConverter
 
 
@@ -107,6 +107,16 @@ class TestConverterToHocon(object):
         assert 'a = """\nc"""' == to_hocon({'a': '\nc'})
         assert 'a = """b\n"""' == to_hocon({'a': 'b\n'})
         assert 'a = """\n\n"""' == to_hocon({'a': '\n\n'})
+
+    def test_format_multiline_string_with_triple_quote(self):
+        # A multiline string that itself contains `"""` cannot use the
+        # triple-quoted form (the embedded `"""` would terminate the literal
+        # early), so it must fall back to the escaped single-quoted form and
+        # still round-trip.
+        assert r'a = "a\nb\"\"\"c"' == to_hocon({'a': 'a\nb"""c'})
+        for value in ('a\nb"""c', 'before\n"""middle"""\nafter', '"""\nleading'):
+            parsed = ConfigFactory.parse_string(to_hocon({'a': value}))['a']
+            assert parsed == value
 
     def test_format_time_delta(self):
         for time_delta, expected_result in ((timedelta(days=0), 'td = 0 seconds'),
