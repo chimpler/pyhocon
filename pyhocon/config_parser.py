@@ -467,40 +467,41 @@ class ConfigParser(object):
     @classmethod
     def _fixup_self_references(cls, config, accept_unresolved=False):
         if isinstance(config, ConfigTree) and config.root:
-            for key in config:  # Traverse history of element
-                history = config.history[key]
-                previous_item = history[0]
-                for current_item in history[1:]:
-                    for substitution in cls._find_substitutions(current_item):
-                        prop_path = ConfigTree.parse_key(substitution.variable)
-                        if len(prop_path) > 1 and config.get(substitution.variable, None) is not None:
-                            continue  # If value is present in latest version, don't do anything
-                        if prop_path[0] == key:
-                            if isinstance(previous_item, ConfigValues) and not accept_unresolved:
-                                # We hit a dead end, we cannot evaluate
-                                raise ConfigSubstitutionException(
-                                    "Property {variable} cannot be substituted. Check for cycles.".format(
-                                        variable=substitution.variable
-                                    )
+        for key in list(config.keys()):  # Use list to avoid mutation error during iteration
+            history = config.history.get(key)
+            if not history:
+                continue
+            previous_item = history[0]
+            for current_item in history[1:]:
+                for substitution in cls._find_substitutions(current_item):
+                    prop_path = ConfigTree.parse_key(substitution.variable)
+                    if len(prop_path) > 1 and config.get(substitution.variable, None) is not None:
+                        continue
+                    if prop_path[0] == key:
+                        if isinstance(previous_item, ConfigValues) and not accept_unresolved:
+                            raise ConfigSubstitutionException(
+                                "Property {variable} cannot be substituted. Check for cycles.".format(
+                                    variable=substitution.variable
                                 )
-                            else:
-                                value = previous_item if len(prop_path) == 1 else previous_item.get(
-                                    ".".join(prop_path[1:]))
-                                _, _, current_item = cls._do_substitute(substitution, value)
-                    previous_item = current_item
+                            )
+                        else:
+                            value = previous_item if len(prop_path) == 1 else previous_item.get(
+                                ".".join(prop_path[1:]))
+                            _, _, current_item = cls._do_substitute(substitution, value)
+                previous_item = current_item
 
-                if len(history) == 1:
-                    for substitution in cls._find_substitutions(previous_item):
-                        prop_path = ConfigTree.parse_key(substitution.variable)
-                        if len(prop_path) > 1 and config.get(substitution.variable, None) is not None:
-                            continue  # If value is present in latest version, don't do anything
-                        if prop_path[0] == key:
-                            value = os.environ.get(key)
-                            if value is not None:
-                                cls._do_substitute(substitution, value)
-                                continue
-                            if substitution.optional:  # special case, when self optional referencing without existing
-                                cls._do_substitute(substitution, None)
+            if len(history) == 1:
+                for substitution in cls._find_substitutions(previous_item):
+                    prop_path = ConfigTree.parse_key(substitution.variable)
+                    if len(prop_path) > 1 and config.get(substitution.variable, None) is not None:
+                        continue
+                    if prop_path[0] == key:
+                        value = os.environ.get(key)
+                        if value is not None:
+                            cls._do_substitute(substitution, value)
+                            continue
+                        if substitution.optional:
+                            cls._do_substitute(substitution, None)
 
     # traverse config to find all the substitutions
     @classmethod
