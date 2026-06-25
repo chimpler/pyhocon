@@ -227,6 +227,16 @@ class ConfigTree(OrderedDict):
         :type default: object
         :return: value in the tree located at key
         """
+        # Try an exact (literal) key lookup first so that keys containing dots
+        # that were stored verbatim (e.g. via from_dict()) are found before the
+        # dotted-path traversal interprets those dots as path separators.
+        exact = super(ConfigTree, self).get(key, UndefinedKey)
+        if exact is not UndefinedKey:
+            if isinstance(exact, NoneValue):
+                return None
+            if isinstance(exact, list):
+                return [None if isinstance(x, NoneValue) else x for x in exact]
+            return exact
         return self._get(ConfigTree.parse_key(key), 0, default)
 
     def get_string(self, key, default=UndefinedKey):

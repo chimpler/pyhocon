@@ -167,7 +167,10 @@ class ConfigFactory(object):
             if isinstance(value, dict):
                 res = ConfigTree(root=root)
                 for key, child_value in value.items():
-                    res.put(key, create_tree(child_value))
+                    # Use _put with a single-element path to preserve the literal key.
+                    # Using put() would split the key on dots (e.g. "a.b" → path ["a","b"]),
+                    # truncating or nesting keys that contain HOCON path-separator characters.
+                    res._put([key], create_tree(child_value))
                 return res
             if isinstance(value, list):
                 return [create_tree(v) for v in value]

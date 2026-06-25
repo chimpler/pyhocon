@@ -2310,6 +2310,24 @@ test2 = test
         config = ConfigFactory.from_dict(d)
         assert config == d
 
+    def test_from_dict_preserves_dotted_keys(self):
+        """Keys containing dots must be stored as literal keys, not split into nested paths."""
+        d = {
+            'myStuff': {
+                'myThing_r0.1': ['someVal'],
+            }
+        }
+        config = ConfigFactory.from_dict(d)
+        # The key 'myThing_r0.1' must appear verbatim, not be truncated to 'myThing_r0'.
+        assert list(config['myStuff'].keys()) == ['myThing_r0.1']
+        # Iterating items() must also yield the original key.
+        items = list(config['myStuff'].items())
+        assert items == [('myThing_r0.1', ['someVal'])]
+        # Direct get() must find the value.
+        assert config['myStuff'].get('myThing_r0.1') == ['someVal']
+        # Round-trip equality with the original dict.
+        assert config == d
+
     def test_object_concat(self):
         config = ConfigFactory.parse_string(
             """o1 = {
