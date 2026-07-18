@@ -785,10 +785,10 @@ class ConfigTreeParser(TokenConverter):
                 else:
                     value = values[0]
                     if isinstance(value, list) and operator == "+=":
-                        value = ConfigValues([ConfigSubstitution(key, True, '', False, loc), value], False, loc)
+                        value = ConfigValues([ConfigSubstitution(key, True, '', instring, loc), value], instring, loc)
                         config_tree.put(key, value, False)
                     elif isinstance(value, str) and operator == "+=":
-                        value = ConfigValues([ConfigSubstitution(key, True, '', True, loc), ' ' + value], True, loc)
+                        value = ConfigValues([ConfigSubstitution(key, True, '', instring, loc), ' ' + value], instring, loc)
                         config_tree.put(key, value, False)
                     elif isinstance(value, list):
                         config_tree.put(key, value, False)

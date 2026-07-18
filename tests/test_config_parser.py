@@ -959,6 +959,15 @@ class TestConfigParser(object):
         )
         assert config.get("x") == {'a': 1}
 
+    def test_self_append_nonexistent_nested_key_reports_typed_error(self):
+        # an unresolved nested += must raise the typed error, not leak AttributeError
+        for content in ('x.y.z += ', 'a.b += def', 'a.b += [1,2]',
+                        'foo: {bar: []}\nfoo.bar += []'):
+            with pytest.raises(ConfigSubstitutionException) as exc_info:
+                ConfigFactory.parse_string(content)
+            message = str(exc_info.value)
+            assert 'line:' in message and 'col:' in message
+
     def test_self_ref_substitution_array_to_dict(self):
         config = ConfigFactory.parse_string(
             """
