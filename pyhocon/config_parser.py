@@ -1,4 +1,3 @@
-import codecs
 import contextlib
 import copy
 import logging
@@ -100,7 +99,7 @@ class ConfigFactory(object):
         :type return: Config or list
         """
         try:
-            with codecs.open(filename, 'r', encoding=encoding) as fd:
+            with open(filename, 'r', encoding=encoding) as fd:
                 content = fd.read()
                 return cls.parse_string(content, os.path.dirname(filename), resolve, unresolved_value)
         except IOError as e:
