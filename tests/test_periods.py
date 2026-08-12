@@ -2,6 +2,7 @@ from datetime import timedelta
 
 import pytest
 
+from pyhocon.exceptions import ConfigException
 from pyhocon.period_parser import parse_period
 from pyhocon.period_serializer import timedelta_to_hocon
 
@@ -100,3 +101,15 @@ def test_format_time_delta():
                                         (timedelta(seconds=51), '51 seconds'),
                                         (timedelta(microseconds=786), '786 microseconds')):
         assert expected_result == timedelta_to_hocon(time_delta)
+
+
+@pytest.mark.parametrize('representation', [
+    '99999999999999999999999 ms',
+    '999999999999999999999999999 milliseconds',
+])
+def test_out_of_range_millisecond_period_raises(representation):
+    # A millisecond period is built with timedelta, which overflows for an
+    # absurdly large value. That must surface as a ConfigException, not a raw
+    # OverflowError leaking out of parsing.
+    with pytest.raises(ConfigException):
+        parse_period(representation)

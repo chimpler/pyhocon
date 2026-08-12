@@ -3,6 +3,8 @@ from datetime import timedelta
 
 from pyparsing import (Word, ZeroOrMore, alphanums, Or, nums, WordEnd, Combine, Literal)
 
+from pyhocon.exceptions import ConfigException
+
 period_type_map = {
     'nanoseconds': ['ns', 'nano', 'nanos', 'nanosecond', 'nanoseconds'],
     'microseconds': ['us', 'micro', 'micros', 'microsecond', 'microseconds'],
@@ -36,7 +38,15 @@ def convert_period(tokens):
                         in period_type_map.items()
                         if period_identifier in values))
 
-    return period(period_value, period_unit)
+    try:
+        return period(period_value, period_unit)
+    except OverflowError as e:
+        # A millisecond period is built with timedelta, whose C-level day count
+        # overflows for a huge value like "99999999999999999999999 ms". Report
+        # it as a config error instead of leaking OverflowError out of parsing.
+        raise ConfigException(
+            "Period '{} {}' is out of range".format(period_value, period_identifier)
+        ) from e
 
 
 def period(period_value, period_unit):
