@@ -202,12 +202,19 @@ class ConfigTree(OrderedDict):
         """
         special_characters = '$}[]:=+#`^?!@*&.'
         tokens = re.findall(
-            r'"[^"]+"|[^{special_characters}]+'.format(special_characters=re.escape(special_characters)), string)
+            r'"(?:[^"\\]|\\.)+"|[^{special_characters}]+'.format(special_characters=re.escape(special_characters)), string)
 
         def contains_special_character(token):
             return any((c in special_characters) for c in token)
 
-        return [token if contains_special_character(token) else token.strip('"') for token in tokens]
+        def unquote(token):
+            if token.startswith('"') and token.endswith('"'):
+                # local import to avoid a circular import with config_parser
+                from pyhocon.config_parser import ConfigParser
+                return re.sub(r'\\.', lambda m: ConfigParser.REPLACEMENTS.get(m.group(0), m.group(0)), token.strip('"'))
+            return token
+
+        return [token if contains_special_character(token) else unquote(token) for token in tokens]
 
     def put(self, key, value, append=False):
         """Put a value in the tree (dot separated)

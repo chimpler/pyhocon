@@ -221,6 +221,18 @@ class TestConfigParser(object):
         assert config['t.d.c'] == 5
         assert config['k."b.f.d"'] == 7
 
+    def test_quoted_key_with_escaped_quote(self):
+        # a key that starts with a backslash-escaped double quote used to get split on
+        # the raw, still-escaped `"` instead of being treated as one path element, which
+        # both corrupted the resulting key and could silently invent a bogus nested dict
+        # (see GH-325)
+        config = ConfigFactory.parse_string(
+            """
+            "\\"b" = 1
+            """
+        )
+        assert config['"b'] == 1
+
     def test_dotted_notation_merge(self):
         config = ConfigFactory.parse_string(
             """
