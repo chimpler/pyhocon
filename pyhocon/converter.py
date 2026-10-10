@@ -164,13 +164,12 @@ class HOCONConverter(object):
                     )
                 lines += '\n'.join(bet_lines)
         elif isinstance(config, list):
-            config_list = [line for line in config if line is not None]
-            if len(config_list) == 0:
+            if len(config) == 0:
                 lines += '[]'
             else:
                 lines += '\n'
                 bet_lines = []
-                for item in config_list:
+                for item in config:
                     bet_lines.append('{indent}- {value}'.format(indent=''.rjust(level * indent, ' '),
                                                                 value=cls.to_yaml(item, compact, indent, level + 1)))
                 lines += '\n'.join(bet_lines)

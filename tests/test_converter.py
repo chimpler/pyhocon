@@ -1,6 +1,9 @@
 # -*- encoding: utf-8 -*-
 from datetime import timedelta
 
+import pytest
+import yaml
+
 from pyhocon import ConfigTree
 from pyhocon.converter import HOCONConverter
 
@@ -128,3 +131,17 @@ class TestConverterToHocon(object):
                                             (relativedelta(hours=2), 'td = 2 hours'),
                                             (relativedelta(minutes=43), 'td = 43 minutes'),):
             assert expected_result == to_hocon({'td': time_delta})
+
+
+@pytest.mark.parametrize('document, expected', [
+    ('values = [1, null, 2, null]', [1, None, 2, None]),
+    ('values = [null, null]', [None, None]),
+    ('values = [[null, 1], null, [2, null]]', [[None, 1], None, [2, None]]),
+    ('values = []', []),
+])
+def test_yaml_preserves_null_list_entries(document, expected):
+    from pyhocon import ConfigFactory
+
+    config = ConfigFactory.parse_string(document)
+    converted = HOCONConverter.to_yaml(config)
+    assert yaml.safe_load(converted) == {'values': expected}
