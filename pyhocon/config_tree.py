@@ -200,6 +200,9 @@ class ConfigTree(OrderedDict):
         :param str:
         :return:
         """
+        if string == '':
+            return ['']
+
         special_characters = '$}[]:=+#`^?!@*&.'
         tokens = re.findall(
             r'"[^"]+"|[^{special_characters}]+'.format(special_characters=re.escape(special_characters)), string)
