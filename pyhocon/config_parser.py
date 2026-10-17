@@ -606,6 +606,13 @@ class ConfigParser(object):
                     if overridden_value in [s.parent for s in substitutions]:
                         continue
 
+                    # A dotted reference cannot be traversed until its object prefixes resolve.
+                    variable_path = ConfigTree.parse_key(substitution.variable)
+                    if any(isinstance(config.get('.'.join(variable_path[:index]), None), ConfigValues)
+                           for index in range(1, len(variable_path))):
+                        any_unresolved = True
+                        continue
+
                     is_optional_resolved, resolved_value = cls._resolve_variable(config, substitution)
 
                     if isinstance(resolved_value, ConfigValues):
