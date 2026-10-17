@@ -267,13 +267,10 @@ class ConfigTree(OrderedDict):
 
         value = self.get(key, UndefinedKey)
         lst = ConfigTree.parse_key(key)
-        parent = self.KEY_SEP.join(lst[0:-1])
+        parent = self._get(lst[:-1]) if len(lst) > 1 else self
         child = lst[-1]
 
-        if parent:
-            self.get(parent).__delitem__(child)
-        else:
-            self.__delitem__(child)
+        parent.__delitem__(child)
         return value
 
     def get_int(self, key, default=UndefinedKey):

@@ -290,6 +290,42 @@ class TestConfigTree(object):
         assert config_tree.pop('"f.k"').as_plain_ordered_dict() == OrderedDict(g=OrderedDict(three=3))
         assert config_tree.as_plain_ordered_dict() == OrderedDict()
 
+    @pytest.mark.parametrize('key, sibling', [
+        ('"".child', 'child'),
+        ('outer."".child', 'outer.child'),
+        ('"".branch.child', 'branch.child'),
+        ('outer."".branch.child', 'outer.branch.child'),
+        ('""."".child', 'child'),
+        ('"a.b"."".child', '"a.b".child'),
+    ])
+    @pytest.mark.parametrize('value', [1, None])
+    @pytest.mark.parametrize('use_default', [False, True])
+    @pytest.mark.parametrize('with_sibling', [False, True])
+    def test_configtree_pop_empty_parent_components(self, key, sibling, value, use_default, with_sibling):
+        config_tree = ConfigTree()
+        config_tree.put(key, value)
+        if with_sibling:
+            config_tree.put(sibling, 'keep')
+
+        assert config_tree.get(key) == value
+        result = config_tree.pop(key, value) if use_default else config_tree.pop(key)
+
+        assert result == value
+        missing = object()
+        assert config_tree.get(key, missing) is missing
+        if with_sibling:
+            assert config_tree.get(sibling) == 'keep'
+
+    @pytest.mark.parametrize('source, key', [
+        ('"a.b" { child = 1 }', '"a.b".child'),
+        ('outer { "a.b" { child = 1 } }', 'outer."a.b".child'),
+        ('"a.b" { "c.d" { child = 1 } }', '"a.b"."c.d".child'),
+    ])
+    def test_configtree_pop_quoted_parent_components(self, source, key):
+        config_tree = ConfigFactory.parse_string(source)
+        assert config_tree.pop(key) == 1
+        assert config_tree.get(key, None) is None
+
     def test_keyerror_raised(self):
         config_tree = ConfigTree()
         config_tree.put("a", {'b': 5})
