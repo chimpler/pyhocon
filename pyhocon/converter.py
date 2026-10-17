@@ -180,7 +180,15 @@ class HOCONConverter(object):
             # if it contains a \n then it's multiline
             lines = config.split('\n')
             if len(lines) == 1:
-                lines = config
+                # Quote values that YAML could resolve as non-string scalars. The
+                # numeric prefix also covers timestamps and YAML 1.1/1.2 numbers.
+                if (not config or config != config.strip()
+                        or config.lower() in ('y', 'n', 'yes', 'no', 'on', 'off', 'true', 'false', 'null', '~', '=', '<<')
+                        or re.match(r'^[+-]?(?:[0-9]|\.[0-9]|\.inf$|\.nan$)', config, re.IGNORECASE)):
+                    lines = '"{value}"'.format(value=re.sub(
+                        r'[\x00-\x1f\x7f-\x9f\u2028\u2029"\\]', cls._escape_match, config))
+                else:
+                    lines = config
             else:
                 lines = '|\n' + '\n'.join([line.rjust(level * indent, ' ') for line in lines])
         elif config is None or isinstance(config, NoneValue):

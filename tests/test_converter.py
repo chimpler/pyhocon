@@ -1,7 +1,10 @@
 # -*- encoding: utf-8 -*-
 from datetime import timedelta
 
-from pyhocon import ConfigTree
+import pytest
+import yaml
+
+from pyhocon import ConfigFactory, ConfigTree
 from pyhocon.converter import HOCONConverter
 
 
@@ -128,3 +131,51 @@ class TestConverterToHocon(object):
                                             (relativedelta(hours=2), 'td = 2 hours'),
                                             (relativedelta(minutes=43), 'td = 43 minutes'),):
             assert expected_result == to_hocon({'td': time_delta})
+
+
+class TestConverterToYaml(object):
+    def test_quoted_hocon_boolean_string(self):
+        config = ConfigFactory.parse_string('noString: "no"')
+        converted = HOCONConverter.to_yaml(config)
+        assert converted == 'noString: "no"'
+        assert yaml.safe_load(converted) == {'noString': 'no'}
+
+    @pytest.mark.parametrize('value', [
+        'y', 'Y', 'n', 'N', 'yes', 'Yes', 'YES', 'no', 'No', 'NO',
+        'on', 'On', 'ON', 'off', 'Off', 'OFF',
+        'true', 'True', 'TRUE', 'false', 'False', 'FALSE',
+        'null', 'Null', 'NULL', '~', '', '=', '<<',
+        '0', '1', '-1', '+1', '012', '0o12', '0xFF', '0b101', '1_000',
+        '1.0', '-1.0', '+1.0', '.5', '-.5', '+.5', '1.', '1e3', '1.0e+3',
+        '.inf', '.Inf', '.INF', '-.inf', '+.inf', '.nan', '.NaN', '.NAN',
+        '1:20', '1:20.5', '2026-10-17', '2026-10-17T12:34:56Z',
+        ' ', ' no ', ' 123', 'hello ',
+        # Numeric prefixes are deliberately quoted conservatively.
+        '3d', '123-main', '1.2.3',
+        '123"quoted"', '123\\path', '123\tvalue', '123\rvalue',
+        '123\x00value', '123\x7fvalue', '123\x85value', '123\x9fvalue',
+        '123\u2028value', '123\u2029value', '123 café 😀',
+    ])
+    def test_preserve_string_scalar_types(self, value):
+        converted = HOCONConverter.to_yaml(value)
+        assert converted.startswith('"') and converted.endswith('"')
+        loaded = yaml.safe_load(converted)
+        assert isinstance(loaded, str)
+        assert loaded == value
+
+        config = ConfigTree({'nested': ConfigTree({'value': value}), 'values': [value]})
+        assert yaml.safe_load(HOCONConverter.to_yaml(config)) == {
+            'nested': {'value': value}, 'values': [value],
+        }
+
+    @pytest.mark.parametrize('value', ['a', 'hello world', 'nothing', 'nullify', 'trueish', 'Nope', 'café 😀'])
+    def test_preserve_plain_string_format(self, value):
+        assert HOCONConverter.to_yaml(value) == value
+        assert yaml.safe_load(HOCONConverter.to_yaml(ConfigTree({'value': value}))) == {'value': value}
+
+    @pytest.mark.parametrize('value', [True, False, None, 0, 42, -1, 1.5, -2.5])
+    def test_preserve_non_string_scalar_types(self, value):
+        converted = HOCONConverter.to_yaml(ConfigTree({'value': value}))
+        loaded = yaml.safe_load(converted)['value']
+        assert type(loaded) is type(value)
+        assert loaded == value
