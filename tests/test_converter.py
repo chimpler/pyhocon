@@ -1,8 +1,11 @@
 # -*- encoding: utf-8 -*-
 from datetime import timedelta
 
-from pyhocon import ConfigTree
+import pytest
+
+from pyhocon import ConfigFactory, ConfigTree
 from pyhocon.converter import HOCONConverter
+from pyhocon.period_serializer import relative_delta_to_timedelta
 
 
 def to_json(obj):
@@ -62,6 +65,28 @@ def to_hocon(obj):
 
 
 class TestConverterToHocon(object):
+    @pytest.mark.parametrize('compact', [False, True])
+    @pytest.mark.parametrize('source, expected', [
+        ('90 seconds', timedelta(seconds=90)),
+        ('1500 milliseconds', timedelta(milliseconds=1500)),
+        ('90000 seconds', timedelta(seconds=90000)),
+        ('90 minutes', timedelta(minutes=90)),
+        ('25 hours', timedelta(hours=25)),
+        ('1000001 microseconds', timedelta(microseconds=1000001)),
+        ('8640000000000001 microseconds', timedelta(days=100000, microseconds=1)),
+        ('0 seconds', timedelta(0)),
+        ('60 seconds', timedelta(seconds=60)),
+        ('3600 seconds', timedelta(seconds=3600)),
+        ('86400 seconds', timedelta(seconds=86400)),
+    ])
+    def test_roundtrip_fixed_duration(self, source, expected, compact):
+        config = ConfigFactory.parse_string('timeout = ' + source)
+        converted = HOCONConverter.to_hocon(config, compact=compact)
+        reparsed = ConfigFactory.parse_string(converted)['timeout']
+        if not isinstance(reparsed, timedelta):
+            reparsed = relative_delta_to_timedelta(reparsed)
+        assert reparsed == expected
+
     def test_escape_control_characters(self):
         assert r'a = "\u0000"' == to_hocon({'a': '\x00'})
         assert r'a = "\u0001"' == to_hocon({'a': '\x01'})

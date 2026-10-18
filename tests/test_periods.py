@@ -100,3 +100,47 @@ def test_format_time_delta():
                                         (timedelta(seconds=51), '51 seconds'),
                                         (timedelta(microseconds=786), '786 microseconds')):
         assert expected_result == timedelta_to_hocon(time_delta)
+
+
+@pytest.mark.parametrize('time_delta, expected_result', [
+    (timedelta(days=1, seconds=1), '86401 seconds'),
+    (timedelta(seconds=1, microseconds=500000), '1500000 microseconds'),
+    (timedelta(days=1, seconds=1, microseconds=1), '86401000001 microseconds'),
+    (timedelta(days=100000, microseconds=1), '8640000000000001 microseconds'),
+])
+def test_format_time_delta_multiple_components(time_delta, expected_result):
+    assert timedelta_to_hocon(time_delta) == expected_result
+
+
+@pytest.mark.parametrize('fields, expected_result', [
+    ({'minutes': 1, 'seconds': 30}, '90 seconds'),
+    ({'hours': 1, 'minutes': 30}, '90 minutes'),
+    ({'days': 1, 'hours': 1}, '25 hours'),
+    ({'days': 1, 'hours': 2, 'minutes': 3, 'seconds': 4, 'microseconds': 5}, '93784000005 microseconds'),
+    ({'days': 100000, 'microseconds': 1}, '8640000000000001 microseconds'),
+])
+def test_format_relativedelta_multiple_components(fields, expected_result):
+    relativedelta = pytest.importorskip('dateutil.relativedelta').relativedelta
+    assert timedelta_to_hocon(relativedelta(**fields)) == expected_result
+
+
+@pytest.mark.parametrize('time_delta, expected_result', [
+    (timedelta(seconds=-90), '86310 seconds'),
+    (timedelta(seconds=-1, microseconds=-1), '86398 seconds'),
+])
+def test_format_negative_time_delta_unchanged(time_delta, expected_result):
+    assert timedelta_to_hocon(time_delta) == expected_result
+
+
+@pytest.mark.parametrize('fields, expected_result', [
+    ({'years': 1, 'hours': 1, 'minutes': 30}, '1 hours'),
+    ({'months': 1, 'hours': 1, 'minutes': 30}, '1 hours'),
+    ({'leapdays': 1, 'days': 1, 'seconds': 1}, '1 days'),
+    ({'day': 1, 'hours': 1, 'minutes': 30}, '1 hours'),
+    ({'days': -1, 'hours': 1, 'minutes': 30}, '1 hours'),
+    ({'hours': 1, 'minutes': -30}, '1 hours'),
+    ({'days': 1.5, 'seconds': 1}, '1.5 days'),
+])
+def test_format_other_relativedelta_unchanged(fields, expected_result):
+    relativedelta = pytest.importorskip('dateutil.relativedelta').relativedelta
+    assert timedelta_to_hocon(relativedelta(**fields)) == expected_result
