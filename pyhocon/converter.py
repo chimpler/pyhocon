@@ -157,9 +157,13 @@ class HOCONConverter(object):
                     lines += '\n'
                 bet_lines = []
                 for key, item in config.items():
+                    key = cls._yaml_key(key)
+                    # YAML implicit keys cannot exceed 1024 characters.
+                    if len(key) > 1024:
+                        key = '? {key}\n{indent}'.format(key=key, indent=''.rjust(level * indent, ' '))
                     bet_lines.append('{indent}{key}: {value}'.format(
                         indent=''.rjust(level * indent, ' '),
-                        key=key.strip('"'),  # for dotted keys enclosed with "" to not be interpreted as nested key,
+                        key=key,
                         value=cls.to_yaml(item, compact, indent, level + 1))
                     )
                 lines += '\n'.join(bet_lines)
@@ -192,6 +196,18 @@ class HOCONConverter(object):
         else:
             lines = str(config)
         return lines
+
+    @classmethod
+    def _yaml_key(cls, key):
+        # ConfigTree retains quotes around literal dotted keys.
+        key = key.strip('"')
+        # Keep ordinary names readable, excluding YAML 1.1/1.2 implicit scalars.
+        if re.match(r'^[a-zA-Z_][a-zA-Z0-9_.-]*\Z', key) and key.lower() not in (
+                'y', 'n', 'yes', 'no', 'on', 'off', 'true', 'false', 'null'):
+            return key
+        # JSON quoting is valid YAML; additionally escape YAML control/line breaks.
+        quoted = json.dumps(key, ensure_ascii=False)
+        return re.sub(r'[\x7f-\x9f\u2028\u2029]', lambda match: r'\u%04x' % ord(match.group(0)), quoted)
 
     @classmethod
     def to_properties(cls, config, compact=False, indent=2, key_stack=None):

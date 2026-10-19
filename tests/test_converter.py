@@ -128,3 +128,92 @@ class TestConverterToHocon(object):
                                             (relativedelta(hours=2), 'td = 2 hours'),
                                             (relativedelta(minutes=43), 'td = 43 minutes'),):
             assert expected_result == to_hocon({'td': time_delta})
+
+
+class TestConverterToYamlKeys(object):
+    @staticmethod
+    def config_with_literal_keys(values):
+        # Match ConfigTree's representation of literal path/syntax characters.
+        return ConfigTree((('"' + key + '"') if any(char in '$}[]:=+#`^?!@*&.' for char in key) else key, value)
+                          for key, value in values.items())
+
+    def test_implicit_scalar_keys_remain_strings(self):
+        import yaml
+
+        keys = ['true', 'True', 'TRUE', 'false', 'False', 'FALSE',
+                'null', 'Null', 'NULL', '~', 'y', 'Y', 'n', 'N',
+                'yes', 'Yes', 'YES', 'no', 'No', 'NO',
+                'on', 'On', 'ON', 'off', 'Off', 'OFF',
+                '1', '123', '0', '-1', '+1', '01', '0o12', '0x10', '0b10',
+                '1.0', '1e3', '1E+3', '.inf', '-.Inf', '.nan', '1:20', '2026-10-19']
+        expected = dict((key, 'value-' + str(index)) for index, key in enumerate(keys))
+        actual = yaml.safe_load(HOCONConverter.to_yaml(self.config_with_literal_keys(expected)))
+        assert actual == expected
+        assert all(isinstance(key, str) for key in actual)
+        assert len(actual) == len(expected)
+        # Explicit string scalars also avoid YAML 1.2 resolver differences.
+        for node, _ in yaml.compose(HOCONConverter.to_yaml(self.config_with_literal_keys(expected))).value:
+            assert node.style == '"'
+            assert node.tag == 'tag:yaml.org,2002:str'
+
+    def test_yaml_syntax_keys_remain_strings(self):
+        import yaml
+
+        keys = [':', 'a: b', '#comment', 'a # b', '[item]', '{item}',
+                '*alias', '&anchor', '!tag', '? key', '- key', '|', '>', '%directive',
+                '---', '...', ' leading', 'trailing ', 'a"b', 'a\\b',
+                'a\nb', 'a\rb', 'a\tb', 'a\x00b', 'a\x7fb', 'a\x85b', 'a\x9fb',
+                'a\u2028b', 'a\u2029b', 'café', '😀']
+        expected = dict((key, 'value-' + str(index)) for index, key in enumerate(keys))
+        actual = yaml.safe_load(HOCONConverter.to_yaml(self.config_with_literal_keys(expected)))
+        assert actual == expected
+        assert all(isinstance(key, str) for key in actual)
+
+    def test_ordinary_key_output_is_unchanged(self):
+        config = ConfigTree([('alpha', 'first'), ('server_name', 'second'),
+                             ('key123', 'third'), ('trueish', 'fourth'), ('a-b', 'fifth')])
+        assert HOCONConverter.to_yaml(config) == (
+            'alpha: first\nserver_name: second\nkey123: third\ntrueish: fourth\na-b: fifth')
+
+    def test_quoted_dotted_key_output_is_unchanged(self):
+        assert HOCONConverter.to_yaml(ConfigTree({'"a.b"': 'value'})) == 'a.b: value'
+
+    def test_keys_in_nested_objects_and_lists(self):
+        import yaml
+
+        config = ConfigTree({'outer': ConfigTree({'true': 'first', '1': 'second'}),
+                             'items': [ConfigTree({'null': 'third', '123': 'fourth'})]})
+        assert yaml.safe_load(HOCONConverter.to_yaml(config)) == {
+            'outer': {'true': 'first', '1': 'second'},
+            'items': [{'null': 'third', '123': 'fourth'}]}
+
+    def test_long_key_boundaries(self):
+        import yaml
+
+        for key, explicit in [('é' * 1022, False), ('é' * 1023, True),
+                              ('a ' * 511 + 'b', True), ('a' * 1024, False), ('a' * 1025, True),
+                              ('a\nb' * 256, True)]:
+            config = self.config_with_literal_keys({key: 'value'})
+            output = HOCONConverter.to_yaml(config)
+            assert output.startswith('? ') == explicit
+            assert yaml.safe_load(output) == {key: 'value'}
+
+    def test_long_keys_nested_with_custom_indent(self):
+        import yaml
+
+        key = 'é' * 1023
+        inner = self.config_with_literal_keys({key: ConfigTree({'child': 'value'})})
+        config = ConfigTree({'outer': inner, 'items': [inner]})
+        expected = {'outer': {key: {'child': 'value'}}, 'items': [{key: {'child': 'value'}}]}
+        for indent in (2, 4):
+            output = HOCONConverter.to_yaml(config, indent=indent)
+            assert '\n' + ' ' * indent + '? ' in output
+            assert '\n' + ' ' * indent + ': ' in output
+            assert yaml.safe_load(output) == expected
+
+    def test_long_previously_readable_keys(self):
+        import yaml
+
+        for key in ['é' * 1023, 'a ' * 511 + 'b']:
+            output = HOCONConverter.to_yaml(ConfigTree({key: 'value'}))
+            assert yaml.safe_load(output) == {key: 'value'}
