@@ -37,6 +37,7 @@ class ConfigTree(OrderedDict):
         return result
 
     def __delitem__(self, key):
+        """Delete a key and discard its merge-boundary marker."""
         super(ConfigTree, self).__delitem__(key)
         self._non_mergeable_keys -= {key}
 
