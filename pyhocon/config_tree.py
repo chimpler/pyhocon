@@ -21,6 +21,7 @@ class ConfigTree(OrderedDict):
     KEY_SEP = '.'
 
     def __init__(self, *args, **kwds):
+        self._non_mergeable_keys = frozenset()
         self.root = kwds.pop('root') if 'root' in kwds else False
         if self.root:
             self.history = {}
@@ -29,6 +30,25 @@ class ConfigTree(OrderedDict):
             if isinstance(value, ConfigValues):
                 value.parent = self
                 value.index = key
+
+    def copy(self):
+        result = super(ConfigTree, self).copy()
+        result._non_mergeable_keys = self._non_mergeable_keys
+        return result
+
+    def __delitem__(self, key):
+        """Delete a key and discard its merge-boundary marker."""
+        super(ConfigTree, self).__delitem__(key)
+        self._non_mergeable_keys -= {key}
+
+    def popitem(self, last=True):
+        key, value = super(ConfigTree, self).popitem(last)
+        self._non_mergeable_keys -= {key}
+        return key, value
+
+    def clear(self):
+        super(ConfigTree, self).clear()
+        self._non_mergeable_keys = frozenset()
 
     @staticmethod
     def merge_configs(a, b, copy_trees=False):
@@ -41,8 +61,10 @@ class ConfigTree(OrderedDict):
         :return: merged config a
         """
         for key, value in b.items():
+            if key in a and isinstance(value, (ConfigTree, ConfigValues)) and not isinstance(a[key], (ConfigTree, ConfigValues)):
+                a._non_mergeable_keys |= {key}
             # if key is in both a and b and both values are dictionary then merge it otherwise override it
-            if key in a and isinstance(a[key], ConfigTree) and isinstance(b[key], ConfigTree):
+            if key not in b._non_mergeable_keys and key in a and isinstance(a[key], ConfigTree) and isinstance(value, ConfigTree):
                 if copy_trees:
                     a[key] = a[key].copy()
                 ConfigTree.merge_configs(a[key], b[key], copy_trees=copy_trees)
@@ -50,7 +72,7 @@ class ConfigTree(OrderedDict):
                 if isinstance(value, ConfigValues):
                     value.parent = a
                     value.key = key
-                    if key in a:
+                    if key in a and key not in b._non_mergeable_keys:
                         value.overridden_value = a[key]
                 a[key] = value
                 if a.root:
@@ -59,6 +81,7 @@ class ConfigTree(OrderedDict):
                     else:
                         a.history[key] = a.history.get(key, []) + [value]
 
+        a._non_mergeable_keys |= b._non_mergeable_keys
         return a
 
     def resolve(self, other):
@@ -90,6 +113,10 @@ class ConfigTree(OrderedDict):
     def _put(self, key_path, value, append=False):
         key_elt = key_path[0]
         if len(key_path) == 1:
+            # A concrete non-object between two objects prevents their merge,
+            # including when this tree is later merged into an outer object.
+            if key_elt in self and isinstance(value, (ConfigTree, ConfigValues)) and not isinstance(self[key_elt], (ConfigTree, ConfigValues)):
+                self._non_mergeable_keys |= {key_elt}
             # if value to set does not exist, override
             # if they are both configs then merge
             # if not then override
@@ -149,6 +176,8 @@ class ConfigTree(OrderedDict):
             next_config_tree = super(ConfigTree, self).get(key_elt)
             if not isinstance(next_config_tree, ConfigTree):
                 # create a new dictionary or overwrite a previous value
+                if key_elt in self and not isinstance(next_config_tree, ConfigValues):
+                    self._non_mergeable_keys |= {key_elt}
                 next_config_tree = ConfigTree()
                 self._push_history(key_elt, next_config_tree)
                 self[key_elt] = next_config_tree
