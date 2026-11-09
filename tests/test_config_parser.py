@@ -2720,3 +2720,65 @@ try:
         assert config['a'] == data_set[1]
 except ImportError:
     pass
+
+
+class TestChainedOptionalSubstitutions(object):
+
+    def test_default_survives_two_unset_optionals(self):
+        config = ConfigFactory.parse_string(
+            """
+            password = "123"
+            password = ${?SOME_ENV_VAR}
+            password = ${?ANOTHER_ENV_VAR}
+            """
+        )
+        assert config.get('password') == '123'
+
+    def test_default_survives_three_unset_optionals(self):
+        config = ConfigFactory.parse_string(
+            """
+            password = "123"
+            password = ${?V1}
+            password = ${?V2}
+            password = ${?V3}
+            """
+        )
+        assert config.get('password') == '123'
+
+    def test_last_set_optional_wins(self):
+        os.environ['ANOTHER_ENV_VAR'] = 'from-B'
+        try:
+            config = ConfigFactory.parse_string(
+                """
+                password = "123"
+                password = ${?SOME_ENV_VAR}
+                password = ${?ANOTHER_ENV_VAR}
+                """
+            )
+            assert config.get('password') == 'from-B'
+        finally:
+            del os.environ['ANOTHER_ENV_VAR']
+
+    def test_first_set_optional_wins_when_later_unset(self):
+        os.environ['SOME_ENV_VAR'] = 'from-A'
+        try:
+            config = ConfigFactory.parse_string(
+                """
+                password = "123"
+                password = ${?SOME_ENV_VAR}
+                password = ${?ANOTHER_ENV_VAR}
+                """
+            )
+            assert config.get('password') == 'from-A'
+        finally:
+            del os.environ['SOME_ENV_VAR']
+
+    def test_dict_default_survives_unset_optionals(self):
+        config = ConfigFactory.parse_string(
+            """
+            opts { a = 1 }
+            opts = ${?V1}
+            opts = ${?V2}
+            """
+        )
+        assert config['opts']['a'] == 1
