@@ -20,6 +20,19 @@ class NoneValue(object):
 class ConfigTree(OrderedDict):
     KEY_SEP = '.'
 
+    # escape sequences interpreted inside quoted keys and strings
+    ESCAPE_REPLACEMENTS = {
+        '\\\\': '\\',
+        '\\\n': '\n',
+        '\\n': '\n',
+        '\\r': '\r',
+        '\\t': '\t',
+        '\\=': '=',
+        '\\#': '#',
+        '\\!': '!',
+        '\\"': '"',
+    }
+
     def __init__(self, *args, **kwds):
         self.root = kwds.pop('root') if 'root' in kwds else False
         if self.root:
@@ -201,13 +214,42 @@ class ConfigTree(OrderedDict):
         :return:
         """
         special_characters = '$}[]:=+#`^?!@*&.'
-        tokens = re.findall(
-            r'"[^"]+"|[^{special_characters}]+'.format(special_characters=re.escape(special_characters)), string)
+        tokens = re.finditer(
+            r'(?P<quoted>"(?:[^"\\]|\\.)+")|(?P<unquoted>[^{special_characters}]+)'.format(
+                special_characters=re.escape(special_characters)), string)
+
+        def unescape(token):
+            return re.sub(
+                r'\\.',
+                lambda match: ConfigTree.ESCAPE_REPLACEMENTS.get(match.group(0), match.group(0)),
+                token)
 
         def contains_special_character(token):
             return any((c in special_characters) for c in token)
 
-        return [token if contains_special_character(token) else token.strip('"') for token in tokens]
+        parsed_keys = []
+        for match in tokens:
+            if match.group('quoted'):
+                # a quoted segment: unescape its content the same way quoted
+                # string values are unescaped, and keep it wrapped in quotes
+                # only when the unescaped content contains special characters
+                content = unescape(match.group('quoted')[1:-1])
+                if contains_special_character(content):
+                    parsed_keys.append('"' + content + '"')
+                else:
+                    parsed_keys.append(content)
+            else:
+                unquoted = match.group('unquoted')
+                if contains_special_character(unquoted):
+                    parsed_keys.append(unquoted)
+                elif len(unquoted) > 1:
+                    # unwrap the quotes this branch can swallow around
+                    # triple-quoted keys (e.g. """z""" -> z); a lone quote
+                    # character is itself the key, not a wrapper
+                    parsed_keys.append(unquoted.strip('"'))
+                else:
+                    parsed_keys.append(unquoted)
+        return parsed_keys
 
     def put(self, key, value, append=False):
         """Put a value in the tree (dot separated)

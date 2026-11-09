@@ -2720,3 +2720,27 @@ try:
         assert config['a'] == data_set[1]
 except ImportError:
     pass
+
+
+class TestEscapedQuotedKeys(object):
+
+    def test_key_with_escaped_quote(self):
+        config = ConfigFactory.parse_string('"\\"": "hi!"')
+        assert dict(config) == {'"': 'hi!'}
+        assert config.get('"') == 'hi!'
+
+    def test_key_with_escaped_quote_in_middle(self):
+        config = ConfigFactory.parse_string('"a\\"b": "hi"')
+        assert dict(config) == {'a"b': 'hi'}
+
+    def test_key_with_escaped_tab(self):
+        config = ConfigFactory.parse_string('"a\\tb": "hi"')
+        assert dict(config) == {'a\tb': 'hi'}
+
+    def test_key_with_escaped_backslash(self):
+        config = ConfigFactory.parse_string('"a\\\\b": "hi"')
+        assert dict(config) == {'a\\b': 'hi'}
+
+    def test_escaped_quote_key_roundtrip_with_get(self):
+        config = ConfigFactory.parse_string('x { "he said \\"hi\\"" = 1 }')
+        assert config['x']['he said "hi"'] == 1
