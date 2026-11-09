@@ -182,17 +182,7 @@ class ConfigParser(object):
     Parse HOCON files: https://github.com/typesafehub/config/blob/master/HOCON.md
     """
 
-    REPLACEMENTS = {
-        '\\\\': '\\',
-        '\\\n': '\n',
-        '\\n': '\n',
-        '\\r': '\r',
-        '\\t': '\t',
-        '\\=': '=',
-        '\\#': '#',
-        '\\!': '!',
-        '\\"': '"',
-    }
+    REPLACEMENTS = ConfigTree.ESCAPE_REPLACEMENTS
 
     @classmethod
     def parse(cls, content, basedir=None, resolve=True, unresolved_value=DEFAULT_SUBSTITUTION):

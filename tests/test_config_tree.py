@@ -350,3 +350,20 @@ class TestConfigTree(object):
         assert result.get_string('nested.value.a') == "string"
         assert result.get_int('nested.value.b') == 10
         assert config != result
+
+
+class TestParseKey(object):
+
+    def test_parse_key_escaped_quote(self):
+        assert ConfigTree.parse_key('"\\\""') == ['"']
+
+    def test_parse_key_lone_quote_roundtrip(self):
+        # a stored key that is a lone quote must not be erased to '' when
+        # it goes through parse_key again (put/get round-trip)
+        assert ConfigTree.parse_key('"') == ['"']
+
+    def test_parse_key_triple_quoted(self):
+        assert ConfigTree.parse_key('"""z"""') == ['z']
+
+    def test_parse_key_quoted_segment_with_escapes(self):
+        assert ConfigTree.parse_key('a."b\\"c"') == ['a', 'b"c']
