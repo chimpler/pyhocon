@@ -543,9 +543,17 @@ class ConfigParser(object):
             # use a deepcopy of resolved_value to avoid mutation
             config_values.put(substitution.index, copy.deepcopy(formatted_resolved_value))
             transformation = config_values.transform()
-            result = config_values.overridden_value \
-                if transformation is None and not is_optional_resolved \
-                else transformation
+            if transformation is None and not is_optional_resolved:
+                # fall back to the overridden value; when several optional
+                # overrides are chained, the immediate overridden value can
+                # itself be an already spent ConfigValues, so walk the chain
+                # back to the first value that still resolves
+                result = config_values.overridden_value
+                while (isinstance(result, ConfigValues) and result.transform() is None
+                        and result.overridden_value is not None):
+                    result = result.overridden_value
+            else:
+                result = transformation
 
             # When the result is None, remove the key.
             if result is None and config_values.key in config_values.parent:
