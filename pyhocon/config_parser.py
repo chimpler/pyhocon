@@ -1,6 +1,7 @@
 import codecs
 import contextlib
 import copy
+import json
 import logging
 import os
 import re
@@ -210,13 +211,17 @@ class ConfigParser(object):
         """
 
         unescape_pattern = re.compile(r'\\.')
+        quoted_unescape_pattern = re.compile(r'(?:\\u[0-9a-fA-F]{4})+|\\.')
 
         def replace_escape_sequence(match):
             value = match.group(0)
+            if value.startswith('\\u') and len(value) > 2:
+                # Decode adjacent escapes together so JSON surrogate pairs combine.
+                return json.loads('"' + value + '"')
             return cls.REPLACEMENTS.get(value, value)
 
-        def norm_string(value):
-            return unescape_pattern.sub(replace_escape_sequence, value)
+        def norm_string(value, pattern=unescape_pattern):
+            return pattern.sub(replace_escape_sequence, value)
 
         def unescape_string(tokens):
             return ConfigUnquotedString(norm_string(tokens[0]))
@@ -250,7 +255,7 @@ class ConfigParser(object):
         def create_quoted_string(instring, loc, token):
             # remove the ${ and }
             match = re.match(STRING_PATTERN, token[0])
-            value = norm_string(match.group('value'))
+            value = norm_string(match.group('value'), quoted_unescape_pattern)
             ws = match.group('ws')
             return ConfigQuotedString(value, ws, instring, loc)
 
