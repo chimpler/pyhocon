@@ -2674,6 +2674,54 @@ www.example-ö.com {
         assert config == expected
         assert config == json.loads(source)
 
+    @pytest.mark.parametrize('value', [
+        r'\u0021',
+        r'\u4e2d\u6587',
+        r'\u00e9\u03A9',
+        r'\uD83D\uDE00',
+        r'\ud834\udd1e',
+        r'\uD800\uDC00\uDBFF\uDFFF',
+        r'\uD800',
+        r'\uDC00',
+        r'\uD800\u0041',
+        r'\u0000\u0008\u000c\u000a',
+        r'\u0022\u005c',
+        r'\\u0021',
+        r'\\\u0021',
+        r'\u005cu0021',
+        r'\u005c\u0075\u0030\u0030\u0032\u0031',
+        r'\n\u0021\t\\u4e2d',
+        '中文é😀',
+        '',
+    ])
+    def test_unicode_escape_json_equivalence(self, value):
+        source = '{"value": "' + value + '"}'
+        assert ConfigFactory.parse_string(source) == json.loads(source)
+
+    def test_unicode_escape_concatenation_and_substitution(self):
+        config = ConfigFactory.parse_string(
+            r'prefix = "\u4e2d"' + '\n'
+            + r'value = ${prefix}"\u6587""\uD83D\uDE00"' + '\n'
+            + r'values = ["\u0021", "\\u0021"]'
+        )
+        assert config['value'] == '中文😀'
+        assert config['values'] == ['!', r'\u0021']
+
+    @pytest.mark.parametrize('value', [r'\u0021', r'\uD83D\uDE00', r'\\u0021'])
+    def test_unicode_escapes_in_multiline_strings_are_literal(self, value):
+        config = ConfigFactory.parse_string('value = """\n' + value + '\n"""')
+        assert config['value'] == '\n' + value + '\n'
+
+    @pytest.mark.parametrize('value', [r'\u0021', r'\uD83D\uDE00', r'\\u0021'])
+    def test_unicode_escapes_in_unquoted_strings_are_unchanged(self, value):
+        config = ConfigFactory.parse_string('value = ' + value)
+        assert config['value'] == value.replace('\\\\', '\\')
+
+    @pytest.mark.parametrize('value', [r'\u', r'\u12', r'\u12xz', r'\q', r'\!\=\#'])
+    def test_unicode_escapes_preserve_existing_non_json_escapes(self, value):
+        config = ConfigFactory.parse_string('value = "' + value + '"')
+        assert config['value'] == ('!=#' if value == r'\!\=\#' else value)
+
     def test_nested_substitution(self):
         config = ConfigFactory.parse_file("samples/substitutions.d/child.conf")
         assert config.get_int("foo.foo-inner.foo-sub") == 11
