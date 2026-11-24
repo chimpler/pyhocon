@@ -141,6 +141,9 @@ If `-c` is used, HOCON will use a compact representation for nested dictionaries
 
 ####  .properties
 
+Literal backslashes in string values, such as Windows paths and regular expressions,
+are escaped so that Java `Properties.load()` restores the original backslashes.
+
     $ cat samples/database.conf | pyhocon -f properties
 
     databases.active = true

@@ -1,7 +1,9 @@
 # -*- encoding: utf-8 -*-
 from datetime import timedelta
 
-from pyhocon import ConfigTree
+import pytest
+
+from pyhocon import ConfigFactory, ConfigTree
 from pyhocon.converter import HOCONConverter
 
 
@@ -128,3 +130,42 @@ class TestConverterToHocon(object):
                                             (relativedelta(hours=2), 'td = 2 hours'),
                                             (relativedelta(minutes=43), 'td = 43 minutes'),):
             assert expected_result == to_hocon({'td': time_delta})
+
+
+class TestConverterToProperties(object):
+    @pytest.mark.parametrize('value, escaped', [
+        (r'C:\temp\new', r'C:\\temp\\new'),
+        (r'\d+\s*', r'\\d+\\s*'),
+        (r'\u0041', r'\\u0041'),
+        (r'\uZZZZ', r'\\uZZZZ'),
+        ('end\\', 'end\\\\'),
+        ('end\\\\', 'end\\\\\\\\'),
+        (r'\=\!\#', r'\\\=\\\!\\\#'),
+        ('plain', 'plain'),
+        ('', ''),
+        ('a=b!c#d', r'a\=b\!c\#d'),
+        ('quoted "value"', 'quoted "value"'),
+    ])
+    def test_string_value_escapes(self, value, escaped):
+        config = ConfigTree({'value': value, 'next': 'kept'})
+        assert HOCONConverter.to_properties(config) == 'value = ' + escaped + '\nnext = kept'
+
+    def test_nested_and_list_backslash_values(self):
+        config = ConfigTree({
+            'nested': ConfigTree({'path': r'C:\temp'}),
+            'patterns': [r'\d+', 'end\\'],
+        })
+        assert HOCONConverter.to_properties(config) == (
+            r'nested.path = C:\\temp' + '\n'
+            + r'patterns.0 = \\d+' + '\n'
+            + 'patterns.1 = end\\\\'
+        )
+
+    def test_parsed_hocon_backslash_values(self):
+        config = ConfigFactory.parse_string(
+            'path = """C:\\temp\\new"""\npattern = """\\d+"""'
+        )
+        assert config['path'] == r'C:\temp\new'
+        assert HOCONConverter.convert(config, 'properties') == (
+            r'path = C:\\temp\\new' + '\n' + r'pattern = \\d+'
+        )
