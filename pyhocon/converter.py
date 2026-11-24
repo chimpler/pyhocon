@@ -204,7 +204,7 @@ class HOCONConverter(object):
         key_stack = key_stack or []
 
         def escape_value(value):
-            return value.replace('=', '\\=').replace('!', '\\!').replace('#', '\\#').replace('\n', '\\\n')
+            return value.replace('\\', '\\\\').replace('=', '\\=').replace('!', '\\!').replace('#', '\\#').replace('\n', '\\\n')
 
         stripped_key_stack = [key.strip('"') for key in key_stack]
         lines = []

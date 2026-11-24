@@ -1,5 +1,9 @@
 # Changelog
 
+# Unreleased
+
+* Preserve literal backslashes in string values exported to Java `.properties`, including Windows paths, regular expressions, and trailing backslashes.
+
 # Version 0.3.63
 
 * Fix wrong parameter name for pyparsing Keyword (@CribberSix) [#343]
